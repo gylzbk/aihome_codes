@@ -578,7 +578,7 @@ static int bt_avk_module_stop(struct mozart_module_struct *self)
 	mozart_bluetooth_disconnect(USE_HS_AVK);
 	mozart_bluetooth_set_visibility(false, false);
 
-	mozart_speech_asr_startup(VOICE_WAKEUP);
+	//mozart_speech_asr_startup(VOICE_WAKEUP);
 
 	return 0;
 }

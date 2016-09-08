@@ -127,6 +127,7 @@ int mozart_speech_asr_start(void)
 
 static __attribute__((unused)) int mozart_vr_speech_interface_callback(vr_info *recog_info)
 {
+#if 0
 	char *result;
 	char *recog_asr_result = NULL;
 	char *asr_result = NULL;
@@ -162,8 +163,8 @@ static __attribute__((unused)) int mozart_vr_speech_interface_callback(vr_info *
 		mozart_smartui_asr_fail("语音识别失败");
 		mozart_speech_asr_over();
 	}
-
-	return CLOUD;
+#endif
+	return 0;//CLOUD;
 }
 
 static void *stop_func(void *args)

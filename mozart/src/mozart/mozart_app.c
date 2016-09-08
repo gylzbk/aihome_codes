@@ -25,6 +25,12 @@
 
 #include "mozart_app.h"
 
+#include "mozart_config.h"
+#if  SUPPORT_AISPEECH
+#include "vr-speech_interface.h"
+#include "aiengine_app.h"
+#endif
+
 static int stop_flag;
 
 static void *time_depends_run_func(void *data)
@@ -85,15 +91,8 @@ static void mozart_startup_prompt(void)
 
 int startall(int depend_network)
 {
-	int wakeup_mode_mark = VOICE_KEY_MIX_WAKEUP;
+	int wakeup_mode_mark = SUPPORT_VR_WAKEUP;
 
-#if (SUPPORT_VR_WAKEUP == VR_WAKEUP_VOICE)
-	wakeup_mode_mark = VOICE_WAKEUP;
-#elif (SUPPORT_VR_WAKEUP == VR_WAKEUP_KEY_SHORTPRESS)
-	wakeup_mode_mark = KEY_SHORTPRESS_WAKEUP;
-#elif (SUPPORT_VR_WAKEUP == VR_WAKEUP_KEY_LONGPRESS)
-	wakeup_mode_mark = KEY_LONGPRESS_WAKEUP;
-#endif
 
 	if (depend_network & APP_DEPEND_NO_NET) {
 		mozart_smartui_startup();
