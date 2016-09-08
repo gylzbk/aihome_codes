@@ -377,7 +377,7 @@ int mozart_dmr_shutdown(void)
 	if (dmr_module.stop && __mozart_dmr_is_start())
 		dmr_module.stop(&dmr_module, module_cmd_stop, false);
 	if (!mozart_module_unregister(&dmr_module))
-		mozart_render_terminate();
+		mozart_render_terminate_fast();
 
 	return 0;
 }
