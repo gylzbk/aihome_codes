@@ -1,0 +1,26 @@
+{
+  "env": "production",
+  "alink": {
+    "server": "alink.tcp.aliyun.com",
+    "port": 443,
+    "name": "WONDERS",
+    "model": "WONDERS_ENTERTAINMENT_ATALK_DS1825",
+    "manufacture": "WONDERS",
+    "key": "onZGIN88wtVY6pyBTC9o",
+    "secret": "8j3zDvtFpqTVxH0wHw7mEBv2WTuR3EVLzNu6HsZN",
+    "type": "ATALK",
+    "category": "ENTERTAINMENT",
+    "sn": "",
+    "version": "1.0.0",
+    "mac": "02:22:6C:00:00:24",
+    "cid": "02:22:6C:00:00:24",
+    "thread_num": 1
+  },
+  "web_service": {
+    "url": "https://iot.aliyun.com",
+    "timeout_ms": 3000,
+    "capath": "/usr/fs/etc/atalk/ca.pem"
+  },
+  "voice_prompt_dir": "/usr/fs/usr/share/atalk/",
+  "waiting_sound_path": "/usr/fs/usr/atalk/tone/Loading.mp3"
+}
