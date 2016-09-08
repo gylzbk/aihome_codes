@@ -23,6 +23,9 @@ output/target/
 output/target/*
 output/mozart/*
 
+update/*
+version/*
+
 tools/device-tools/test/otact
 tools/host-tools/nvgen/nvgen
 
