@@ -141,12 +141,22 @@ static bool switch_net_config(void)
 	new_mode.cmd = SW_NETCFG;
 	new_mode.param.network_config.timeout = 120;
 	strcpy(new_mode.name, global_app_name);
-	strcpy(new_mode.param.network_config.method, netcfg_method_str[ATALK]);
+	strcpy(new_mode.param.network_config.wl_module, netcfg_method_str[BROADCOM]);
 	strcpy(new_mode.param.network_config.product_model, "WONDERS_ENTERTAINMENT_ATALK_DS1825");
-
+//	new_mode.param.network_config.method |= 0x01;
+   //new_mode.param.network_config.method |= 0x01;
+   //ATALK = 0x01 or AIRKISS_WE = 0x04 means can use airkiss and atalk at the same time,new_mode.param.network_config.method |= 0x05
+//   new_mode.param.network_config.method |= 0x05;		//		atalk  (0x01) + airkiss (0x04)
+#if (SUPPORT_NETWORK == NETWORK_ATALK_AIRKISS)
+	new_mode.param.network_config.method |= 0x0C;		//		cooee  (0x08) + airkiss (0x04)
+#elif(SUPPORT_NETWORK == NETWORK_COOEE_AIRKISS)
+	new_mode.param.network_config.method |= 0x05;		//		atalk  (0x01) + airkiss (0x04)
+#else
+	new_mode.param.network_config.method |= 0x05;		//		atalk  (0x01) + airkiss (0x04)
+#endif
 	if (request_wifi_mode(new_mode)) {
 		return true;
-	} else {
+	}else{
 		pr_err("Request SW_NETCFG Failed\n");
 		return false;
 	}

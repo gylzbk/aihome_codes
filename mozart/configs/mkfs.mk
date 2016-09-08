@@ -240,9 +240,9 @@ rootfs-$(1)-updater-prepare:
 	ln -sf /tmp/resolv.conf $(UPDATERFS_DIR)/etc/resolv.conf
 	ln -sf /usr/fs/var/www $(UPDATERFS_DIR)/var/www
 	ln -sf /usr/fs/usr/share/render $(UPDATERFS_DIR)/usr/share/render
-ifeq ("$(SUPPORT_VR)", "vr_speech")
-	ln -sf /usr/fs/usr/share/vr/bin $(UPDATERFS_DIR)/usr/share/vr/bin
-endif
+#ifeq ("$(SUPPORT_VR)", "vr_speech")
+#	ln -sf /usr/fs/usr/share/vr/bin $(UPDATERFS_DIR)/usr/share/vr/bin
+#endif
 ifeq ("$(SUPPORT_LAPSULE)","1")
 	ln -sf /usr/lib/libwifi.so $(UPDATERFS_DIR)/usr/lib/libwifi_interface.so
 endif
