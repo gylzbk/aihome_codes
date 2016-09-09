@@ -1,6 +1,8 @@
 target := mozart
 mozart_DIR := $(TOPDIR)/src/mozart
 
+mozart_DEPENDENCIES := libaiserver
+
 TARGETS += mozart
 TARGETS1 += mozart
 
