@@ -323,8 +323,12 @@ static int play_handler(json_object *cmd)
 		send_player_state_change(player_stop_state);
 		return -1;
 	}
+	if(url == NULL){
+		return -1;
+	}
 
 	free(current_url);
+	current_url = NULL;
 	current_url = strdup(url);
 
 	if (ret > 0) {
@@ -408,6 +412,11 @@ static int play_voice_prompt_handler(json_object *cmd)
 
 	url = json_object_get_string(uri);
 
+	if (url == NULL){
+		return -1;
+	}
+
+
 	if (!play_tone_get_source(mp3_src, "atalk_entry_13") && !strcmp(url, mp3_src)) {
 		free(play_prompt);
 		play_prompt = strdup("栏目订阅");
@@ -483,7 +492,10 @@ static int net_state_change_handler(json_object *cmd)
 static int update_cache_handler(json_object *cmd)
 {
 	struct update_msg *msg;
-	json_object *params, *uri, *title, *artist, *vendor;
+	json_object *params, *uri_j, *title_j, *artist_j, *vendor_j;
+	const char *uri = NULL;
+	const char *title = NULL;
+	const char *artist = NULL;
 
 	if (up_die) {
 		printf("[Error] %s. Download function not work\n", __func__);
@@ -492,13 +504,13 @@ static int update_cache_handler(json_object *cmd)
 
 	if (!json_object_object_get_ex(cmd, "params", &params))
 		return -1;
-	if (!json_object_object_get_ex(params, "uri", &uri))
+	if (!json_object_object_get_ex(params, "uri", &uri_j))
 		return -1;
-	if (!json_object_object_get_ex(params, "title", &title))
+	if (!json_object_object_get_ex(params, "title", &title_j))
 		return -1;
-	if (!json_object_object_get_ex(params, "artist", &artist))
+	if (!json_object_object_get_ex(params, "artist", &artist_j))
 		return -1;
-	if (!json_object_object_get_ex(params, "vendor", &vendor))
+	if (!json_object_object_get_ex(params, "vendor", &vendor_j))
 		return -1;
 
 	msg = malloc(sizeof(struct update_msg));
@@ -507,12 +519,23 @@ static int update_cache_handler(json_object *cmd)
 		return -1;
 	}
 
-	msg->uri = strdup(json_object_get_string(uri));
-	msg->title = strdup(json_object_get_string(title));
-	msg->artist = strdup(json_object_get_string(artist));
-	if (!msg->uri || !msg->title || !msg->artist) {
+	uri = json_object_get_string(uri_j);
+	title = json_object_get_string(title_j);
+	artist = json_object_get_string(artist_j);
+
+	if (!uri || !title || !artist) {
 		printf("[Error] %s. uri or title: %s\n", __func__, strerror(errno));
 		goto err_node_str;
+	}
+
+	if(uri){
+		msg->uri = strdup(uri);
+	}
+	if(title){
+		msg->title = strdup(title);
+	}
+	if(title){
+		msg->artist = strdup(artist);
 	}
 
 	pthread_mutex_lock(&q_lock);
@@ -692,6 +715,7 @@ static void *atalk_cli_func(void *args)
 {
 	char cmd[512];
 
+	pthread_detach(pthread_self());
 	while (1) {
 		int i;
 		const char *method;
@@ -942,6 +966,7 @@ static void atalk_list_destroy(void *data)
 
 static void *atalk_update_queue_handle_func(void *data)
 {
+	pthread_detach(pthread_self());
 	char dir_target[] = {"/mnt/sdcard/atalk-favorite"};
 	char *path_title = NULL;
 	int title_size;
@@ -1165,7 +1190,7 @@ int atalk_cloudplayer_startup(void)
 			       __func__, strerror(errno));
 			return -1;
 		}
-		pthread_detach(atalk_thread);
+//		pthread_detach(atalk_thread);
 
 		up_die = 0;
 		list_init(&atalk.up_queue_list);

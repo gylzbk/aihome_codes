@@ -225,6 +225,8 @@ static void mozart_avk_resample_data_callback(avk_callback_msg *avk_msg)
 
 static void *bt_avk_display_handler(void *args)
 {
+
+	pthread_detach(pthread_self());
 	int i, col_num, data[100];
 
 	while (1) {
@@ -345,6 +347,7 @@ static void mozart_bt_aec_resample_data_callback(bt_aec_resample_msg *bt_aec_rms
 
 static void *thr_fn(void *args)
 {
+	pthread_detach(pthread_self());
 	int i = 0;
 	bt_init_info bt_info;
 	char bt_name[64] = {};
@@ -491,12 +494,12 @@ static int start_bt(void)
 	if (err != 0)
 		printf("can't create thread: %s\n", strerror(err));
 
-	pthread_detach(p_tid);
+//	pthread_detach(p_tid);
 
 	err = pthread_create(&bt_avk_display_thread, NULL, bt_avk_display_handler, NULL);
 	if (err != 0)
 		pr_err("Create bt_avk_display pthread: %s\n", strerror(err));
-	pthread_detach(bt_avk_display_thread);
+//	pthread_detach(bt_avk_display_thread);
 
 	return 0;
 }

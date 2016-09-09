@@ -70,6 +70,8 @@ int mozart_battery_update(void)
 
 static void *battery_func(void *args)
 {
+
+	pthread_detach(pthread_self());
 	while (!battery_exit) {
 		mozart_battery_update();
 		sleep(60);
@@ -86,7 +88,7 @@ int mozart_battery_startup(void)
 		pr_err("Create pthread fail!\n");
 		return -1;
 	}
-	pthread_detach(battery_pthread);
+//	pthread_detach(battery_pthread);
 
 	return 0;
 }

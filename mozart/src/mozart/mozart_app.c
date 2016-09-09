@@ -36,6 +36,7 @@ static int stop_flag;
 
 static void *time_depends_run_func(void *data)
 {
+	pthread_detach(pthread_self());
 	int err;
 
 	while (!stop_flag) {
@@ -74,7 +75,7 @@ static int time_depends_start(void)
 		printf("[APP] [Error] %s. Pthread create: %s\n", __func__, strerror(errno));
 		return -1;
 	}
-	pthread_detach(thread_time);
+//	pthread_detach(thread_time);
 	return 0;
 }
 

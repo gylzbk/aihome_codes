@@ -17,6 +17,8 @@ bool stop_broadcast = false;
 
 void *version_broadcast_func(void *arg)
 {
+
+	pthread_detach(pthread_self());
 	int sockfd = -1;
 	char *ret = NULL;
 
@@ -79,10 +81,10 @@ int start_version_broadcast_thread(void)
 		return -1;
 	}
 
-	if (pthread_detach(version_broadcast_thread)) {
+/*	if (pthread_detach(version_broadcast_thread)) {
 		printf("pthread_create error: %s\n", strerror(errno));
 		return -1;
-	}
+	}//*/
 
 	return 0;
 }

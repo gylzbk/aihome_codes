@@ -257,6 +257,7 @@ int mozart_prompt_tone_key_sync(char *key, bool in_lock)
 
 static void *prompt_tone_key_func(void *args)
 {
+	pthread_detach(pthread_self());
 	mozart_prompt_tone_key_sync((char *)args, false);
 
 	return NULL;
@@ -270,7 +271,7 @@ int mozart_prompt_tone_key(char *key)
 		pr_err("Create prompt tone key pthread failed: %s.\n", strerror(errno));
 		return -1;
 	}
-	pthread_detach(prompt_tone_pthread);
+//	pthread_detach(prompt_tone_pthread);
 
 	return 0;
 }
