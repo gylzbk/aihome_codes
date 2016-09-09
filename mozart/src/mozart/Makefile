@@ -25,7 +25,7 @@ PREFIX = /usr
 INITDIR = /etc/init.d/
 SBINDIR = $(PREFIX)/sbin
 
-SRCS = mozart.c mozart_module.c mozart_app.c mozart_event.c mozart_smartui.c mozart_player.c
+SRCS = mozart.c mozart_module.c mozart_app.c mozart_event.c mozart_player.c
 SRCS += modules/mozart_prompt_tone.c modules/mozart_net.c modules/mozart_linein.c modules/mozart_dmr.c
 SRCS += mozart_battery.c mozart_misc.c
 
@@ -58,6 +58,14 @@ else
   else ifeq ("$(VR)","vr_atalk")
     LDFLAGS += -lvr_atalk
     SRCS += modules/atalk/mozart_atalk_asr.c
+  endif
+endif
+
+ifeq ("$(BOARD)","0")
+$(warning vr func are CLOSED!!!!)
+else
+  ifeq ("$(BOARD)","board_ds1825")
+    SRCS += mozart_smartui.c
   endif
 endif
 
