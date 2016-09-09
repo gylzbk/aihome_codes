@@ -2,6 +2,7 @@
 #define __MOZART_SMARTUI_H__
 
 #include <stdbool.h>
+#include "mozart_config.h"
 
 extern char *mozart_smartui_owner(void);
 extern bool mozart_smartui_is_boot_view(void);
@@ -19,7 +20,12 @@ extern void mozart_smartui_battery_update(int capacity, int online);
 extern void mozart_smartui_startup(void);
 extern void mozart_smartui_shutdown(void);
 extern void mozart_smartui_boot_start(void);
+#if SUPPORT_BOARD==BOARD_DS1825
 extern void mozart_smartui_boot_build_display(char *s);
+#endif
+#if SUPPORT_BOARD==board_wb38
+extern void mozart_smartui_boot_build_display(char *s, int type);
+#endif
 extern void mozart_smartui_boot_display(char *s);
 extern void mozart_smartui_boot_welcome(void);
 extern void mozart_smartui_boot_local(void);
@@ -59,5 +65,9 @@ extern void mozart_smartui_update(void);
 extern void mozart_smartui_update_start(void);
 extern void mozart_smartui_update_progress(int percent);
 extern void mozart_smartui_update_cancel(void);
+
+#if SUPPORT_BOARD==BOARD_WB38
+extern void mozart_smartui_weather_start(char *area, char *weather, char*temperature, char *wind);
+#endif
 
 #endif	/* __MOZART_SMARTUI_H__ */

@@ -66,6 +66,8 @@ $(warning vr func are CLOSED!!!!)
 else
   ifeq ("$(BOARD)","board_ds1825")
     SRCS += mozart_smartui.c
+  else ifeq ("$(BOARD)","board_wb38")
+    SRCS += mozart_smartui_wb38.c
   endif
 endif
 

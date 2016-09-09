@@ -324,7 +324,13 @@ static int __network_configure_error_handler(char *s)
 	module_mutex_lock(&net_mode_lock);
 	if (global_net_mode != NET_MODE_SW_STA)
 		return -1;
+#if SUPPORT_BOARD==BOARD_DS1825
 	mozart_smartui_boot_build_display("尝试恢复网络连接");
+#endif
+
+#if SUPPORT_BOARD==board_wb38
+	mozart_smartui_boot_build_display("尝试恢复网络连接", 0);
+#endif
 	usleep(1000 * 1000);
 
 	return 0;
@@ -673,7 +679,13 @@ int mozart_net_startup(void)
 		global_net_mode = NET_MODE_BOOT_STA;
 	else
 		pr_err("Request SW_STA Failed\n");
+
+#if SUPPORT_BOARD==BOARD_DS1825
 	mozart_smartui_boot_build_display("正在连接网络");
+#endif
+#if SUPPORT_BOARD==board_wb38
+	mozart_smartui_boot_build_display("正在连接网络", 0);
+#endif
 
 	return 0;
 }
