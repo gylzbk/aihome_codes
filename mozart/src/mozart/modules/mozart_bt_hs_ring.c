@@ -32,6 +32,7 @@ static int bt_ring;
 
 static void *bt_hs_ring_play_prompt_func(void *data)
 {
+	pthread_detach(pthread_self());
 	while (bt_ring == true)
 		mozart_prompt_tone_key_sync("bt_call", false);
 	return NULL;
@@ -55,7 +56,7 @@ static int bt_hs_ring_prompt(void)
 		pr_err("Create pthread: %s\n", strerror(errno));
 		return -1;
 	}
-	pthread_detach(prompt_thread);
+//	pthread_detach(prompt_thread);
 
 	return 0;
 }

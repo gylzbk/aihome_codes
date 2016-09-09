@@ -188,6 +188,7 @@ static bool key_responsing(void)
 
 void *key_reponser(void *arg)
 {
+	pthread_detach(pthread_self());
 	update_status cur_status = get_status();
 
 	update_pkg *pkg = NULL;
@@ -274,10 +275,10 @@ int start_update_thread(void)
 		return -1;
 	}
 
-	if (pthread_detach(update_thread)) {
+/*	if (pthread_detach(update_thread)) {
 		printf("pthread_detach error: %s(Ignored!!)\n", strerror(errno));
 		return 0;
-	}
+	}	//*/
 
 	return 0;
 }

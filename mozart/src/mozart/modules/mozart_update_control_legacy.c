@@ -142,6 +142,8 @@ static int update_new_version_check(uint32_t new_ver)
 
 static void *update_control_play_prompt_func(void *data)
 {
+
+	pthread_detach(pthread_self());
 	mozart_prompt_tone_key_sync("atalk_update_new_31", false);
 	return NULL;
 }
@@ -156,7 +158,7 @@ static int update_control_prompt(void)
 		pr_err("Create pthread: %s\n", strerror(errno));
 		return -1;
 	}
-	pthread_detach(prompt_thread);
+//	pthread_detach(prompt_thread);
 
 	return 0;
 }

@@ -196,6 +196,8 @@ static struct key_long_press_struct help_key_info = {
 
 static void *key_long_press_func(void *args)
 {
+
+	pthread_detach(pthread_self());
 	struct timeval now;
 	struct timespec timeout;
 	struct key_long_press_struct *info = (struct key_long_press_struct *)args;
@@ -248,7 +250,7 @@ static void create_key_long_press_pthread(struct key_long_press_struct *info)
 		pr_err("Create key long press pthread failed: %s.\n", strerror(errno));
 		return ;
 	}
-	pthread_detach(info->pthread);
+//	pthread_detach(info->pthread);
 }
 
 static void key_long_press_cancel(struct key_long_press_struct *info)

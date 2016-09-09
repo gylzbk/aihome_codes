@@ -596,6 +596,7 @@ static int network_callback(const char *p)
 
 static void *net_config_func(void *args)
 {
+	pthread_detach(pthread_self());
 	module_mutex_lock(&net_mode_lock);
 	__net_config_func();
 	module_mutex_unlock(&net_mode_lock);
@@ -610,7 +611,7 @@ int create_wifi_config_pthread(void)
 		pr_err("Create wifi config pthread failed: %s.\n", strerror(errno));
 		return -1;
 	}
-	pthread_detach(net_config_pthread);
+//	pthread_detach(net_config_pthread);
 
 	return 0;
 }
