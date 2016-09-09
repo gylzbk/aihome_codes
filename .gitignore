@@ -13,10 +13,12 @@ cscope.*
 *.stamp_host_installed
 *._*
 *.sh~
+*build.sh
+
 
 update/*
 version/*
-./*.sh
+
 
 
 mozart/src/mozart/mozart
