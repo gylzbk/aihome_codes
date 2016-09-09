@@ -893,9 +893,8 @@ enum net_mode_enum {
 	NET_MODE_STA,
 };
 
-void mozart_smartui_boot_build_display(char *s, int type)
+void mozart_smartui_boot_build_display(char *s)
 {
-#if 1
 	pthread_mutex_lock(&mutex);
 
 	if (mozart_smartui_build_boot_view())
@@ -907,30 +906,6 @@ void mozart_smartui_boot_build_display(char *s, int type)
 	mozart_smartui_sync();
 
 	pthread_mutex_unlock(&mutex);
-#endif
-
-#ifndef SUPPORY_REFRESH_PIC
-	switch (type) {
-		case NET_MODE_INVALID:
-		case NET_MODE_BOOT_STA:
-		case NET_MODE_SW_NETCFG:
-		case NET_MODE_CFG_START:
-		case NET_MODE_CFG_CANCEL:
-		case NET_MODE_CFG_STA:
-		case NET_MODE_SW_STA:
-		case NET_MODE_SW_STA_ALLTIME:{
-			mozart_smartui_start_refreash_pic(REFRESH_PIC_NET);
-		}
-		break;
-		case NET_MODE_STA:{
-			mozart_smartui_stop_refreash_pic_show();
-		}
-		break;
-		default:
-		break;
-	}
-#endif
-
 }
 
 void mozart_smartui_boot_display(char *s)

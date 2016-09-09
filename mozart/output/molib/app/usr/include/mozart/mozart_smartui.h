@@ -20,12 +20,7 @@ extern void mozart_smartui_battery_update(int capacity, int online);
 extern void mozart_smartui_startup(void);
 extern void mozart_smartui_shutdown(void);
 extern void mozart_smartui_boot_start(void);
-#if SUPPORT_BOARD==BOARD_DS1825
 extern void mozart_smartui_boot_build_display(char *s);
-#endif
-#if SUPPORT_BOARD==board_wb38
-extern void mozart_smartui_boot_build_display(char *s, int type);
-#endif
 extern void mozart_smartui_boot_display(char *s);
 extern void mozart_smartui_boot_welcome(void);
 extern void mozart_smartui_boot_local(void);
