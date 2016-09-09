@@ -153,9 +153,9 @@ static inline int hub_recv(char *buffer, size_t len)
 
 static inline int hub_send(char *buffer, size_t len)
 {
-	return sendto(atalk.client_sockfd, buffer, len, 0,
-		      (struct sockaddr *)&atalk.client_addr,
-		      sizeof(struct sockaddr_un));
+	return sendto(atalk.client_sockfd, buffer, len, MSG_DONTWAIT,
+ 		      (struct sockaddr *)&atalk.client_addr,
+ 		      sizeof(struct sockaddr_un));
 }
 
 #define send_result_obj(cmd, result_obj)	\
