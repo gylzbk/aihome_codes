@@ -387,12 +387,18 @@ board_type_define_config:
 	@echo "#define BOARD_DS1825 1" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "#define BOARD_WB38 2" >> $(MOZART_DIR)/usr/include/mozart_config.h
 board_public_config: board_type_define_config
+	@echo "SUPPORT_BOARD=board_public" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
 	@echo "#define SUPPORT_BOARD BOARD_PUBLIC" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 board_ds1825_config: board_type_define_config
+	@echo "SUPPORT_BOARD=board_ds1825" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
 	@echo "#define SUPPORT_BOARD BOARD_DS1825" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 board_wb38_config: board_type_define_config
+	@echo "SUPPORT_BOARD=board_wb38" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
 	@echo "#define SUPPORT_BOARD BOARD_WB38" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 
@@ -808,7 +814,18 @@ ds1825_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare produc
 		smartui_enable_config webrtc_aec_enable_config\
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
-		board_ds1825_config netowrk_cooee_airkiss_config aispeech_enable_config\
+		board_ds1825_config netowrk_atalk_airkiss_config aispeech_enable_config\
+		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
+		atalk_enable_config adb_enable_config battery_nv_flag_enable_config\
+		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
+	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
+
+wb38_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_aslmom_v1.0_ap6212a_config \
+		wifi_ap6212a_atalk_config bt_ap6212a_config bt_hci_dev_ttyS0_config \
+		smartui_enable_config webrtc_aec_enable_config\
+		audio_dev_x1000_config dmr_enable_config dms_disable_config \
+		airplay_enable_config localplayer_enable_config \
+		board_wb38_config netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
 		atalk_enable_config adb_enable_config battery_nv_flag_enable_config\
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
