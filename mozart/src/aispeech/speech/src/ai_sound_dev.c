@@ -265,6 +265,7 @@ int sound_aec_disable(void)
 
 void *dmic_read(void *args)
 {
+	pthread_detach(pthread_self());
 	is_dmic_running = true;
 	int status = 0;
 	char bufdmic[AEC_SIZE] = {0};
@@ -295,11 +296,12 @@ void *dmic_read(void *args)
 result:
 	DEBUG("----------------------------------------------------> Stop dmic_read\n");
 	is_dmic_running = false;
-	pthread_exit(&status);
+//	pthread_exit(&status);
 }
 
 void *loopback_read(void *args)
 {
+	pthread_detach(pthread_self());
 	is_loopback_running = true;
 	int  status = 0;
 	char bufloop_tmp[AEC_SIZE * 6] = {0};
@@ -362,8 +364,10 @@ result:
 	DEBUG("----------------------------------------------------> Stop loopback_read\n");
 
 	is_loopback_running = false;
-	pthread_exit(&status);
+//	pthread_exit(&status);
 }
+
+
 void sound_wake_end(void){
 	int count = 0;
 	while(is_loopback_running || is_dmic_running){

@@ -177,7 +177,6 @@ int ai_aec(echo_wakeup_t *ew)
 
    	aec_wakeup_flag = AEC_START;
 //------------------------------------------------------- start dmic_read thread
-#if 1//THREAD_ERROR_NO_RESTART
 	ret = pthread_create(&tid1, NULL, dmic_read, NULL);
 	if (ret != 0){
 		PERROR("pthread_create dmic_read failed,error = %d \n",ret);
@@ -186,35 +185,9 @@ int ai_aec(echo_wakeup_t *ew)
 		error_flag = true;
 		goto aec_end_working;
 	}
-	pthread_detach(tid1);
-#else
-	for (error_count=0;error_count<3;error_count++){
-		aec_wakeup_flag = AEC_START;
-		ret = pthread_create(&tid1, NULL, dmic_read, NULL);
-		if (ret == 0){
-			break;
-		}
-		else{
-			timeout_count = 0;
-			aec_wakeup_flag = AEC_WAKEUP_TID1_EXIT;
-			pthread_join(tid1, &tret);
-			printf("pthread_create dmic_read failed\n,error = %d \n",ret);
-			while(is_dmic_running){
-				usleep(100);
-				timeout_count++;
-				if (timeout_count > 1000)
-					break;
-			}
-		}
-	}
-	if (error_count >=3){
-		error_flag = true;
-		goto agn_end_exit;
-	}
-#endif
+//	pthread_detach(tid1);
 
 //------------------------------------------------------- start loopback_read thread
-#if 1//  THREAD_ERROR_NO_RESTART
 	ret = pthread_create(&tid2, NULL, loopback_read, NULL);
 	if (ret != 0){
 		PERROR("pthread_create loopback_read failed,error = %d \n",ret);
@@ -222,34 +195,7 @@ int ai_aec(echo_wakeup_t *ew)
 	    aec_wakeup_flag = AEC_END;
 		goto aec_end_working;
 	}
-	pthread_detach(tid2);
-#else
-	for (error_count=0;error_count<3;error_count++){
-		aec_wakeup_flag = AEC_START;
-		ret = pthread_create(&tid2, NULL, loopback_read, NULL);
-		if (ret == 0){
-			break;
-		}
-		else{
-			timeout_count = 0;
-			aec_wakeup_flag = AEC_WAKEUP_TID2_EXIT;
-			pthread_join(tid2,&tret);
-			printf("pthread_create loopback_read failed,error = %d \n",ret);
-			while(is_loopback_running){
-				usleep(100);
-				timeout_count++;
-				if (timeout_count > 1000)
-					break;
-			}
-		}
-	}
-	if (error_count >=3){
-		error_flag = true;
-	    aec_wakeup_flag = AEC_WAKEUP_TID1_EXIT;
-	    pthread_join(tid1,&tret);
-		goto agn_end_exit;
-	}
-#endif
+//	pthread_detach(tid2);
 
     printf("Please Speak(唤醒词：你好小乐) ...\n");
 //------------------------------------------------------- start aec_handle thread

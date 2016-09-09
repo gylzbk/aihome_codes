@@ -638,6 +638,7 @@ int ai_set_enable(bool enable){
 }
 
 void *ai_run(void *arg){
+	pthread_detach(pthread_self());
 	int error = 0;
 //	DEBUG("=========================== ai_run: %s\n", aiengineStatus[recog.status]);
 //	ai_init_data();
@@ -705,7 +706,7 @@ exit_error:
 	//	ai_to_mozart();
 	}
 	ai_exit();
-	pthread_exit(&error);
+//	pthread_exit(&error);
 }
 
 int ai_exit(void){
@@ -787,9 +788,8 @@ int mozart_key_wakeup(void){
 }
 #endif
 
-int ai_speech_set_status(vr_speech_status_type status){
+void ai_speech_set_status(vr_speech_status_type status){
 	vr_speech_status = status;
-	return 1;
 }
 
 int ai_speech_get_status(){
@@ -813,7 +813,7 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 		PERROR("Can't create voice_recog_thread in : %s\n",strerror(errno));
 		goto exit_error;
 	}
-	pthread_detach(voice_recog_thread);//*/
+//	pthread_detach(voice_recog_thread);//*/
 exit_error:
 	DEBUG("mozart_vr_speech_startup finish.\n");
 	return 0;

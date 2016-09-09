@@ -415,6 +415,7 @@ exit_command:
 					mozart_prompt_tone_key_sync("volume_max", false);
 					#endif
 					free(recog->volume);
+					recog->volume = NULL;
 					recog->volume = strdup("100");
 				}	//*/
 				else if(strcmp(recog->volume, "min") == 0){
@@ -422,6 +423,7 @@ exit_command:
 					mozart_prompt_tone_key_sync("volume_min", false);
 					#endif
 					free(recog->volume);
+					recog->volume = NULL;
 					recog->volume = strdup("0");
 				}	//*/
 				else {

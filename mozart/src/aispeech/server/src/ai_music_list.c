@@ -84,16 +84,24 @@ int ai_music_list_add_music(music_info *music)
 		PERROR("Error: music->url = null\n");
 		error = -1;
 		goto exit_error;
-
 	}
 	//---------------------list is not full ,add to end
 	if (music_list.music_num < MUSIC_LIST_MAX){
 		free(music_list.music[music_list.music_num].url);
-		music_list.music[music_list.music_num].url = strdup(music->url);
+		music_list.music[music_list.music_num].url =NULL;
 		free(music_list.music[music_list.music_num].artist);
-		music_list.music[music_list.music_num].artist = strdup(music->artist);
+		music_list.music[music_list.music_num].artist =NULL;
 		free(music_list.music[music_list.music_num].title);
-		music_list.music[music_list.music_num].title = strdup(music->title);
+		music_list.music[music_list.music_num].title =NULL;
+		if (music->url){
+			music_list.music[music_list.music_num].url = strdup(music->url);
+		}
+		if (music->artist){
+			music_list.music[music_list.music_num].artist = strdup(music->artist);
+		}
+		if (music->title){
+			music_list.music[music_list.music_num].title = strdup(music->title);
+		}
 		music_list.music_num ++;
 	}
 	//--------------------list is full ,clean hand and  add to end
@@ -109,9 +117,22 @@ int ai_music_list_add_music(music_info *music)
 			music_list.music[i-1].artist= music_list.music[i].artist;
 			music_list.music[i-1].title= music_list.music[i].title;
 		}
-		music_list.music[music_list.music_num-1].url = strdup(music->url);
-		music_list.music[music_list.music_num-1].artist = strdup(music->artist);
-		music_list.music[music_list.music_num-1].title = strdup(music->title);
+		//--------------- copy music info to list end.
+		free(music_list.music[music_list.music_num-1].url);
+		music_list.music[music_list.music_num-1].url = NULL;
+		free(music_list.music[music_list.music_num-1].artist);
+		music_list.music[music_list.music_num-1].artist = NULL;
+		free(music_list.music[music_list.music_num-1].title);
+		music_list.music[music_list.music_num-1].title = NULL;
+		if (music->url){
+			music_list.music[music_list.music_num-1].url = strdup(music->url);
+		}
+		if (music->artist){
+			music_list.music[music_list.music_num-1].artist = strdup(music->artist);
+		}
+		if (music->title){
+			music_list.music[music_list.music_num-1].title = strdup(music->title);
+		}
 	}
 	#if 0
 	DEBUG("music_num = %d\n",music_list.music_num);

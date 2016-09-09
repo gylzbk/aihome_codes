@@ -173,6 +173,7 @@ static __attribute__((unused)) int mozart_vr_speech_interface_callback(vr_info *
 
 static void *stop_func(void *args)
 {
+	pthread_detach(pthread_self());
 	usleep(100*1000);
 	mozart_smartui_asr_over();
 	if (speech_asr_module.stop)
@@ -194,7 +195,7 @@ int mozart_speech_asr_over(void)
 		pr_err("create display delay fail\n");
 		return -1;
 	}
-	pthread_detach(stop_pthread);
+//	pthread_detach(stop_pthread);
 	return 0;
 }
 

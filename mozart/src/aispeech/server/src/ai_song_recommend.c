@@ -339,7 +339,7 @@ music_info *ai_song_recommend_push(void){
 			ai_song_update_list.is_update_success = false;
 			ai_song_update_list.geted_number = 0;
 			ai_song_update_list.song_number =0;
-			DEBUG("Get recommend song server   time= %d!... \n",count);
+			DEBUG("Get recommend song server time= %d!... \n",count);
 			//------------------------------- SONG_RECOMMEND_TYPE_AUTO
 			if((ai_song_update_list.type == SONG_RECOMMEND_TYPE_AUTO)
 			 ||(ai_song_update_list.search_artist == NULL)){
@@ -385,6 +385,7 @@ void ai_song_recommend_artist(char *artist){
 	DEBUG("Get artist songs\n");
 	if(artist == NULL){
 		PERROR("artist = NULL! \n");
+		return;
 	}
 
 	free(ai_song_update_list.search_artist);
@@ -402,7 +403,7 @@ void ai_song_recommend_artist(char *artist){
 		#endif
 	}
 }
-
+#if 0
 void *ai_song_recommend_auto_thr(void *args)
 {
 	int status= 0;
@@ -430,13 +431,9 @@ void *ai_song_recommend_auto_thr(void *args)
 	}
 	pthread_exit(&status);
 }
-
+#endif
 
 int ai_song_recommend_auto(void){
- //   pthread_t tid = 0;
-//	int ret;
-//	int error = 0;
-
 	ai_song_recommend_push();
 	if (ai_song_update_list.is_update_success == true){
 		DEBUG("Get song recommend successful, auto play music now.\n");
@@ -445,13 +442,6 @@ int ai_song_recommend_auto(void){
 		aitalk_pipe_put(aitalk_play_music_json(NULL));
 		#endif
 	}
-/*	ret = pthread_create(&tid, NULL, ai_song_recommend_auto_thr, NULL);
-	if (ret){
-		error = -1;
-		goto exit;
-	}
-	pthread_detach(tid);
-exit:	//*/
 	return 0;
 }
 

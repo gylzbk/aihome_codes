@@ -539,6 +539,7 @@ static void time_upload(char * const local_path, const char * const remote_path)
 
 void * mozat_log_update(void * arg)
 {
+	pthread_detach(pthread_self());
 	sleep(20);
 
 	char remote_path[15] = {0};
@@ -571,7 +572,7 @@ static int connect_update_server(void)
 		return -1;
 	}
 
-	pthread_detach(log_pthread_send);
+//	pthread_detach(log_pthread_send);
 
 	return 0;
 }
