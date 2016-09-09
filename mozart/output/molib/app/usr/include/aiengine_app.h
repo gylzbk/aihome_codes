@@ -19,10 +19,9 @@
 #define CLOUD_TTS_MP3 "/tmp/speech_asr_result.mp3"
 #define AI_CONTROL_MOZART 0
 
-#define AI_CONTROL_MOZART_ATALK 0
+#define AI_CONTROL_MOZART_ATALK 1
 
 #include "vr-speech_interface.h"
-extern int mozart_vr_speech_interface_callback(vr_info * recog_info);
 
 extern int aec_wakeup_flag ;
 extern int asr_mode_cfg;
@@ -109,6 +108,10 @@ extern int ai_tts_time(char *data);
 extern int ai_tts_play_time(void);
 extern int ai_tts(char *data,int enable_stop);
 extern int time_subtract(unsigned long *dff,struct timeval x, struct timeval y);
+
+extern int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback);
+extern int ai_speech_shutdown(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -30,7 +30,7 @@ SRCS += modules/mozart_prompt_tone.c modules/mozart_net.c modules/mozart_linein.
 SRCS += mozart_battery.c mozart_misc.c
 
 # common opts.
-CFLAGS = -fPIC -Wall -g -O2 -I. -I$(MOLIB_DIR)/usr/include -I$(MOLIB_UPDATER_DIR)/usr/include -I$(MOZART_DIR)/usr/include -I$(DIR_CUR)/include/
+CFLAGS = -fPIC -Wall -g -O2 -I. -I$(MOLIB_DIR)/usr/include  -I$(MOLIB_DIR)/usr/include/mozart -I$(MOLIB_UPDATER_DIR)/usr/include -I$(MOZART_DIR)/usr/include -I$(DIR_CUR)/include/
 CFLAGS += -rdynamic -fasynchronous-unwind-tables -Wall -Werror
 #CFLAGS += -DFIXED_VOLUME
 #CFLAGS += -DMOZART_RELEASE
@@ -49,8 +49,8 @@ else
     LDFLAGS += -lmovr
     SRCS += vr.c
   else ifeq ("$(VR)","vr_speech")
-    LDFLAGS += -lvr_speech
-    SRCS += modules/mozart_speech_asr.c
+    LDFLAGS += -laiserver -laispeech 
+    SRCS += modules/aitalk/mozart_aispeech.c
   else ifeq ("$(VR)","vr_iflytek")
     LDFLAGS += -lvr_iflytek
     SRCS += vr.c
@@ -69,6 +69,14 @@ $(warning lcd func CLOSED!!!!)
 endif
 
 ifeq ($(ATALK),1)
+LDFLAGS += -lwifi -ltips -lutils -lplayer -lvolume -lsharememory -ljson-c -llinklist -lcurl -lssl -lcrypto -lz -lrt
+SRCS += modules/atalk/mozart_atalk.c modules/atalk/mozart_atalk_localplayer.c modules/atalk/mozart_atalk_cloudplayer.c
+SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c modules/atalk/dl_perform.c
+else
+$(warning atalk func CLOSED!!!!)
+endif
+
+ifeq ($(AITALK),1)
 LDFLAGS += -lwifi -ltips -lutils -lplayer -lvolume -lsharememory -ljson-c -llinklist -lcurl -lssl -lcrypto -lz -lrt
 SRCS += modules/atalk/mozart_atalk.c modules/atalk/mozart_atalk_localplayer.c modules/atalk/mozart_atalk_cloudplayer.c
 SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c modules/atalk/dl_perform.c
@@ -126,7 +134,7 @@ else
 endif
 
 
-OBJS = $(patsubst %.c, %.c.o, $(SRCS))
+OBJS = $(patsubst %.c, %.o, $(SRCS))
 TARGET = mozart
 
 all:$(TARGET)

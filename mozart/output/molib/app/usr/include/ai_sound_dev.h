@@ -11,9 +11,10 @@
 #define RATE			16000
 #define BIT				16
 #define VOLUME				50
-#define VOLUME_AEC_HIGHT			40	//	35	//	20
-#define VOLUME_AEC_LOUDLY			40	//	40	//	30
-#define VOLUME_AEC_LOW				40	//	45	//	35
+#define VOLUME_AEC			40	//	45	//	35
+//#define VOLUME_AEC_HIGHT			40	//	35	//	20
+//#define VOLUME_AEC_LOUDLY			40	//	40	//	30
+//#define VOLUME_AEC_LOW				40	//	45	//	35
 #define CHANEL	1
 #define MS		32
 /* ioctl command */

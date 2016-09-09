@@ -29,6 +29,14 @@
 #include "mozart_player.h"
 #include "mozart_atalk_cloudplayer_control.h"
 
+#include "vr-speech_interface.h"
+
+#if  SUPPORT_AISPEECH
+#include "vr-speech_interface.h"
+#include "aiengine_app.h"
+#include "mozart_aispeech.h"
+#endif
+
 #ifndef MOZART_RELEASE
 #define MOZART_ATALK_CLOUDPLAYER_CONTROL_DEBUG
 #endif

@@ -12,26 +12,29 @@ cscope.*
 *.stamp_target_installed
 *.stamp_host_installed
 *._*
-
-src/mozart/mozart
-src/sd_updater/update
-output/fs/
-output/fs/*
-output/host/
-output/host/*
-output/target/
-output/target/*
-output/mozart/*
+*.sh~
 
 update/*
 version/*
+./*.sh
 
-tools/device-tools/test/otact
-tools/host-tools/nvgen/nvgen
 
-output/molib/app/usr/lib/libaispeech.so
-src/aispeech/speech/libaispeech.so
-output/molib/app/usr/lib/libaiserver.so
-src/aispeech/server/libaiserver.so
-src/aispeech/server/libs/libaicjson.so
-src/aispeech/server/libaiserver.so
+mozart/src/mozart/mozart
+mozart/src/sd_updater/update
+mozart/output/fs/
+mozart/output/fs/*
+mozart/output/host/
+mozart/output/host/*
+mozart/output/target/
+mozart/output/target/*
+mozart/output/mozart/*
+
+mozart/tools/device-tools/test/otact
+mozart/tools/host-tools/nvgen/nvgen
+
+mozart/src/aispeech/speech/libaispeech.so
+
+mozart/output/molib/app/usr/lib/libaispeech.so
+mozart/src/aispeech/speech/libaispeech.so
+mozart/output/molib/app/usr/lib/libaiserver.so
+mozart/src/aispeech/server/libaiserver.so

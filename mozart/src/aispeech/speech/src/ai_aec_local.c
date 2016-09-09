@@ -113,7 +113,7 @@ int ai_aec(echo_wakeup_t *ew)
     aec_wakeup_flag = AEC_START;
 	g_aec_stop_flag = 0;
 	int aec_able_status = false;
-	int volume_set = VOLUME_AEC_LOW;
+	int volume_set = VOLUME_AEC;
 	int status = 0;
 /*	int vol = mozart_volume_get();
 	if (vol >= 70){
@@ -140,14 +140,6 @@ int ai_aec(echo_wakeup_t *ew)
 	fdp = open(name_file,O_RDWR|O_CREAT|O_TRUNC,0777);
 	record_count ++;
 #endif
-	//audio_type type = get_audio_type();
-	//if(AUDIO_ALSA == type)
-		;//no_aec = 1;
-
-//	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-//		error_flag = true;
-//		goto error_exit;
-//	}
 
     /* reset echo engine */
     echo_wakeup_reset(ew);
@@ -261,8 +253,7 @@ int ai_aec(echo_wakeup_t *ew)
 
     printf("Please Speak(唤醒词：你好小乐) ...\n");
 //------------------------------------------------------- start aec_handle thread
-#if 1
-DEBUG("----------------------------------------------------> Start aec_handle\n");
+	DEBUG("-----------------------------------> Start aec_handle\n");
 	while (AEC_WAKEUP != aec_wakeup_flag && AEC_END != aec_wakeup_flag
 		&& !error_flag && !aec_end_flag) {
 		status = read(fddmic[0], bufr, AEC_SIZE);
@@ -277,7 +268,6 @@ DEBUG("----------------------------------------------------> Start aec_handle\n"
 		status = read(fdplay[0], bufp, AEC_SIZE);
 		if (status != AEC_SIZE) {
 			if (status == 0) {
-				/* printf("read fdplay[0] 0 bytes, as write end is closed\n"); */
 				goto aec_end_working;
 			} else {
 				printf("read fdplay[0] err not AEC_SIZE\n");
@@ -289,55 +279,9 @@ DEBUG("----------------------------------------------------> Start aec_handle\n"
 				write(fdr, bufr, AEC_SIZE);
 				write(fdp, bufp, AEC_SIZE);
 		#endif	//*/
-		/* gettimeofday(&tpstart,NULL); */
 		echo_wakeup_process(ew, bufr, bufp, AEC_SIZE);
 	}
 	aec_wakeup_flag = AEC_END;
-#else
-#if 1//  THREAD_ERROR_NO_RESTART
-	ret = pthread_create(&tid3, NULL, aec_handle, ew);
-	if (ret != 0){
-		PERROR("pthread_create aec_handle failed,error = %d \n",ret);
-		error_flag = true;
-		/* force other pthread exit */
-	    aec_wakeup_flag = AEC_WAKEUP_TID2_EXIT;
-	    pthread_join(tid2,&tret);
-	    aec_wakeup_flag = AEC_WAKEUP_TID1_EXIT;
-	    pthread_join(tid1,&tret);
-		goto agn_end_exit;
-	}
-#else
-	for (error_count=0;error_count<3;error_count++){
-		aec_wakeup_flag = AEC_START;
-		ret = pthread_create(&tid3, NULL, aec_handle, ew);
-		if (ret == 0){
-			break;
-		}
-		else{
-			timeout_count = 0;
-			aec_wakeup_flag = AEC_WAKEUP;
-			pthread_join(tid3,&tret);
-			printf("pthread_create aec_handle failed,error = %d \n",ret);
-			while(is_aec_read_running){
-				usleep(100);
-				timeout_count++;
-				if (timeout_count > 1000)
-					break;
-			}
-		}
-	}
-	if (error_count >=3){
-		printf("pthread_create aec_handle failed,error = %d \n",ret);
-		error_flag = true;
-		/* force other pthread exit */
-	    aec_wakeup_flag = AEC_WAKEUP_TID2_EXIT;
-	    pthread_join(tid2,&tret);
-	    aec_wakeup_flag = AEC_WAKEUP_TID1_EXIT;
-	    pthread_join(tid1,&tret);
-		goto agn_end_exit;
-	}
-#endif
-#endif
 
 aec_end_working:
 	sound_wake_end();

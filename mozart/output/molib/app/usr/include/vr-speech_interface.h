@@ -28,6 +28,12 @@ typedef enum aiengine_status{
 	AIENGINE_STATUS_MAX
 }aiengine_status;
 
+typedef enum vr_speech_status_type{
+	STATUS_NULL = 0,
+	VR_SPEECH_INIT,
+	VR_SPEECH_QUIT,
+	VR_SPEECH_ERROR
+}vr_speech_status_type;
 
 typedef enum aec_status_t{
 	AEC_STATUS_INVALID =0,
@@ -238,17 +244,17 @@ typedef int (*mozart_vr_speech_callback)(vr_info * recog_info);
 /**
  * @brief checkout statue voice recognition of speech
  */
-extern int mozart_vr_speech_get_status(void);
+extern int ai_speech_get_status(void);
 
 /**
  * @brief init voice recognition of speech
  */
-extern int mozart_vr_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback);
+extern int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback);
 
 /**
  * @brief quit voice recognition of speech
  */
-extern int mozart_vr_speech_shutdown(void);
+extern int ai_speech_shutdown(void);
 
 /**
  * @brief wakeup voice recognition of speech

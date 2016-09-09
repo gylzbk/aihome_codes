@@ -5,7 +5,7 @@ STRIP := mipsel-linux-strip
 AR = mipsel-linux-ar
 CC = mipsel-linux-gcc
 CFLAGS := -g -fPIC -O2 -Werror -I$(MOLIB_DIR)/usr/include  -I$(MOLIB_UPDATER_DIR)/usr/include
-CFLAGS += -I$(MOLIB_DIR)/usr/include #-I./include
+CFLAGS += -I$(MOLIB_DIR)/usr/include -I$(MOLIB_DIR)/usr/include/mozart
 CFLAGS += -I$(MOLIB_DIR)/include -I$(MOLIB_DIR)/include/curl -I$(MOLIB_DIR)/include/tingfm
 LDFLAGS := -shared -lm -lpthread -L$(MOLIB_DIR)/usr/lib -L$(MOLIB_UPDATER_DIR)/usr/lib \
 	  -lini \

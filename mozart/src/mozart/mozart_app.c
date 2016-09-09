@@ -12,7 +12,7 @@
 #include "mozart_net.h"
 #include "mozart_atalk.h"
 #if (SUPPORT_VR == VR_SPEECH)
-#include "mozart_speech_asr.h"
+#include "mozart_aispeech.h"
 #endif
 #include "mozart_dmr.h"
 #include "mozart_airplay.h"
@@ -29,6 +29,7 @@
 #if  SUPPORT_AISPEECH
 #include "vr-speech_interface.h"
 #include "aiengine_app.h"
+#include "mozart_aispeech.h"
 #endif
 
 static int stop_flag;
@@ -103,13 +104,6 @@ int startall(int depend_network)
 		mozart_net_startup();
 		mozart_atalk_cloudplayer_startup();
 		mozart_atalk_localplayer_startup();
-#if 0
-#if (SUPPORT_VR == VR_SPEECH)
-		mozart_speech_asr_startup(wakeup_mode_mark);
-#else
-		mozart_atalk_asr_startup();
-#endif
-#endif
 
 		mozart_bt_avk_startup();
 		mozart_bt_hs_startup();
@@ -120,7 +114,12 @@ int startall(int depend_network)
 	if (depend_network & APP_DEPEND_NET) {
 		mozart_dmr_startup();
 		mozart_airplay_startup();
-		mozart_speech_asr_startup(wakeup_mode_mark);
+#if (SUPPORT_VR == VR_SPEECH)
+		mozart_speech_startup(wakeup_mode_mark);
+#elif (SUPPORT_VR == VR_ATALK)
+		mozart_atalk_asr_startup();
+#else
+#endif
 	}
 
 	if (depend_network & APP_DEPEND_NET_STA) {
@@ -142,13 +141,7 @@ int stopall(int depend_network)
 
 		mozart_atalk_cloudplayer_shutdown();
 		mozart_atalk_localplayer_shutdown();
-#if 0
-#if (SUPPORT_VR == VR_SPEECH)
-		mozart_speech_asr_shutdown();
-#else
-		mozart_atalk_asr_shutdown();
-#endif
-#endif
+
 		mozart_net_shutdown();
 
 		mozart_battery_shutdown();
@@ -159,7 +152,14 @@ int stopall(int depend_network)
 	if (depend_network & APP_DEPEND_NET) {
 		mozart_dmr_shutdown();
 		mozart_airplay_shutdown();
-		mozart_speech_asr_shutdown();
+#if 1
+#if (SUPPORT_VR == VR_SPEECH)
+		mozart_speech_shutdown();
+#elif (SUPPORT_VR == VR_ATALK)
+		mozart_atalk_asr_shutdown();
+#else
+#endif
+#endif
 	}
 
 	if (depend_network & APP_DEPEND_NET_STA) {

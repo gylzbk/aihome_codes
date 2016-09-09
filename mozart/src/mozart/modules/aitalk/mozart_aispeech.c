@@ -10,22 +10,26 @@
 #include "mozart_module.h"
 #include "mozart_smartui.h"
 #include "mozart_prompt_tone.h"
-#include "mozart_speech_asr.h"
+
+#include "vr-speech_interface.h"
+#include "aiengine_app.h"
+#include "mozart_aispeech.h"
+#include "mozart_config.h"
 
 #ifndef MOZART_RELEASE
-#define MOZART_SPEECH_ASR_DEBUG
+#define MOZART_SPEECH_DEBUG
 #endif
 
-#ifdef MOZART_SPEECH_ASR_DEBUG
+#ifdef MOZART_SPEECH_DEBUG
 #define pr_debug(fmt, args...)			\
-	printf("[SPEECH_ASR] %s: "fmt, __func__, ##args)
-#else  /* MOZART_SPEECH_ASR_DEBUG */
+	printf("[SPEECH] %s: "fmt, __func__, ##args)
+#else  /* MOZART_SPEECH_DEBUG */
 #define pr_debug(fmt, args...)			\
 	do {} while (0)
-#endif /* MOZART_SPEECH_ASR_DEBUG */
+#endif /* MOZART_SPEECH_DEBUG */
 
 #define pr_err(fmt, args...)			\
-	fprintf(stderr, "[SPEECH_ASR] [Error] %s: "fmt, __func__, ##args)
+	fprintf(stderr, "[SPEECH] [Error] %s: "fmt, __func__, ##args)
 
 /*******************************************************************************
  * module
@@ -169,7 +173,7 @@ static __attribute__((unused)) int mozart_vr_speech_interface_callback(vr_info *
 
 static void *stop_func(void *args)
 {
-	sleep(2);
+	usleep(100*1000);
 	mozart_smartui_asr_over();
 	if (speech_asr_module.stop)
 		speech_asr_module.stop(&speech_asr_module, module_cmd_run, false);
@@ -181,6 +185,9 @@ static void *stop_func(void *args)
 
 int mozart_speech_asr_over(void)
 {
+#if (SUPPORT_VR == VR_SPEECH)
+		ai_set_enable(true);
+#endif
 	pthread_t stop_pthread;
 
 	if (pthread_create(&stop_pthread, NULL, stop_func, NULL) == -1) {
@@ -188,34 +195,33 @@ int mozart_speech_asr_over(void)
 		return -1;
 	}
 	pthread_detach(stop_pthread);
-
 	return 0;
 }
 
-int mozart_speech_asr_startup(int wakeup_mode_mark)
+int mozart_speech_startup(int wakeup_mode_mark)
 {
+	//-----------------------startup asr
 	if (mozart_module_register(&speech_asr_module)) {
 		pr_err("mozart_module_register fail\n");
 		return -1;
 	}
 
-#if 0
-	if (mozart_vr_speech_get_status())
-		mozart_vr_speech_shutdown();
-	mozart_vr_speech_startup(wakeup_mode_mark, mozart_vr_speech_interface_callback);
-#else
-	printf("Don't startup vr speech\n");
-#endif
+	//-----------------------startup aec
+	if (ai_speech_get_status() != STATUS_NULL){
+		ai_speech_shutdown();
+	}
+	ai_speech_startup(wakeup_mode_mark, mozart_vr_speech_interface_callback);
 
 	return 0;
 }
 
-int mozart_speech_asr_shutdown(void)
+int mozart_speech_shutdown(void)
 {
+	//-----------------------shutdown aec
+	ai_speech_shutdown();
+	//-----------------------shutdown asr
+	mozart_speech_asr_over();
 	mozart_module_unregister(&speech_asr_module);
-#if 0
-	mozart_vr_speech_shutdown();
-#endif
 
 	return 0;
 }

@@ -10,14 +10,20 @@
 #include "volume_interface.h"
 #if (SUPPORT_VR == VR_ATALK)
 #include "vr-atalk_interface.h"
-#elif (SUPPORT_VR == VR_SPEECH)
-#include "mozart_speech_asr.h"
 #endif
+
+#if  SUPPORT_AISPEECH
+#include "vr-speech_interface.h"
+#include "aiengine_app.h"
+#include "mozart_aispeech.h"
+#endif
+
+
 #include "sharememory_interface.h"
 
 #include "mozart_module.h"
 #include "mozart_player.h"
-#include "mozart_smartui.h" 
+#include "mozart_smartui.h"
 #include "mozart_prompt_tone.h"
 #include "mozart_bt_avk.h"
 #include "mozart_atalk.h"
@@ -395,6 +401,10 @@ int mozart_atalk_cloudplayer_start(bool in_lock)
 
 	if (ret == 0)
 		create_atalk_cloudplayer_monitor_pthread();
+
+#if (SUPPORT_VR == VR_SPEECH)
+		ai_set_enable(true);
+#endif
 
 	return ret;
 }

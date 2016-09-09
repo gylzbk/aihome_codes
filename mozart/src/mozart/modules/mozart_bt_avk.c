@@ -18,7 +18,13 @@
 #include "mozart_atalk.h"
 #include "mozart_prompt_tone.h"
 #include "mozart_bt_avk_fft.h"
-#include "mozart_speech_asr.h"
+
+#if  SUPPORT_AISPEECH
+#include "vr-speech_interface.h"
+#include "aiengine_app.h"
+#include "mozart_aispeech.h"
+#endif
+
 #include "ini_interface.h"
 #include "volume_interface.h"
 
@@ -538,7 +544,7 @@ static int bt_avk_module_start(struct mozart_module_struct *self)
 {
 	int ret, timeout = 5;
 
-	mozart_speech_asr_shutdown();
+	mozart_speech_shutdown();
 	mozart_bluetooth_set_visibility(true, true);
 	mozart_smartui_bt_start();
 
@@ -578,7 +584,7 @@ static int bt_avk_module_stop(struct mozart_module_struct *self)
 	mozart_bluetooth_disconnect(USE_HS_AVK);
 	mozart_bluetooth_set_visibility(false, false);
 
-	//mozart_speech_asr_startup(VOICE_WAKEUP);
+	//mozart_speech_startup(VOICE_WAKEUP);
 
 	return 0;
 }

@@ -132,13 +132,8 @@ static const char *cfg =
 }";
 #endif
 
-pthread_mutex_t status_mutex = PTHREAD_MUTEX_INITIALIZER;
-typedef enum vr_speech_status_type{
-	STATUS_NULL = 0,
-	VR_SPEECH_INIT,
-	VR_SPEECH_QUIT,
-	VR_SPEECH_ERROR
-}vr_speech_status_type;
+//pthread_mutex_t status_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 vr_speech_status_type vr_speech_status = STATUS_NULL;
 
 vr_info recog;
@@ -327,8 +322,8 @@ int ai_status_aecing(void){
 
 	if (ai_aec(ew) == 0){
 	#if AI_CONTROL_MOZART_ATALK	  // remove tone when wakeup
-		recog.status = AIENGINE_STATUS_STOP;
 		mozart_module_asr_wakeup();
+		recog.status = AIENGINE_STATUS_SEM;
 	#else
 		recog.status = AIENGINE_STATUS_SEM;
 	#endif
@@ -626,17 +621,17 @@ int ai_set_enable(bool enable){
 //			recog.status =AIENGINE_STATUS_AEC;
 //		}
 
-		recog.status =AIENGINE_STATUS_AEC;
-		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("atalk_hi_12", true);
-		#endif
+	//	recog.status =AIENGINE_STATUS_AEC;
+	//	#if AI_CONTROL_MOZART
+	//	mozart_prompt_tone_key_sync("atalk_hi_12", true);
+	//	#endif
 		is_aiengine_enable = true;
 	}
 	else{
 		if (is_aiengine_enable){
 			DEBUG("=========================== stop aiengine ...\n");
 			ai_aiengine_stop();
-			recog.status = AIENGINE_STATUS_STOP;
+		//	recog.status = AIENGINE_STATUS_STOP;
 		}
 	}
 	return 0;
@@ -649,21 +644,25 @@ void *ai_run(void *arg){
 //	DEBUG("=========================== ai_run: %s\n", aiengineStatus[recog.status]);
     while(is_vr_speech_work_flag){
 		while(is_aiengine_enable){
+			ai_status_aecing();
+			ai_set_enable(false);
+			#if 0
 			DEBUG("================= AIENGINE STATUS: %s\n", aiengineStatus[recog.status]);
 			switch(recog.status){
-				case AIENGINE_STATUS_INIT:
-					PERROR("Error: aiengine not init\n");
-					is_aiengine_enable = false;
-					is_vr_speech_work_flag = false;
+			//	case AIENGINE_STATUS_INIT:
+			//		PERROR("Error: aiengine not init\n");
+			//		is_aiengine_enable = false;
+			//		is_vr_speech_work_flag = false;
 /*					if (ai_init() != 0){
 						error = -1;
 						PERROR("ERROR: aiengine init !\n");
 						goto exit_error;
 					}//*/
-					break;
+			//		break;
   				case AIENGINE_STATUS_AEC:
 			//		DEBUG("=========================== AIENGINE_STATUS_AEC ...\n");
 					ai_status_aecing();
+					ai_set_enable(false);
 					break;
 				case AIENGINE_STATUS_SEM:
 			//		DEBUG("=========================== AIENGINE_STATUS_SEM ...\n");
@@ -690,9 +689,11 @@ void *ai_run(void *arg){
 				default:
 					recog.status = AIENGINE_STATUS_AEC;
 					break;	//*/
+
 			}
 			printf(".");
 			usleep(10000);
+			#endif
 		}
 		printf(">");
 		usleep(10000);
@@ -786,30 +787,25 @@ int mozart_key_wakeup(void){
 }
 #endif
 
-int mozart_vr_speech_set_status(vr_speech_status_type status){
-	pthread_mutex_lock(&status_mutex);
+int ai_speech_set_status(vr_speech_status_type status){
 	vr_speech_status = status;
-	pthread_mutex_unlock(&status_mutex);
 	return 1;
 }
 
-int mozart_vr_speech_get_status(){
-	pthread_mutex_lock(&status_mutex);
-	int status = vr_speech_status;
-	pthread_mutex_unlock(&status_mutex);
-	return status;
+int ai_speech_get_status(){
+	return vr_speech_status;
 }
 
 /*
  * usage : ./demo /path/to/libaiengine.so w/s/t
  */
-int mozart_vr_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
+int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 {
 	if(ai_init()== -1){
 		PERROR("AI init error!...\n");
 		return -1;
 	}
-	mozart_vr_speech_set_status(VR_SPEECH_INIT);
+	ai_speech_set_status(VR_SPEECH_INIT);
 	DEBUG("vr speech start!...\n");
 	vr_speech_callback_pointer = callback;
 	pthread_t voice_recog_thread;
@@ -823,11 +819,11 @@ exit_error:
 	return 0;
 }
 
-int mozart_vr_speech_shutdown(void){
+int ai_speech_shutdown(void){
 	//wait for record_input quit.
 
 //	pthread_mutex_lock(&ai_mutex);
-	int status = mozart_vr_speech_get_status();
+	int status = ai_speech_get_status();
 
 	DEBUG("vr speech shutdown!...\n");
 	switch (status){
@@ -840,7 +836,7 @@ int mozart_vr_speech_shutdown(void){
 			break;
 		case VR_SPEECH_INIT:
 			DEBUG("vr_speech shutdown!\n");
-		//	mozart_vr_speech_set_status(VR_SPEECH_QUIT);
+		//	ai_speech_set_status(VR_SPEECH_QUIT);
 			is_vr_speech_work_flag = false;
 			ai_set_enable(false);
 			int timeout =0;
@@ -860,7 +856,7 @@ int mozart_vr_speech_shutdown(void){
 /*	if(0 != share_mem_set(VR_DOMAIN, RESPONSE_CANCEL)){
 		PERROR("share_mem_set STATUS_SHUTDOWN failure.\n");
 	}	//*/
-	mozart_vr_speech_set_status(STATUS_NULL);
+	ai_speech_set_status(STATUS_NULL);
 //	pthread_mutex_unlock(&ai_mutex);
 	return 0;
 }

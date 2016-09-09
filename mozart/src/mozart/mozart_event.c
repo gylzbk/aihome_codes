@@ -28,6 +28,7 @@
 #include "mozart_net.h"
 #include "mozart_linein.h"
 #include "mozart_update_control.h"
+#include "mozart_aispeech.h"
 
 #define MOZART_EVENT_DEBUG
 
@@ -283,7 +284,8 @@ static void mozart_event_key(mozart_event event)
 	if (event.event.key.key.value == 1) {
 		switch (code) {
 		case KEY_RECORD:
-			/* mozart_module_asr_wakeup(); */
+			mozart_speech_asr_over();
+		//	mozart_module_asr_wakeup();
 			break;
 		case KEY_PREVIOUSSONG:
 			mozart_module_previous_song();
