@@ -73,9 +73,9 @@ static void mozart_aitalk_net_change_handler(bool online)
 		mozart_aitalk_cloudplayer_start(true);
 	//	aitalk_cloudplayer_monitor_cancel();
 		mozart_smartui_boot_welcome();
-		mozart_prompt_tone_key_sync("aitalk_hi_12", true);
+		mozart_prompt_tone_key_sync("atalk_hi_12", true);
 	} else if (!online && is_online) {
-		mozart_atalk_localplayer_start(true);
+		mozart_aitalk_localplayer_start(true);
 	}
 
 	__mozart_module_dump_state_map();
@@ -87,7 +87,7 @@ ret:
 static void __mozart_aitalk_online_handler(enum atalk_network_state ori)
 {
 	/* mozart_smartui_boot_build_display("音箱已联网"); */
-	/* mozart_prompt_tone_key_sync("aitalk_wifi_link_success_11", true); */
+	/* mozart_prompt_tone_key_sync("atalk_wifi_link_success_11", true); */
 	if (ori == network_config || ori == network_offline) {
 		aitalk_cloudplayer_send_wifi_state(wifi_end_ok);
 	} else {
@@ -141,11 +141,10 @@ int __mozart_aitalk_network_trigger(enum atalk_network_state cur, enum atalk_net
 		break;
 	case network_online:
 		mozart_aitalk_cloudplayer_start(true);
-
 		__mozart_aitalk_online_handler(ori);
 		break;
 	case network_offline:
-		mozart_atalk_localplayer_start(true);
+		mozart_aitalk_localplayer_start(true);
 		__mozart_aitalk_offline_handler(ori);
 		break;
 	default:
@@ -193,9 +192,9 @@ void mozart_switch_aitalk_module(bool in_lock)
 
 	if (__mozart_module_is_online()){
 		mozart_aitalk_cloudplayer_start(true);
+ 	} else {
+		mozart_aitalk_localplayer_start(true);
 	}
-	else
-		mozart_atalk_localplayer_start(true);
 
 	if (!in_lock)
 		mozart_module_mutex_unlock();

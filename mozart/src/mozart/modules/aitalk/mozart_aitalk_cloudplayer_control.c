@@ -391,7 +391,7 @@ static int play_voice_prompt_handler(json_object *cmd)
 
 		mozart_module_mutex_lock();
 		module_change = __mozart_aitalk_cloudplayer_is_start();
-		if (!__mozart_net_is_start() && !__mozart_atalk_localplayer_is_start()){
+		if (!__mozart_net_is_start() && !__mozart_aitalk_localplayer_is_start()){
 		 // &&   !atalk_cloudplayer_monitor_is_module_cancel())
 			if (mozart_aitalk_cloudplayer_start(true)) {
 				pr_err("start fail!\n");

@@ -40,8 +40,9 @@ LDFLAGS = -g -lpthread -lstdc++ -L$(MOLIB_DIR)/usr/lib -L$(MOLIB_UPDATER_DIR)/us
 LDFLAGS += -Wl,-rpath-link,$(MOLIB_DIR)/usr/lib:$(MOLIB_UPDATER_DIR)/usr/lib:$(MOZART_DIR)/usr/lib
 
 # basic depends.
-LDFLAGS += -levent -lpower -lwifi -lvolume -ltips -lsharememory -lini -lutils -lpthread -lplayer -lresample
-LDFLAGS += -ljson-c -lwifi -ltips -lutils -lplayer -lvolume -lsharememory -llinklist -lcurl -lssl -lcrypto -lz -lrt
+LDFLAGS += -levent -lpower -lwifi -lvolume -ltips -lsharememory -lini -lutils -lpthread -lplayer -lresample  
+LDFLAGS += -lwifi -ltips -lutils -lplayer -lvolume -ljson-c -llinklist -lcurl -lssl -lcrypto -lz -lrt 
+
 
 ifeq ("$(VR)","0")
 $(warning vr func are CLOSED!!!!)
@@ -49,7 +50,9 @@ else
   ifeq ("$(VR)","vr_speech")
     LDFLAGS +=  -laiserver -laispeech  #-lvr_atalk
  #   SRCS += modules/aitalk/mozart_aispeech.c
-	SRCS += modules/aitalk/mozart_aitalk_asr.c 
+	SRCS += modules/aitalk/mozart_aitalk_asr.c
+	SRCS += modules/aitalk/mozart_aitalk_cloudplayer_control.c  modules/aitalk/mozart_aitalk_cloudplayer.c 
+	SRCS += modules/aitalk/mozart_aitalk.c modules/aitalk/mozart_aitalk_localplayer.c 
   else ifeq ("$(VR)","vr_atalk")
     LDFLAGS += -lvr_atalk	
    	SRCS += modules/atalk/mozart_atalk_asr.c 
@@ -74,7 +77,6 @@ $(warning lcd func CLOSED!!!!)
 endif
 
 ifeq ($(ATALK),1) # atalk
-LDFLAGS += -lwifi -ltips -lutils -lplayer -lvolume -lsharememory -ljson-c -llinklist -lcurl -lssl -lcrypto -lz -lrt
    	SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c
 	SRCS += modules/atalk/mozart_atalk.c modules/atalk/mozart_atalk_localplayer.c
 	SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c modules/atalk/dl_perform.c  modules/atalk/mozart_atalk_cloudplayer.c
@@ -83,8 +85,12 @@ $(warning atalk func CLOSED!!!!)
 endif
 
 ifeq ($(AITALK),1) # aispeech
+<<<<<<< HEAD
+	
+=======
 	SRCS += modules/aitalk/mozart_aitalk_cloudplayer_control.c  modules/aitalk/mozart_aitalk_cloudplayer.c 
 	SRCS += modules/aitalk/mozart_aitalk.c modules/aitalk/mozart_aitalk_localplayer.c
+>>>>>>> eaa8fab76949d2f1425a7024fdd0270b59f91b14
 else
 $(warning aitalk func CLOSED!!!!)
 endif

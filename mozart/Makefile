@@ -468,7 +468,7 @@ aitalk_enable_config:
 aitalk_disable_config:
 	@echo "SUPPORT_AITALK=0" >> $(TOPDIR)/configs/config.mk
 	@echo "" >> $(TOPDIR)/configs/config.mk
-	@echo "#define SUPPORT_ATALK 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define SUPPORT_AITALK 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 # dmr config in config.mak and config.h
 #       1: enable
