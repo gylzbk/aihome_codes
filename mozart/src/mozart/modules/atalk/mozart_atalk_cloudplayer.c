@@ -9,14 +9,10 @@
 #include "volume_interface.h"
 
 #include "mozart_config.h"
-#if (SUPPORT_VR == VR_ATALK)
 #include "mozart_atalk.h"
 #include "vr-atalk_interface.h"
 #include "mozart_atalk_cloudplayer_control.h"
-#elif (SUPPORT_VR == VR_SPEECH)
-#include "mozart_aitalk.h"
-#include "mozart_aitalk_cloudplayer_control.h"
-#endif
+
 
 #include "sharememory_interface.h"
 
@@ -184,41 +180,24 @@ static void atalk_cloudplayer_module_asr_wakeup(struct mozart_module_struct *sel
 {
 	if (self->player_state != player_state_idle) {
 		mozart_smartui_asr_start();
-#if (SUPPORT_VR == VR_ATALK)
 		mozart_atalk_asr_start();
 		mozart_key_wakeup();
-#elif (SUPPORT_VR == VR_SPEECH)
-		mozart_aitalk_asr_start();
-		mozart_key_wakeup();
-#endif
 	}
 }
 
 static void atalk_cloudplayer_module_next_song(struct mozart_module_struct *self)
 {
-#if (SUPPORT_VR == VR_ATALK)
 	atalk_cloudplayer_next_music();
-#elif (SUPPORT_VR == VR_SPEECH)
-	aitalk_cloudplayer_next_music();
-#endif
 }
 
 static void atalk_cloudplayer_module_next_channel(struct mozart_module_struct *self)
 {
-#if (SUPPORT_VR == VR_ATALK)
 	atalk_next_channel();
-#elif (SUPPORT_VR == VR_SPEECH)
-	aitalk_next_channel();
-#endif
 }
 
 static void atalk_cloudplayer_module_favorite(struct mozart_module_struct *self)
 {
-#if (SUPPORT_VR == VR_ATALK)
 	atalk_love_audio();
-#elif (SUPPORT_VR == VR_SPEECH)
-	aitalk_love_audio();
-#endif
 }
 
 static void atalk_cloudplayer_module_next_module(struct mozart_module_struct *self)

@@ -468,7 +468,7 @@ aitalk_enable_config:
 aitalk_disable_config:
 	@echo "SUPPORT_AITALK=0" >> $(TOPDIR)/configs/config.mk
 	@echo "" >> $(TOPDIR)/configs/config.mk
-	@echo "#define SUPPORT_ATALK 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define SUPPORT_AITALK 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 # dmr config in config.mak and config.h
 #       1: enable
@@ -829,7 +829,7 @@ ds1825_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare produc
 		airplay_enable_config localplayer_enable_config \
 		board_ds1825_config netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
-		atalk_enable_config adb_enable_config battery_nv_flag_enable_config\
+		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
 	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
 

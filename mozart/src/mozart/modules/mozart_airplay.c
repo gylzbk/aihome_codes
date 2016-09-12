@@ -12,6 +12,7 @@
 
 #include "mozart_module.h"
 
+#include "mozart_config.h"
 #if (SUPPORT_VR == VR_ATALK)
 #include "mozart_atalk.h"
 #elif (SUPPORT_VR == VR_SPEECH)
@@ -128,17 +129,19 @@ static void airplay_module_resume_pause(struct mozart_module_struct *self)
 static void airplay_module_next_module(struct mozart_module_struct *self)
 {
 	mozart_module_mutex_lock();
-
-	if (__mozart_module_is_online()){
-		#if (SUPPORT_VR == VR_ATALK)
-		mozart_atalk_cloudplayer_start(true);
-		#elif (SUPPORT_VR == VR_ATALK)
-		mozart_aitalk_cloudplayer_start(true);
-		#endif
-	}
-	else
-		mozart_atalk_localplayer_start(true);
-
+	#if (SUPPORT_VR == VR_ATALK)
+		if (__mozart_module_is_online()){
+			mozart_atalk_cloudplayer_start(true);
+	  	} else {
+			mozart_atalk_localplayer_start(true);
+	  	}
+	#elif (SUPPORT_VR == VR_SPEECH)
+		if (__mozart_module_is_online()){
+			mozart_aitalk_cloudplayer_start(true);
+	  	} else {
+			mozart_aitalk_localplayer_start(true);
+	  	}
+	#endif
 	mozart_module_mutex_unlock();
 }
 

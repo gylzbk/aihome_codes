@@ -598,7 +598,7 @@ static int bt_avk_module_stop(struct mozart_module_struct *self)
 	mozart_bluetooth_set_visibility(false, false);
 #if (SUPPORT_VR == VR_ATALK)
 	mozart_atalk_cloudplayer_startup();
-#elif (SUPPORT_VR == VR_ATALK)
+#elif (SUPPORT_VR == VR_SPEECH)
 	mozart_aitalk_cloudplayer_startup();
 #endif
 
@@ -658,19 +658,23 @@ static void bt_avk_module_next_module(struct mozart_module_struct *self)
 {
 	mozart_module_mutex_lock();
 
-	if (mozart_linein_is_in())
-		mozart_linein_start(true);
-	else if (__mozart_module_is_online()){
-		#if (SUPPORT_VR == VR_ATALK)
+	#if (SUPPORT_VR == VR_ATALK)
+		if (mozart_linein_is_in()){
+			mozart_linein_start(true);
+		} else if (__mozart_module_is_online()){
 			mozart_atalk_cloudplayer_start(true);
-		#elif (SUPPORT_VR == VR_ATALK)
+		} else {
+			mozart_atalk_localplayer_start(true);
+		}
+	#elif (SUPPORT_VR == VR_SPEECH)
+		if (mozart_linein_is_in()){
+			mozart_linein_start(true);
+		} else if (__mozart_module_is_online()){
 			mozart_aitalk_cloudplayer_start(true);
-		#endif
-
-	}
-	else
-		mozart_atalk_localplayer_start(true);
-
+		} else {
+			mozart_aitalk_localplayer_start(true);
+		}
+	#endif
 	mozart_module_mutex_unlock();
 }
 

@@ -141,7 +141,7 @@ static int localplayer_pause_handler(void)
 /*******************************************************************************
  * module
  *******************************************************************************/
-static int atalk_localplayer_module_start(struct mozart_module_struct *self)
+static int aitalk_localplayer_module_start(struct mozart_module_struct *self)
 {
 	if (self->module_change) {
 		mozart_smartui_boot_local();
@@ -157,7 +157,7 @@ static int atalk_localplayer_module_start(struct mozart_module_struct *self)
 	return 0;
 }
 
-static int atalk_localplayer_module_run(struct mozart_module_struct * self)
+static int aitalk_localplayer_module_run(struct mozart_module_struct * self)
 {
 	if (self->player_state == player_state_play)
 		return localplayer_resume_handler();
@@ -165,7 +165,7 @@ static int atalk_localplayer_module_run(struct mozart_module_struct * self)
 		return 0;
 }
 
-static int atalk_localplayer_module_suspend(struct mozart_module_struct * self)
+static int aitalk_localplayer_module_suspend(struct mozart_module_struct * self)
 {
 	if (self->player_state == player_state_play)
 		return localplayer_pause_handler();
@@ -173,7 +173,7 @@ static int atalk_localplayer_module_suspend(struct mozart_module_struct * self)
 		return 0;
 }
 
-static int atalk_localplayer_module_stop(struct mozart_module_struct *self)
+static int aitalk_localplayer_module_stop(struct mozart_module_struct *self)
 {
 	player_handler_t *handler = NULL;
 
@@ -195,17 +195,17 @@ static int atalk_localplayer_module_stop(struct mozart_module_struct *self)
 	return 0;
 }
 
-static void atalk_localplayer_module_previous_song(struct mozart_module_struct *self)
+static void aitalk_localplayer_module_previous_song(struct mozart_module_struct *self)
 {
 	mozart_localplayer_prev_music();
 }
 
-static void atalk_localplayer_module_next_song(struct mozart_module_struct *self)
+static void aitalk_localplayer_module_next_song(struct mozart_module_struct *self)
 {
 	mozart_localplayer_next_music();
 }
 
-static void atalk_localplayer_module_resume_pause(struct mozart_module_struct *self)
+static void aitalk_localplayer_module_resume_pause(struct mozart_module_struct *self)
 {
 	mozart_module_mutex_lock();
 
@@ -234,60 +234,60 @@ static void atalk_localplayer_module_resume_pause(struct mozart_module_struct *s
 	mozart_module_mutex_unlock();
 }
 
-static void atalk_localplayer_module_asr_wakeup(struct mozart_module_struct *self)
+static void aitalk_localplayer_module_asr_wakeup(struct mozart_module_struct *self)
 {
 	mozart_smartui_asr_offline();
 	mozart_prompt_tone_key_sync("atalk_asr_offline_23", true);
 	mozart_smartui_asr_over();
 }
 
-static void atalk_localplayer_module_next_module(struct mozart_module_struct *self)
+static void aitalk_localplayer_module_next_module(struct mozart_module_struct *self)
 {
 	mozart_bt_avk_start(false);
 }
 
-static struct mozart_module_struct atalk_localplayer_module = {
-	.name = "atalk_localplayer",
+static struct mozart_module_struct aitalk_localplayer_module = {
+	.name = "aitalk_localplayer",
 	.priority = 1,
 	.attach = module_attach,
 	.mops = {
-		.on_start   = atalk_localplayer_module_start,
-		.on_run     = atalk_localplayer_module_run,
-		.on_suspend = atalk_localplayer_module_suspend,
-		.on_stop    = atalk_localplayer_module_stop,
+		.on_start   = aitalk_localplayer_module_start,
+		.on_run     = aitalk_localplayer_module_run,
+		.on_suspend = aitalk_localplayer_module_suspend,
+		.on_stop    = aitalk_localplayer_module_stop,
 	},
 	.kops = {
-		.previous_song = atalk_localplayer_module_previous_song,
-		.next_song = atalk_localplayer_module_next_song,
-		.resume_pause = atalk_localplayer_module_resume_pause,
-		.asr_wakeup = atalk_localplayer_module_asr_wakeup,
-		.next_module = atalk_localplayer_module_next_module,
+		.previous_song = aitalk_localplayer_module_previous_song,
+		.next_song = aitalk_localplayer_module_next_song,
+		.resume_pause = aitalk_localplayer_module_resume_pause,
+		.asr_wakeup = aitalk_localplayer_module_asr_wakeup,
+		.next_module = aitalk_localplayer_module_next_module,
 	},
 };
 
 /*******************************************************************************
  * API
  *******************************************************************************/
-bool __mozart_atalk_localplayer_is_start(void)
+bool __mozart_aitalk_localplayer_is_start(void)
 {
-	return __mozart_module_is_start(&atalk_localplayer_module);
+	return __mozart_module_is_start(&aitalk_localplayer_module);
 }
 
-int mozart_atalk_localplayer_start(bool in_lock)
+int mozart_aitalk_localplayer_start(bool in_lock)
 {
-	if (atalk_localplayer_module.start) {
-		return atalk_localplayer_module.start(&atalk_localplayer_module, module_cmd_stop, in_lock);
+	if (aitalk_localplayer_module.start) {
+		return aitalk_localplayer_module.start(&aitalk_localplayer_module, module_cmd_stop, in_lock);
 	} else {
-		pr_err("atalk_localplayer_module isn't registered!\n");
+		pr_err("aitalk_localplayer_module isn't registered!\n");
 		return -1;
 	}
 }
 
-int mozart_atalk_localplayer_do_play(void)
+int mozart_aitalk_localplayer_do_play(void)
 {
 	int i, ret;
 	module_status domain_status;
-	struct mozart_module_struct *self = &atalk_localplayer_module;
+	struct mozart_module_struct *self = &aitalk_localplayer_module;
 
 	/* wait 0.5s */
 	for (i = 0; i < 10; i++) {
@@ -325,9 +325,9 @@ int mozart_atalk_localplayer_do_play(void)
 	return ret;
 }
 
-int mozart_atalk_localplayer_startup(void)
+int mozart_aitalk_localplayer_startup(void)
 {
-	if (mozart_module_register(&atalk_localplayer_module)) {
+	if (mozart_module_register(&aitalk_localplayer_module)) {
 		pr_err("mozart_module_register fail\n");
 		return -1;
 	}
@@ -336,11 +336,11 @@ int mozart_atalk_localplayer_startup(void)
 	return 0;
 }
 
-int mozart_atalk_localplayer_shutdown(void)
+int mozart_aitalk_localplayer_shutdown(void)
 {
-	if (atalk_localplayer_module.stop)
-		atalk_localplayer_module.stop(&atalk_localplayer_module, module_cmd_stop, false);
-	mozart_module_unregister(&atalk_localplayer_module);
+	if (aitalk_localplayer_module.stop)
+		aitalk_localplayer_module.stop(&aitalk_localplayer_module, module_cmd_stop, false);
+	mozart_module_unregister(&aitalk_localplayer_module);
 	mozart_localplayer_shutdown();
 
 	return 0;

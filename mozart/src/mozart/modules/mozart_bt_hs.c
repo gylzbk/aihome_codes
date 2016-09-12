@@ -113,7 +113,7 @@ static void bt_hs_module_next_module(struct mozart_module_struct *self)
 	else if (__mozart_module_is_online()){
 		#if (SUPPORT_VR == VR_ATALK)
 			mozart_atalk_cloudplayer_start(true);
-		#elif (SUPPORT_VR == VR_ATALK)
+		#elif (SUPPORT_VR == VR_SPEECH)
 			mozart_aitalk_cloudplayer_start(true);
 		#endif
 
@@ -121,7 +121,7 @@ static void bt_hs_module_next_module(struct mozart_module_struct *self)
 	else{
 		#if (SUPPORT_VR == VR_ATALK)
 			mozart_atalk_cloudplayer_start(true);
-		#elif (SUPPORT_VR == VR_ATALK)
+		#elif (SUPPORT_VR == VR_SPEECH)
 			mozart_aitalk_cloudplayer_start(true);
 		#endif
 	}

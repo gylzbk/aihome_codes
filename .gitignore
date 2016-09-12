@@ -16,8 +16,8 @@ cscope.*
 *build.sh
 
 
-update/*
-version/*
+/update/*
+/version/*
 
 
 
