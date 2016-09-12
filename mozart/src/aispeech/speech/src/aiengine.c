@@ -360,11 +360,11 @@ void *ai_seming(void *arg){
 #if 0
 	vol = mozart_volume_get();
 	if (vol == 0){
-		aitalk_pipe_put(aitalk_send_set_volume("10"));	//*/
+		ai_aitalk_send(aitalk_send_set_volume("10"));	//*/
 		usleep(100000);
 	}
 	if (mozart_module_is_playing()==1){
-		aitalk_pipe_put(aitalk_send_pause(NULL));
+		ai_aitalk_send(aitalk_send_pause(NULL));
 	}
 #endif
 	//ai_tone_time_end();
@@ -819,7 +819,7 @@ int ai_tts(char *data,int enable_stop){
 		music.url ="/tmp/cloud_sync_record.mp3";
 		music.artist = NULL;
 		music.title = NULL;
-		aitalk_pipe_put(aitalk_send_play_url(&music));
+		ai_aitalk_send(aitalk_send_play_url(&music));
 		#else
 		system("mplayer /tmp/cloud_sync_record.mp3");
 		#endif
@@ -837,8 +837,8 @@ int ai_tts(char *data,int enable_stop){
     //mozart_player_playurl(NULL,tts_url);
     mozart_prompt_tone_play_sync(tts_url,enable_stop);
     // __mozart_prompt_tone_play_sync(tts_url);
-   // aitalk_pipe_put(tts_url);
-    //aitalk_pipe_put(aitalk_send_play_url(tts_url));
+   // ai_aitalk_send(tts_url);
+    //ai_aitalk_send(aitalk_send_play_url(tts_url));
 	//ai_tts_time(data);
 #endif
 	return 0;

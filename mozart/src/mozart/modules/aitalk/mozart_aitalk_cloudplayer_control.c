@@ -64,7 +64,7 @@ struct aitalk_method {
 	bool (*is_valid)(json_object *cmd);
 };
 
-struct atalk_struct {
+struct aitalk_struct {
 	/* socket */
 	struct sockaddr_un server_addr;
 	struct sockaddr_un client_addr;
@@ -74,24 +74,26 @@ struct atalk_struct {
 	struct dl_perform *dp;
 	pthread_t down_thread;
 	List up_queue_list;
-} atalk = {
+} aitalk = {
 	.server_sockfd = -1,
 	.client_sockfd = -1,
 };
 
-static char *play_prompt;
-static char *current_url;
-static bool atalk_is_playing;
-static bool atalk_initialized;
-static player_handler_t *atalk_player_handler;
+static char *play_prompt = NULL;
+static char *current_url = NULL;
+static bool aitalk_is_playing = false;
+static bool is_aitalk_running = false;
+static bool aitalk_initialized = false;
+static player_handler_t *aitalk_player_handler;
 
-enum atalk_wait_stop_enum {
-	atalk_wait_stop_invalid,
-	atalk_wait_stop_waitstop,
-	atalk_wait_stop_stopped,
-} atalk_wait_stop_state;
-static pthread_mutex_t atalk_wait_stop_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t atalk_wait_stop_cond = PTHREAD_COND_INITIALIZER;
+enum aitalk_wait_stop_enum {
+	aitalk_wait_stop_invalid,
+	aitalk_wait_stop_waitstop,
+	aitalk_wait_stop_stopped,
+} aitalk_wait_stop_state;
+
+static pthread_mutex_t aitalk_wait_stop_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t aitalk_wait_stop_cond = PTHREAD_COND_INITIALIZER;
 
 struct update_msg {
 	char *uri;
@@ -238,7 +240,7 @@ static int send_button_event(char *name, char *str, char *value)
  *******************************************************************************/
 static bool vendor_is_valid(json_object *cmd)
 {
-	return true;//atalk_cloudplayer_monitor_is_valid();
+	return true;//aitalk_cloudplayer_monitor_is_valid();
 }
 
 static int play_handler(json_object *cmd)
@@ -283,17 +285,17 @@ static int play_handler(json_object *cmd)
 	current_url = strdup(url);
 
 	if (ret > 0) {
-		if (mozart_player_playurl(atalk_player_handler, (char *)url))
+		if (mozart_player_playurl(aitalk_player_handler, (char *)url))
 			printf("[Warning] %s: mozart_player_playurl fail\n", __func__);
 		send_player_state_change(player_play_state);
 	} else {
-		char *uuid = mozart_player_getuuid(atalk_player_handler);
+		char *uuid = mozart_player_getuuid(aitalk_player_handler);
 		mozart_aitalk_cloudplayer_update_context(uuid, (char *)url);
 		send_player_state_change(player_pause_state);
 		free(uuid);
 	}
 
-	atalk_is_playing = true;
+	aitalk_is_playing = true;
 	mozart_smartui_atalk_play((char *)json_object_get_string(vendor),
 				  (char *)json_object_get_string(title),
 				  (char *)json_object_get_string(artist),
@@ -672,16 +674,16 @@ static int aitalk_player_status_callback(player_snapshot_t *snapshot,
 
 	if (snapshot->status == PLAYER_STOPPED) {
 		/* for __stop_handler */
-		pthread_mutex_lock(&atalk_wait_stop_mutex);
-		if (atalk_wait_stop_state == atalk_wait_stop_waitstop) {
-			pr_debug("atalk_wait_stop_state is WAIT_STOP\n");
-			atalk_wait_stop_state = atalk_wait_stop_stopped;
+		pthread_mutex_lock(&aitalk_wait_stop_mutex);
+		if (aitalk_wait_stop_state == aitalk_wait_stop_waitstop) {
+			pr_debug("aitalk_wait_stop_state is WAIT_STOP\n");
+			aitalk_wait_stop_state = aitalk_wait_stop_stopped;
 		} else {
 
 			send_play_done(current_url, 0);
 		}
-		pthread_mutex_unlock(&atalk_wait_stop_mutex);
-		atalk_is_playing = false;
+		pthread_mutex_unlock(&aitalk_wait_stop_mutex);
+		aitalk_is_playing = false;
 	}
 
 	return 0;
@@ -692,7 +694,7 @@ int aitalk_cloudplayer_resume_player(void)
 	int ret;
 
 	send_player_state_change(player_play_state);
-	ret = mozart_player_resume(atalk_player_handler);
+	ret = mozart_player_resume(aitalk_player_handler);
 	if (ret)
 		printf("[Warning] %s: mozart_player_resume fail\n", __func__);
 
@@ -704,11 +706,11 @@ int aitalk_cloudplayer_pause_player(void)
 	int ret;
 
 	send_player_state_change(player_pause_state);
-	ret = mozart_player_pause(atalk_player_handler);
+	ret = mozart_player_pause(aitalk_player_handler);
 	if (ret)
 		printf("[Warning] %s: mozart_player_pause fail\n", __func__);
 
-	ret = mozart_player_wait_status(atalk_player_handler, PLAYER_PAUSED, 500 * 1000);
+	ret = mozart_player_wait_status(aitalk_player_handler, PLAYER_PAUSED, 500 * 1000);
 
 	return ret;
 }
@@ -721,14 +723,14 @@ int aitalk_cloudplayer_stop_player(void)
 
 	send_player_state_change(player_stop_state);
 
-	if (!atalk_is_playing)
+	if (!aitalk_is_playing)
 		return 0;
 
-	pthread_mutex_lock(&atalk_wait_stop_mutex);
+	pthread_mutex_lock(&aitalk_wait_stop_mutex);
 
-	atalk_wait_stop_state = atalk_wait_stop_waitstop;
+	aitalk_wait_stop_state = aitalk_wait_stop_waitstop;
 
-	if (mozart_player_stop(atalk_player_handler))
+	if (mozart_player_stop(aitalk_player_handler))
 		printf("[Warning] %s: mozart_player_stop fail\n", __func__);
 
 	gettimeofday(&now, NULL);
@@ -736,16 +738,16 @@ int aitalk_cloudplayer_stop_player(void)
 	timeout.tv_sec = now.tv_sec + usec / 1000000;
 	timeout.tv_nsec = (usec % 1000000) * 1000;
 
-	pthread_cond_timedwait(&atalk_wait_stop_cond, &atalk_wait_stop_mutex, &timeout);
-	if (atalk_wait_stop_state != atalk_wait_stop_stopped) {
+	pthread_cond_timedwait(&aitalk_wait_stop_cond, &aitalk_wait_stop_mutex, &timeout);
+	if (aitalk_wait_stop_state != aitalk_wait_stop_stopped) {
 		pr_err("wait stopped timeout\n");
-		mozart_player_force_stop(atalk_player_handler);
-		atalk_is_playing = false;
+		mozart_player_force_stop(aitalk_player_handler);
+		aitalk_is_playing = false;
 	}
 
-	atalk_wait_stop_state = atalk_wait_stop_invalid;
+	aitalk_wait_stop_state = aitalk_wait_stop_invalid;
 
-	pthread_mutex_unlock(&atalk_wait_stop_mutex);
+	pthread_mutex_unlock(&aitalk_wait_stop_mutex);
 
 	return 0;
 }
@@ -763,14 +765,14 @@ void end_func(DPres_t res, char *errStr, void *userData)
 		*result = 0;
 		break;
 	default:
-		printf("[ERROR].atalk download: %s\n", errStr);
+		printf("[ERROR].aitalk download: %s\n", errStr);
 		*result = -1;
 	}
 }
 
 #define TIMEOUT 4
 
-static int atalk_update_download(const char *uri, const char *save)
+static int aitalk_update_download(const char *uri, const char *save)
 {
 	char *tempfile = NULL;
 	int res;
@@ -789,11 +791,11 @@ static int atalk_update_download(const char *uri, const char *save)
 
 	snprintf(tempfile, strlen(save) + sizeof(".ucache"), "%s.ucache", save);
 
-	atalk.dp->endFunc	= end_func;
-	atalk.dp->endData	= &res;
-	atalk.dp->maxSpeedLimit = 64 * 1024; /* Limit download speed 64KB */
+	aitalk.dp->endFunc	= end_func;
+	aitalk.dp->endData	= &res;
+	aitalk.dp->maxSpeedLimit = 64 * 1024; /* Limit download speed 64KB */
 
-	err = dl_perform_sync(atalk.dp, (char *)uri, tempfile, 0);
+	err = dl_perform_sync(aitalk.dp, (char *)uri, tempfile, 0);
 	if (err < 0)
 		goto err_dl;
 
@@ -859,7 +861,7 @@ static int aitalk_queue_head(const void *data, const void *key)
 }
 
 
-static void atalk_list_destroy(void *data)
+static void aitalk_list_destroy(void *data)
 {
 	struct update_msg *msg = (struct update_msg *)data;
 	if (msg->uri)
@@ -870,10 +872,10 @@ static void atalk_list_destroy(void *data)
 		free(msg->artist);
 	free(msg);
 }
-static void *atalk_update_queue_handle_func(void *data)
+static void *aitalk_update_queue_handle_func(void *data)
 {
 	pthread_detach(pthread_self());
-	char dir_target[] = {"/mnt/sdcard/atalk-favorite"};
+	char dir_target[] = {"/mnt/sdcard/aitalk-favorite"};
 	char *path_title = NULL;
 	int title_size;
 	struct stat st;
@@ -894,17 +896,17 @@ static void *atalk_update_queue_handle_func(void *data)
 			goto err_pre;
 		}
 	} else {
-		atalk_update_cache_clear(dir_target, ".ucache");
+		aitalk_update_cache_clear(dir_target, ".ucache");
 	}
 
 	while (!up_die) {
-		while (!up_die && !is_empty(&atalk.up_queue_list)) {
+		while (!up_die && !is_empty(&aitalk.up_queue_list)) {
 			pthread_mutex_lock(&q_lock);
 			/* Get queue at head */
 			msg = list_delete(
-				&atalk.up_queue_list,
+				&aitalk.up_queue_list,
 				NULL,
-				atalk_queue_head);
+				aitalk_queue_head);
 			pthread_mutex_unlock(&q_lock);
 
 			if (strstr(msg->uri, "file://")) {
@@ -913,8 +915,8 @@ static void *atalk_update_queue_handle_func(void *data)
 			}
 
 			if (!mozart_ext_storage_enough_free("/mnt/sdcard", 128 * 1024 * 1024)) {
-				pr_info("Has not enough space, clear atalk-favorite\n");
-				mozart_ext_storage_file_clear("/mnt/sdcard/atalk-favorite");
+				pr_info("Has not enough space, clear aitalk-favorite\n");
+				mozart_ext_storage_file_clear("/mnt/sdcard/aitalk-favorite");
 			}
 
 			title_size = strlen(dir_target) +
@@ -942,7 +944,7 @@ static void *atalk_update_queue_handle_func(void *data)
 			}
 
 			if (errno == ENOENT) {
-				err = atalk_update_download(msg->uri, path_title);
+				err = aitalk_update_download(msg->uri, path_title);
 				if (!err) {
 					/* Fresh play list */
 					scan_flag = 1;
@@ -979,7 +981,7 @@ up_file_pass:
 	}
 
 	pthread_mutex_lock(&q_lock);
-	list_destroy(&atalk.up_queue_list, atalk_list_destroy);
+	list_destroy(&aitalk.up_queue_list, aitalk_list_destroy);
 	pthread_mutex_unlock(&q_lock);
 
 err_pre:
@@ -1067,79 +1069,63 @@ void aitalk_vendor_startup(void)
 
 void aitalk_vendor_shutdown(void)
 {
-//	mozart_system("killall atalk_vendor");
+//	mozart_system("killall aitalk_vendor");
 //	unlink("/var/run/doug.pid");
 	mozart_aitalk_stop();
 }
 
-extern sem_t sem_aitalk;
-char *aitalk_pipe_buf = NULL;
-int aitalk_pipe_put(char *data){
-	if (!data){
-		return -1;
-	}
-
-	free(aitalk_pipe_buf);
-	aitalk_pipe_buf = NULL;
-	aitalk_pipe_buf = strdup(data);
-	sem_post(&sem_aitalk);
-	return 0;
-}
-
-int aitalk_handler_wait(void){
-	sem_wait(&sem_aitalk);
-	return 0;
-}	//*/
-
 static void *aitalk_running_func(void *args)
 {
 	pthread_detach(pthread_self());
-	static char *cmd;//[512]={}
-	static const char *method;
-	static json_object *c, *o;
-	static bool is_valid = true;
-	static struct aitalk_method *m;
-
-	while (1) {
+	char *cmd = NULL;//[512]={}
+	const char *method = NULL;
+	json_object *c = NULL;
+	json_object	*o = NULL;
+	bool is_valid = true;
+	struct aitalk_method *m;
+	is_aitalk_running = true;
+	while (is_aitalk_running) {
 		int i;
-		if (aitalk_handler_wait() == -1){
-			pr_err("aitalk_handler_wait error!\n");
+		if (ai_aitalk_handler_wait() == -1){
+			pr_err("ai_aitalk_handler_wait error!\n");
 		}
-		else//*/
-		{
-			cmd = aitalk_pipe_buf;
-			if (cmd){
-			//	pr_debug(">>>> %s: Recv: %s\n", __func__, cmd);
-				c = json_tokener_parse(cmd);
-				if (c){
-					if (json_object_object_get_ex(c, "method", &o)){
-						method = json_object_get_string(o);
-						for (i = 0; i < ARRAY_SIZE(methods); i++) {
-							m = &methods[i];
-							if (m->name){
-								if (!strcmp(m->name, method)) {
-									if (m->is_valid)
-										is_valid = m->is_valid(c);	//*/
-									if (is_valid){
-										pr_debug("method = %s\n", m->name);
-										m->handler(c);
-									}
-									else
-										pr_debug("     %s invalid\n", cmd);
-									break;
+
+		if (is_aitalk_running == false){
+			//----------- extern running;
+			break;
+		}
+		cmd = ai_aitalk_receive();
+		if (cmd){
+		//	pr_debug(">>>> %s: Recv: %s\n", __func__, cmd);
+			c = json_tokener_parse(cmd);
+			if (c){
+				if (json_object_object_get_ex(c, "method", &o)){
+					method = json_object_get_string(o);
+					for (i = 0; i < ARRAY_SIZE(methods); i++) {
+						m = &methods[i];
+						if (m->name){
+							if (!strcmp(m->name, method)) {
+								if (m->is_valid)
+									is_valid = m->is_valid(c);	//*/
+								if (is_valid){
+									pr_debug("method = %s\n", m->name);
+									m->handler(c);
 								}
+								else
+									pr_debug("     %s invalid\n", cmd);
+								break;
 							}
 						}
-
-						if (i >= ARRAY_SIZE(methods))
-							pr_debug("invalid command: %s\n", method);
-
-						json_object_put(c);
 					}
+
+					if (i >= ARRAY_SIZE(methods))
+						pr_debug("invalid command: %s\n", method);
+
+					json_object_put(c);
 				}
-				else{
-					pr_debug("[%s:%d] json_tokener_parse c error: %s\n", __func__,__LINE__, cmd);
-				}
+			}
+			else{
+				pr_debug("[%s:%d] json_tokener_parse c error: %s\n", __func__,__LINE__, cmd);
 			}
 		}
 	}
@@ -1200,26 +1186,25 @@ exit_error:
 
 int aitalk_cloudplayer_startup(void)
 {
-	pthread_t atalk_thread;
+	pthread_t aitalk_thread;
 
-	if (!atalk_initialized) {
-	//	if (hub_init())
-	//		return -1;
+	if (!aitalk_initialized) {
 
-		atalk_player_handler =
-			mozart_player_handler_get("atalk", aitalk_player_status_callback, NULL);
-		if (atalk_player_handler == NULL) {
+		aitalk_player_handler =
+			mozart_player_handler_get("aitalk", aitalk_player_status_callback, NULL);
+		if (aitalk_player_handler == NULL) {
 			printf("%s: get_player_handler fail!\n", __func__);
 			return -1;
 		}
 
-		if (pthread_create(&atalk_thread, NULL, aitalk_running_func, NULL) != 0) {
-			printf("%s: Can't create atalk_thread: %s\n",
+		if (pthread_create(&aitalk_thread, NULL, aitalk_running_func, NULL) != 0) {
+			printf("%s: Can't create aitalk_thread: %s\n",
 			       __func__, strerror(errno));
 			return -1;
 		}
-		atalk_initialized = true;
+		aitalk_initialized = true;
 	}
+
 	aitalk_vendor_startup();
 	return 0;
 }
@@ -1227,14 +1212,17 @@ int aitalk_cloudplayer_startup(void)
 
 int aitalk_cloudplayer_shutdown(void)
 {
-//	pthread_mutex_lock(&atalk_wait_stop_mutex);
-//	pthread_cond_signal(&atalk_wait_stop_cond);
-//	pthread_mutex_unlock(&atalk_wait_stop_mutex);
+//	pthread_mutex_lock(&aitalk_wait_stop_mutex);
+//	pthread_cond_signal(&aitalk_wait_stop_cond);
+//	pthread_mutex_unlock(&aitalk_wait_stop_mutex);
 
 	free(play_prompt);
 	play_prompt = NULL;
 	free(current_url);
 	current_url = NULL;
+
+	is_aitalk_running = false;
+	aitalk_initialized = false;
 
 	mozart_module_mutex_lock();
 	__mozart_module_set_attach();
@@ -1243,24 +1231,23 @@ int aitalk_cloudplayer_shutdown(void)
 	mozart_module_mutex_unlock();
 
 	mozart_aitalk_cloudplayer_do_stop();
-
 //	up_die = 1;
-//	dl_perform_stop(atalk.dp);
+//	dl_perform_stop(aitalk.dp);
 
 //	pthread_mutex_lock(&cond_lock);
 //	pthread_cond_signal(&cond);
 //	pthread_mutex_unlock(&cond_lock);
 
-//	pthread_join(atalk.down_thread, NULL);
-//	dl_perform_uninit(atalk.dp);
+//	pthread_join(aitalk.down_thread, NULL);
+//	dl_perform_uninit(aitalk.dp);
 
-	//atalk_vendor_shutdown();
+	//aitalk_vendor_shutdown();
 
 	aitalk_vendor_shutdown();
 
-	if (atalk_player_handler) {
-		mozart_player_handler_put(atalk_player_handler);
-		atalk_player_handler = NULL;
+	if (aitalk_player_handler) {
+		mozart_player_handler_put(aitalk_player_handler);
+		aitalk_player_handler = NULL;
 	}
 
 	return 0;

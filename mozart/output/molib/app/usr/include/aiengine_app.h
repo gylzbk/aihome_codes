@@ -14,6 +14,7 @@
 #include "vr-speech_interface.h"
 #include <semaphore.h>
 
+#include "ai_aitalk_send.h"
 
 
 #define CLOUD_TTS_MP3 "/tmp/speech_asr_result.mp3"

@@ -142,12 +142,12 @@ static inline int initall(void)
 
 	return 0;
 }
+
 int main(int argc, char **argv)
 {
 	int c, daemonize = 0;
 
 	global_app_name = strdup(argv[0]);
-    sem_init(&sem_aitalk, 0, 0);
 	/* Get command line parameters */
 	while (1) {
 		c = getopt(argc, argv, "bBsSh");

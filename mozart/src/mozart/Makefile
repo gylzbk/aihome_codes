@@ -85,12 +85,7 @@ $(warning atalk func CLOSED!!!!)
 endif
 
 ifeq ($(AITALK),1) # aispeech
-<<<<<<< HEAD
-	
-=======
-	SRCS += modules/aitalk/mozart_aitalk_cloudplayer_control.c  modules/aitalk/mozart_aitalk_cloudplayer.c 
-	SRCS += modules/aitalk/mozart_aitalk.c modules/aitalk/mozart_aitalk_localplayer.c
->>>>>>> eaa8fab76949d2f1425a7024fdd0270b59f91b14
+
 else
 $(warning aitalk func CLOSED!!!!)
 endif

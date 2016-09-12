@@ -399,7 +399,7 @@ void ai_song_recommend_artist(char *artist){
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
-		aitalk_pipe_put(aitalk_send_play_music(NULL));
+		ai_aitalk_send(aitalk_send_play_music(NULL));
 		#endif
 	}
 }
@@ -426,7 +426,7 @@ void *ai_song_recommend_auto_thr(void *args)
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
-		aitalk_pipe_put(aitalk_send_play_music(NULL));
+		ai_aitalk_send(aitalk_send_play_music(NULL));
 		#endif
 	}
 	pthread_exit(&status);
@@ -439,7 +439,7 @@ int ai_song_recommend_auto(void){
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
-		aitalk_pipe_put(aitalk_send_play_music(NULL));
+		ai_aitalk_send(aitalk_send_play_music(NULL));
 		#endif
 	}
 	return 0;

@@ -5,8 +5,10 @@
 #include <errno.h>
 #include <sys/time.h>
 
+#include <semaphore.h>
 #include <json-c/json.h>
 #include "vr-speech_interface.h"
+#include "aiengine.h"
 
 #ifndef MOZART_RELEASE
 #define MOZART_AITALK_DEBUG
@@ -25,6 +27,9 @@
 
 
 static char *pjson = NULL;
+static sem_t sem_aitalk;
+char *aitalk_pipe_buf = NULL;
+static bool is_aitalk_send_init = false;
 
 char *send_obj(char *method,json_object *obj)
 {
@@ -117,5 +122,55 @@ char *aitalk_send_set_volume(const char *cmd){
 	return send_obj("set_volume",params);
 }
 
+int ai_aitalk_send_init(void){
+    sem_init(&sem_aitalk, 0, 0);
+	is_aitalk_send_init = true;
+	return 0;
 
+}
+
+int ai_aitalk_send(char *data){
+	if (!data){
+		return -1;
+	}
+
+	if(is_aitalk_send_init == false){
+		PERROR("is_aitalk_send_init = false \n");
+		return -1;
+	}
+
+	free(aitalk_pipe_buf);
+	aitalk_pipe_buf = NULL;
+	aitalk_pipe_buf = strdup(data);
+
+	sem_post(&sem_aitalk);
+	return 0;
+}
+
+char *ai_aitalk_receive(void){
+	return aitalk_pipe_buf;
+}
+
+
+int ai_aitalk_send_destroy(void){
+	free(aitalk_pipe_buf);
+	aitalk_pipe_buf = NULL;
+	free(pjson);
+	pjson =   NULL;
+	if(is_aitalk_send_init == true){
+		sem_destroy(&sem_aitalk);
+		is_aitalk_send_init = false;
+	}
+	return 0;
+}
+
+int ai_aitalk_handler_wait(void){
+	if(is_aitalk_send_init == false){
+		PERROR("is_aitalk_send_init = false \n");
+		return -1;
+	}
+
+	sem_wait(&sem_aitalk);
+	return 0;
+}	//*/
 
