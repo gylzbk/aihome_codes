@@ -29,6 +29,10 @@
 #include "mozart_player.h"
 #include "mozart_atalk_cloudplayer_control.h"
 
+#include "vr-speech_interface.h"
+
+#include "mozart_config.h"
+
 #ifndef MOZART_RELEASE
 #define MOZART_ATALK_CLOUDPLAYER_CONTROL_DEBUG
 #endif
@@ -1182,8 +1186,6 @@ int atalk_cloudplayer_startup(void)
 			       __func__, strerror(errno));
 			return -1;
 		}
-//		pthread_detach(atalk_thread);
-
 		up_die = 0;
 		list_init(&atalk.up_queue_list);
 		if (pthread_create(&atalk.down_thread, NULL, atalk_update_queue_handle_func, NULL) != 0) {

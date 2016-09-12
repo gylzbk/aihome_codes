@@ -374,6 +374,49 @@ vr_wakeup_key_longpress_config: vr_wakeup_define_config
 	@echo "#define SUPPORT_VR_WAKEUP VR_WAKEUP_KEY_LONGPRESS" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 
+
+# board type @yuanze.zhang 160907
+# BOARD_PUBLIC_AIHOME 0
+# BOARD_DS1825_ATALK　1
+# BOARD_DS1825_AIHOME 2
+# BOARD_DS1825_PRO 3
+# BOARD_WB38_AIHOME 4 
+board_type_define_config:
+	@echo "/*--------------------------BOARD */" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define BOARD_PUBLIC 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define BOARD_DS1825 1" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define BOARD_WB38 2" >> $(MOZART_DIR)/usr/include/mozart_config.h
+board_public_config: board_type_define_config
+	@echo "SUPPORT_BOARD=board_public" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_BOARD BOARD_PUBLIC" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
+board_ds1825_config: board_type_define_config
+	@echo "SUPPORT_BOARD=board_ds1825" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_BOARD BOARD_DS1825" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
+board_wb38_config: board_type_define_config
+	@echo "SUPPORT_BOARD=board_wb38" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_BOARD BOARD_WB38" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
+
+
+# networking type @yuanze.zhang 160907
+# ATALK_AIRKISS : 0
+# COOEE_AIRKISS : 1
+netowrk_define_config:
+	@echo "/*--------------------------NETWORKING */" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define NETWORK_ATALK_AIRKISS 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define NETWORK_COOEE_AIRKISS 1" >> $(MOZART_DIR)/usr/include/mozart_config.h
+netowrk_atalk_airkiss_config: netowrk_define_config
+	@echo "#define SUPPORT_NETWORK NETWORK_ATALK_AIRKISS" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
+netowrk_cooee_airkiss_config: netowrk_define_config
+	@echo "#define SUPPORT_NETWORK NETWORK_COOEE_AIRKISS" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
+
 # lapsule config in config.mak and config.h
 #       1: enable
 #   other: disable
@@ -386,18 +429,47 @@ lapsule_disable_config:
 	@echo "#define SUPPORT_LAPSULE 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(TOPDIR)/configs/config.mk
 
+# aispeech config in config.mak and config.h
+#       1: enable
+#   other: disable
+aispeech_enable_config:
+	@echo "SUPPORT_AISPEECH=1" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_AISPEECH 1" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
+aispeech_disable_config:
+	@echo "SUPPORT_AISPEECH=0" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_AISPEECH 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
+
 # atalk config in config.mak and config.h
 #       1: enable
 #   other: disable
 atalk_enable_config:
 	@echo "SUPPORT_ATALK=1" >> $(TOPDIR)/configs/config.mk
-	@echo "#define SUPPORT_ATALK 1" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_ATALK 1" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 atalk_disable_config:
 	@echo "SUPPORT_ATALK=0" >> $(TOPDIR)/configs/config.mk
-	@echo "#define SUPPORT_ATALK 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_ATALK 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 
+# aitalk config in config.mak and config.h
+#       1: enable
+#   other: disable
+aitalk_enable_config:
+	@echo "SUPPORT_AITALK=1" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_AITALK 1" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
+aitalk_disable_config:
+	@echo "SUPPORT_AITALK=0" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_ATALK 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 # dmr config in config.mak and config.h
 #       1: enable
 #   other: disable
@@ -720,13 +792,13 @@ aslmom_v1.0_ap6212a_cramfs_config: unconfig mozart_prepare product_aslmom_v1.0_a
 	@echo "Config complete sdk with cramfs for aslmom v1.0 ap6212a board"
 
 #aslmom_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_aslmom_v1.0_ap6212a_config \
-		wifi_ap6212a_atalk_config bt_ap6212a_config bt_hci_dev_ttyS0_config \
-		smartui_enable_config webrtc_aec_enable_config\
-		audio_dev_x1000_config dmr_enable_config dms_disable_config \
-		airplay_enable_config localplayer_enable_config \
-		mplayer_float_config vr_atalk_config vr_wakeup_key_shortpress_config \
-		atalk_enable_config adb_enable_config battery_nv_flag_enable_config\
-		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
+#		wifi_ap6212a_atalk_config bt_ap6212a_config bt_hci_dev_ttyS0_config \
+#		smartui_enable_config webrtc_aec_enable_config\
+#		audio_dev_x1000_config dmr_enable_config dms_disable_config \
+#		airplay_enable_config localplayer_enable_config \
+#		mplayer_float_config vr_atalk_config vr_wakeup_key_shortpress_config \
+#		atalk_enable_config adb_enable_config battery_nv_flag_enable_config\
+#		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
 #	@echo "Config complete sdk with cramfs for canna v1.0 ap6212a board"
 
 aslmom_v1.0_ap6212a_cramfs_atalk_speech_config: unconfig mozart_prepare product_aslmom_v1.0_ap6212a_config \
@@ -738,6 +810,39 @@ aslmom_v1.0_ap6212a_cramfs_atalk_speech_config: unconfig mozart_prepare product_
 		atalk_enable_config adb_enable_config battery_nv_flag_enable_config\
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
 	@echo "Config complete sdk with cramfs for canna v1.0 ap6212a board"
+
+ds1825_atalk_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_aslmom_v1.0_ap6212a_config \
+		wifi_ap6212a_atalk_config bt_ap6212a_config bt_hci_dev_ttyS0_config \
+		smartui_enable_config webrtc_aec_enable_config\
+		audio_dev_x1000_config dmr_enable_config dms_disable_config \
+		airplay_enable_config localplayer_enable_config \
+		board_ds1825_config netowrk_atalk_airkiss_config aispeech_disable_config\
+		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
+		atalk_enable_config adb_enable_config battery_nv_flag_enable_config\
+		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
+	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
+
+ds1825_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_aslmom_v1.0_ap6212a_config \
+		wifi_ap6212a_atalk_config bt_ap6212a_config bt_hci_dev_ttyS0_config \
+		smartui_enable_config webrtc_aec_enable_config\
+		audio_dev_x1000_config dmr_enable_config dms_disable_config \
+		airplay_enable_config localplayer_enable_config \
+		board_ds1825_config netowrk_atalk_airkiss_config aispeech_enable_config\
+		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
+		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
+		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
+	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
+
+wb38_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_aslmom_v1.0_ap6212a_config \
+		wifi_ap6212a_atalk_config bt_ap6212a_config bt_hci_dev_ttyS0_config \
+		smartui_enable_config webrtc_aec_enable_config\
+		audio_dev_x1000_config dmr_enable_config dms_disable_config \
+		airplay_enable_config localplayer_enable_config \
+		board_wb38_config netowrk_atalk_airkiss_config aispeech_enable_config\
+		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
+		atalk_enable_config adb_enable_config battery_nv_flag_enable_config\
+		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
+	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
 
 canna_v1.0_ap6212a_cramfs_config: unconfig mozart_prepare product_canna_v1.0_ap6212a_config \
 		wifi_ap6212a_config bt_ap6212a_config bt_hci_dev_ttyS0_config \

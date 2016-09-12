@@ -15,10 +15,20 @@
 #include "tips_interface.h"
 
 #include "mozart_module.h"
-#include "mozart_atalk.h"
 #include "mozart_linein.h"
 #include "mozart_smartui.h"
 #include "mozart_prompt_tone.h"
+
+
+#include "mozart_config.h"
+#if (SUPPORT_VR == VR_ATALK)
+#include "mozart_atalk.h"
+#include "vr-atalk_interface.h"
+#include "mozart_atalk_cloudplayer_control.h"
+#elif (SUPPORT_VR == VR_SPEECH)
+#include "mozart_aitalk.h"
+#include "mozart_aitalk_cloudplayer_control.h"
+#endif
 
 #define SOUND_MIXER_WRITE_OUTSRC MIXER_WRITE(SOUND_MIXER_OUTSRC)
 
@@ -103,10 +113,21 @@ static void linein_module_next_module(struct mozart_module_struct *self)
 {
 	mozart_module_mutex_lock();
 
-	if (__mozart_module_is_online())
-		mozart_atalk_cloudplayer_start(true);
-	else
-		mozart_atalk_localplayer_start(true);
+	#if (SUPPORT_VR == VR_ATALK)
+		if (__mozart_module_is_online()){
+			mozart_atalk_cloudplayer_start(true);
+		}
+		else{
+			mozart_atalk_localplayer_start(true);
+		}
+	#elif (SUPPORT_VR == VR_SPEECH)
+		if (__mozart_module_is_online()){
+			mozart_aitalk_cloudplayer_start(true);
+		}
+		else{
+			mozart_aitalk_localplayer_start(true);
+		}
+	#endif
 
 	mozart_module_mutex_unlock();
 }

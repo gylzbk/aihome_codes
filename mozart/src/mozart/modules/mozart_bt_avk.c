@@ -7,7 +7,6 @@
 
 #include "bluetooth_interface.h"
 #include "utils_interface.h"
-#include "mozart_config.h"
 #include "tips_interface.h"
 #include "sharememory_interface.h"
 #include "resample_interface.h"
@@ -15,10 +14,20 @@
 #include "mozart_module.h"
 #include "mozart_smartui.h"
 #include "mozart_linein.h"
-#include "mozart_atalk.h"
 #include "mozart_prompt_tone.h"
 #include "mozart_bt_avk_fft.h"
-#include "mozart_speech_asr.h"
+
+#include "mozart_config.h"
+#if (SUPPORT_VR == VR_ATALK)
+#include "mozart_atalk.h"
+#include "vr-atalk_interface.h"
+#elif (SUPPORT_VR == VR_SPEECH)
+#include "mozart_aitalk.h"
+#include "mozart_aitalk_cloudplayer_control.h"
+#endif
+
+
+
 #include "ini_interface.h"
 #include "volume_interface.h"
 
@@ -541,7 +550,14 @@ static int bt_avk_module_start(struct mozart_module_struct *self)
 {
 	int ret, timeout = 5;
 
-	mozart_speech_asr_shutdown();
+	#if (SUPPORT_VR == VR_ATALK)
+		mozart_atalk_cloudplayer_shutdown();
+	#elif (SUPPORT_VR == VR_SPEECH)
+		mozart_aitalk_cloudplayer_shutdown();
+	#endif
+
+
+
 	mozart_bluetooth_set_visibility(true, true);
 	mozart_smartui_bt_start();
 
@@ -580,8 +596,12 @@ static int bt_avk_module_stop(struct mozart_module_struct *self)
 	self->player_state = player_state_idle;
 	mozart_bluetooth_disconnect(USE_HS_AVK);
 	mozart_bluetooth_set_visibility(false, false);
+#if (SUPPORT_VR == VR_ATALK)
+	mozart_atalk_cloudplayer_startup();
+#elif (SUPPORT_VR == VR_SPEECH)
+	mozart_aitalk_cloudplayer_startup();
+#endif
 
-	mozart_speech_asr_startup(VOICE_WAKEUP);
 
 	return 0;
 }
@@ -638,13 +658,23 @@ static void bt_avk_module_next_module(struct mozart_module_struct *self)
 {
 	mozart_module_mutex_lock();
 
-	if (mozart_linein_is_in())
-		mozart_linein_start(true);
-	else if (__mozart_module_is_online())
-		mozart_atalk_cloudplayer_start(true);
-	else
-		mozart_atalk_localplayer_start(true);
-
+	#if (SUPPORT_VR == VR_ATALK)
+		if (mozart_linein_is_in()){
+			mozart_linein_start(true);
+		} else if (__mozart_module_is_online()){
+			mozart_atalk_cloudplayer_start(true);
+		} else {
+			mozart_atalk_localplayer_start(true);
+		}
+	#elif (SUPPORT_VR == VR_SPEECH)
+		if (mozart_linein_is_in()){
+			mozart_linein_start(true);
+		} else if (__mozart_module_is_online()){
+			mozart_aitalk_cloudplayer_start(true);
+		} else {
+			mozart_aitalk_localplayer_start(true);
+		}
+	#endif
 	mozart_module_mutex_unlock();
 }
 

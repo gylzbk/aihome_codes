@@ -5,22 +5,22 @@
 #include <errno.h>
 #include <sys/time.h>
 
-#include "mozart_config.h"
 #include "player_interface.h"
 #include "volume_interface.h"
-#if (SUPPORT_VR == VR_ATALK)
+
+#include "mozart_config.h"
+#include "mozart_atalk.h"
 #include "vr-atalk_interface.h"
-#elif (SUPPORT_VR == VR_SPEECH)
-#include "mozart_speech_asr.h"
-#endif
+#include "mozart_atalk_cloudplayer_control.h"
+
+
 #include "sharememory_interface.h"
 
 #include "mozart_module.h"
 #include "mozart_player.h"
-#include "mozart_smartui.h" 
+#include "mozart_smartui.h"
 #include "mozart_prompt_tone.h"
 #include "mozart_bt_avk.h"
-#include "mozart_atalk.h"
 #include "mozart_atalk_cloudplayer_control.h"
 
 #ifndef MOZART_RELEASE
@@ -180,12 +180,8 @@ static void atalk_cloudplayer_module_asr_wakeup(struct mozart_module_struct *sel
 {
 	if (self->player_state != player_state_idle) {
 		mozart_smartui_asr_start();
-#if (SUPPORT_VR == VR_ATALK)
 		mozart_atalk_asr_start();
 		mozart_key_wakeup();
-#elif (SUPPORT_VR == VR_SPEECH)
-		mozart_speech_asr_start();
-#endif
 	}
 }
 
@@ -402,6 +398,10 @@ int mozart_atalk_cloudplayer_start(bool in_lock)
 
 	if (ret == 0)
 		create_atalk_cloudplayer_monitor_pthread();
+
+#if (SUPPORT_VR == VR_SPEECH)
+		ai_set_enable(true);
+#endif
 
 	return ret;
 }

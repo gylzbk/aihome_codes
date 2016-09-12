@@ -25,12 +25,12 @@ PREFIX = /usr
 INITDIR = /etc/init.d/
 SBINDIR = $(PREFIX)/sbin
 
-SRCS = mozart.c mozart_module.c mozart_app.c mozart_event.c mozart_smartui.c mozart_player.c
+SRCS = mozart.c mozart_module.c mozart_app.c mozart_event.c mozart_player.c
 SRCS += modules/mozart_prompt_tone.c modules/mozart_net.c modules/mozart_linein.c modules/mozart_dmr.c
 SRCS += mozart_battery.c mozart_misc.c
 
 # common opts.
-CFLAGS = -fPIC -Wall -g -O2 -I. -I$(MOLIB_DIR)/usr/include -I$(MOLIB_UPDATER_DIR)/usr/include -I$(MOZART_DIR)/usr/include -I$(DIR_CUR)/include/
+CFLAGS = -fPIC -Wall -g -O2 -I. -I$(MOLIB_DIR)/usr/include  -I$(MOLIB_DIR)/usr/include/mozart -I$(MOLIB_UPDATER_DIR)/usr/include -I$(MOZART_DIR)/usr/include -I$(DIR_CUR)/include/
 CFLAGS += -rdynamic -fasynchronous-unwind-tables -Wall -Werror
 #CFLAGS += -DFIXED_VOLUME
 #CFLAGS += -DMOZART_RELEASE
@@ -41,23 +41,28 @@ LDFLAGS += -Wl,-rpath-link,$(MOLIB_DIR)/usr/lib:$(MOLIB_UPDATER_DIR)/usr/lib:$(M
 
 # basic depends.
 LDFLAGS += -levent -lpower -lwifi -lvolume -ltips -lsharememory -lini -lutils -lpthread -lplayer -lresample
+LDFLAGS += -ljson-c -lwifi -ltips -lutils -lplayer -lvolume -lsharememory -llinklist -lcurl -lssl -lcrypto -lz -lrt
 
 ifeq ("$(VR)","0")
 $(warning vr func are CLOSED!!!!)
 else
-  ifeq ("$(VR)","vr_baidu")
-    LDFLAGS += -lmovr
-    SRCS += vr.c
-  else ifeq ("$(VR)","vr_speech")
-    LDFLAGS += -lvr_speech
-    SRCS += modules/mozart_speech_asr.c
-  else ifeq ("$(VR)","vr_iflytek")
-    LDFLAGS += -lvr_iflytek
-    SRCS += vr.c
-  else ifeq ("$(VR)","vr_unisound")
+  ifeq ("$(VR)","vr_speech")
+    LDFLAGS +=  -laiserver -laispeech  #-lvr_atalk
+ #   SRCS += modules/aitalk/mozart_aispeech.c
+	SRCS += modules/aitalk/mozart_aitalk_asr.c 
   else ifeq ("$(VR)","vr_atalk")
-    LDFLAGS += -lvr_atalk
-    SRCS += modules/atalk/mozart_atalk_asr.c
+    LDFLAGS += -lvr_atalk	
+   	SRCS += modules/atalk/mozart_atalk_asr.c 
+  endif
+endif
+
+ifeq ("$(BOARD)","0")
+$(warning vr func are CLOSED!!!!)
+else
+  ifeq ("$(BOARD)","board_ds1825")
+    SRCS += mozart_smartui.c
+  else ifeq ("$(BOARD)","board_wb38")
+    SRCS += mozart_smartui_wb38.c
   endif
 endif
 
@@ -68,12 +73,20 @@ else
 $(warning lcd func CLOSED!!!!)
 endif
 
-ifeq ($(ATALK),1)
+ifeq ($(ATALK),1) # atalk
 LDFLAGS += -lwifi -ltips -lutils -lplayer -lvolume -lsharememory -ljson-c -llinklist -lcurl -lssl -lcrypto -lz -lrt
-SRCS += modules/atalk/mozart_atalk.c modules/atalk/mozart_atalk_localplayer.c modules/atalk/mozart_atalk_cloudplayer.c
-SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c modules/atalk/dl_perform.c
+   	SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c
+	SRCS += modules/atalk/mozart_atalk.c modules/atalk/mozart_atalk_localplayer.c
+	SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c modules/atalk/dl_perform.c  modules/atalk/mozart_atalk_cloudplayer.c
 else
 $(warning atalk func CLOSED!!!!)
+endif
+
+ifeq ($(AITALK),1) # aispeech
+	SRCS += modules/aitalk/mozart_aitalk_cloudplayer_control.c  modules/aitalk/mozart_aitalk_cloudplayer.c 
+	SRCS += modules/aitalk/mozart_aitalk.c modules/aitalk/mozart_aitalk_localplayer.c
+else
+$(warning aitalk func CLOSED!!!!)
 endif
 
 ifeq ($(WEBRTC),1)
@@ -126,7 +139,7 @@ else
 endif
 
 
-OBJS = $(patsubst %.c, %.c.o, $(SRCS))
+OBJS = $(patsubst %.c, %.o, $(SRCS))
 TARGET = mozart
 
 all:$(TARGET)

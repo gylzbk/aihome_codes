@@ -15,8 +15,18 @@
 #include "mozart_prompt_tone.h"
 #include "mozart_app.h"
 #include "mozart_net.h"
-#include "mozart_atalk.h"
 #include "mozart_bt_avk.h"
+
+
+#include "mozart_config.h"
+#if (SUPPORT_VR == VR_ATALK)
+#include "mozart_atalk.h"
+#include "vr-atalk_interface.h"
+#include "mozart_atalk_cloudplayer_control.h"
+#elif (SUPPORT_VR == VR_SPEECH)
+#include "mozart_aitalk.h"
+#include "mozart_aitalk_cloudplayer_control.h"
+#endif
 
 #ifndef MOZART_RELEASE
 #define MOZART_NET_DEBUG
@@ -141,12 +151,22 @@ static bool switch_net_config(void)
 	new_mode.cmd = SW_NETCFG;
 	new_mode.param.network_config.timeout = 120;
 	strcpy(new_mode.name, global_app_name);
-	strcpy(new_mode.param.network_config.method, netcfg_method_str[ATALK]);
+	strcpy(new_mode.param.network_config.wl_module, netcfg_method_str[BROADCOM]);
 	strcpy(new_mode.param.network_config.product_model, "WONDERS_ENTERTAINMENT_ATALK_DS1825");
-
+//	new_mode.param.network_config.method |= 0x01;
+   //new_mode.param.network_config.method |= 0x01;
+   //ATALK = 0x01 or AIRKISS_WE = 0x04 means can use airkiss and atalk at the same time,new_mode.param.network_config.method |= 0x05
+//   new_mode.param.network_config.method |= 0x05;		//		atalk  (0x01) + airkiss (0x04)
+#if (SUPPORT_NETWORK == NETWORK_ATALK_AIRKISS)
+	new_mode.param.network_config.method |= 0x0C;		//		cooee  (0x08) + airkiss (0x04)
+#elif(SUPPORT_NETWORK == NETWORK_COOEE_AIRKISS)
+	new_mode.param.network_config.method |= 0x05;		//		atalk  (0x01) + airkiss (0x04)
+#else
+	new_mode.param.network_config.method |= 0x05;		//		atalk  (0x01) + airkiss (0x04)
+#endif
 	if (request_wifi_mode(new_mode)) {
 		return true;
-	} else {
+	}else{
 		pr_err("Request SW_NETCFG Failed\n");
 		return false;
 	}
@@ -314,7 +334,9 @@ static int __network_configure_error_handler(char *s)
 	module_mutex_lock(&net_mode_lock);
 	if (global_net_mode != NET_MODE_SW_STA)
 		return -1;
+
 	mozart_smartui_boot_build_display("尝试恢复网络连接");
+
 	usleep(1000 * 1000);
 
 	return 0;
@@ -339,12 +361,27 @@ static inline void network_configure_handler(event_info_t network_event, struct 
 
 		mozart_module_mutex_lock();
 		if (__mozart_net_is_start()) {
-			network_state = __mozart_atalk_network_state();
+
+			#if (SUPPORT_VR == VR_ATALK)
+					network_state = __mozart_atalk_network_state();
+			#elif (SUPPORT_VR == VR_SPEECH)
+					network_state = __mozart_aitalk_network_state();
+			#endif
+
 			__mozart_module_set_offline();
 			__mozart_module_set_net();
+			#if (SUPPORT_VR == VR_ATALK)
 			__mozart_atalk_network_trigger(network_config, network_state, true);
+			#elif (SUPPORT_VR == VR_SPEECH)
+			__mozart_aitalk_network_trigger(network_config, network_state, true);
+			#endif
+
 			if (!__mozart_module_is_attach())
-				__mozart_atalk_switch_mode(true);
+				#if (SUPPORT_VR == VR_ATALK)
+					__mozart_atalk_switch_mode(true);
+				#elif (SUPPORT_VR == VR_SPEECH)
+					__mozart_aitalk_switch_mode(true);
+				#endif
 		} else {
 			/* net_mode is on_stop */
 			__mozart_module_set_offline();
@@ -463,10 +500,23 @@ static inline void network_sta_failed_handler(char *reason)
 	module_mutex_unlock(&net_mode_lock);
 
 	mozart_module_mutex_lock();
-	network_state = __mozart_atalk_network_state();
+
+	#if (SUPPORT_VR == VR_ATALK)
+		network_state = __mozart_atalk_network_state();
+	#elif (SUPPORT_VR == VR_SPEECH)
+		network_state = __mozart_aitalk_network_state();
+	#endif
+
+
 	__mozart_module_set_offline();
 	__mozart_module_clear_net();
-	__mozart_atalk_network_trigger(network_offline, network_state, force);
+
+	#if (SUPPORT_VR == VR_ATALK)
+		__mozart_atalk_network_trigger(network_offline, network_state, force);
+	#elif (SUPPORT_VR == VR_SPEECH)
+		__mozart_aitalk_network_trigger(network_offline, network_state, force);
+	#endif
+
 	mozart_module_mutex_unlock();
 }
 
@@ -524,10 +574,23 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 		module_mutex_unlock(&net_mode_lock);
 
 		mozart_module_mutex_lock();
-		network_state = __mozart_atalk_network_state();
+
+		#if (SUPPORT_VR == VR_ATALK)
+			network_state = __mozart_atalk_network_state();
+		#elif (SUPPORT_VR == VR_SPEECH)
+			network_state = __mozart_aitalk_network_state();
+		#endif
+
+
 		__mozart_module_set_online();
 		__mozart_module_clear_net();
-		__mozart_atalk_network_trigger(network_online, network_state, force);
+
+		#if (SUPPORT_VR == VR_ATALK)
+			__mozart_atalk_network_trigger(network_online, network_state, force);
+		#elif (SUPPORT_VR == VR_SPEECH)
+			__mozart_aitalk_network_trigger(network_online, network_state, force);
+		#endif
+
 		mozart_module_mutex_unlock();
 	} else {
 		module_mutex_lock(&net_mode_lock);
@@ -541,10 +604,20 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 			module_mutex_unlock(&net_mode_lock);
 
 			mozart_module_mutex_lock();
+
+		#if (SUPPORT_VR == VR_ATALK)
 			network_state = __mozart_atalk_network_state();
 			__mozart_module_set_offline();
 			__mozart_module_clear_net();
 			__mozart_atalk_network_trigger(network_offline, network_state, false);
+		#elif (SUPPORT_VR == VR_SPEECH)
+			network_state = __mozart_aitalk_network_state();
+			__mozart_module_set_offline();
+			__mozart_module_clear_net();
+			__mozart_aitalk_network_trigger(network_offline, network_state, false);
+		#endif
+
+
 			mozart_module_mutex_unlock();
 		} else {
 			module_mutex_unlock(&net_mode_lock);
@@ -663,6 +736,7 @@ int mozart_net_startup(void)
 		global_net_mode = NET_MODE_BOOT_STA;
 	else
 		pr_err("Request SW_STA Failed\n");
+
 	mozart_smartui_boot_build_display("正在连接网络");
 
 	return 0;
