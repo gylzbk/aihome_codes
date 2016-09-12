@@ -18,8 +18,9 @@ typedef enum aiengine_status{
 //	AIENGINE_STATUS_AEC,				//
 //	AIENGINE_STATUS_WAIT_WAKEUP,			//
 //	AIENGINE_STATUS_SEM,				//
-//	AIENGINE_STATUS_ASR_FAIL,				//
-//	AIENGINE_STATUS_ASR_SUCCESS,			//
+	AIENGINE_STATUS_ASR_FAIL,				//
+	AIENGINE_STATUS_ASR_SUCCESS,			//
+	AIENGINE_STATUS_ASR_EXIT,			//
 //	AIENGINE_STATUS_TTS_ANSWER,				//
 //	AIENGINE_STATUS_WAIT_TO_PLAY,			//
 //	AIENGINE_STATUS_STOP_AEC,				//	stop wakeup engine
@@ -29,7 +30,7 @@ typedef enum aiengine_status{
 }aiengine_status;
 
 typedef enum vr_speech_status_type{
-	STATUS_NULL = 0,
+	VR_SPEECH_NULL = 0,
 	VR_SPEECH_INIT,
 	VR_SPEECH_QUIT,
 	VR_SPEECH_ERROR
@@ -238,6 +239,8 @@ typedef enum asr_mode {
  */
 
 extern int ai_set_enable(bool enable);
+
+extern int ai_aec_set_enable(bool enable);
 
 typedef int (*mozart_vr_speech_callback)(vr_info * recog_info);
 

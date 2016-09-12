@@ -11,7 +11,13 @@
 #include "mozart_smartui.h"
 #include "mozart_prompt_tone.h"
 #include "mozart_linein.h"
+
+#include "mozart_config.h"
+#if (SUPPORT_VR == VR_ATALK)
 #include "mozart_atalk.h"
+#elif (SUPPORT_VR == VR_SPEECH)
+#include "mozart_aitalk.h"
+#endif
 
 #ifndef MOZART_RELEASE
 #define MOZART_BT_HS_RING_DEBUG
@@ -105,10 +111,22 @@ static void bt_hs_ring_module_next_module(struct mozart_module_struct *self)
 
 	if (mozart_linein_is_in())
 		mozart_linein_start(true);
-	else if (__mozart_module_is_online())
-		mozart_atalk_cloudplayer_start(true);
-	else
-		mozart_atalk_cloudplayer_start(true);
+	else if (__mozart_module_is_online()){
+		#if (SUPPORT_VR == VR_ATALK)
+			mozart_atalk_cloudplayer_start(true);
+		#elif (SUPPORT_VR == VR_ATALK)
+			mozart_aitalk_cloudplayer_start(true);
+		#endif
+
+	}
+	else{
+		#if (SUPPORT_VR == VR_ATALK)
+			mozart_atalk_cloudplayer_start(true);
+		#elif (SUPPORT_VR == VR_ATALK)
+			mozart_aitalk_cloudplayer_start(true);
+		#endif
+
+	}
 
 	mozart_module_mutex_unlock();
 }

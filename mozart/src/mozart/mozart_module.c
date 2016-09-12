@@ -8,10 +8,20 @@
 
 #include "mozart_module.h"
 #include "mozart_net.h"
-#include "mozart_atalk.h"
 #include "mozart_smartui.h"
 #include "mozart_prompt_tone.h"
 #include "mozart_update_control.h"
+
+
+#include "mozart_config.h"
+#if (SUPPORT_VR == VR_ATALK)
+#include "mozart_atalk.h"
+#include "vr-atalk_interface.h"
+#include "mozart_atalk_cloudplayer_control.h"
+#elif (SUPPORT_VR == VR_SPEECH)
+#include "mozart_aitalk.h"
+#include "mozart_aitalk_cloudplayer_control.h"
+#endif
 
 #ifndef MOZART_RELEASE
 #define MOZART_MODULE_DEBUG
@@ -715,10 +725,23 @@ static int __mozart_module_start(struct mozart_module_struct *self,
 
 		if (dst->attach == module_attach && !__mozart_module_is_attach()) {
 			pr_debug("%s -> %s, switch_mode true\n", src->name, dst->name);
-			ret = __mozart_atalk_switch_mode(true);
+
+			#if (SUPPORT_VR == VR_ATALK)
+				ret = __mozart_atalk_switch_mode(true);
+			#elif (SUPPORT_VR == VR_SPEECH)
+				ret = __mozart_aitalk_switch_mode(true);
+			#endif
+
+
 		} else if (dst->attach == module_unattach && __mozart_module_is_attach()) {
 			pr_debug("%s -> %s, switch_mode false\n", src->name, dst->name);
+
+		#if (SUPPORT_VR == VR_ATALK)
 			ret = __mozart_atalk_switch_mode(false);
+		#elif (SUPPORT_VR == VR_SPEECH)
+			ret = __mozart_aitalk_switch_mode(false);
+		#endif
+
 		}
 		pr_debug("    switch_mode ret = %d\n", ret);
 		if (ret) {

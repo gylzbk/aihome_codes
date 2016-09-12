@@ -17,7 +17,7 @@
 
 
 #define CLOUD_TTS_MP3 "/tmp/speech_asr_result.mp3"
-#define AI_CONTROL_MOZART 0
+#define AI_CONTROL_MOZART 1
 
 #define AI_CONTROL_MOZART_ATALK 1
 
@@ -111,7 +111,10 @@ extern int time_subtract(unsigned long *dff,struct timeval x, struct timeval y);
 
 extern int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback);
 extern int ai_speech_shutdown(void);
-
+extern int ai_set_enable(bool enable);
+extern int ai_aiengine_stop(void);
+extern int ai_aecing(void);
+extern int ai_sem_start(void);
 #ifdef __cplusplus
 }
 #endif

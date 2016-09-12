@@ -45,19 +45,13 @@ LDFLAGS += -levent -lpower -lwifi -lvolume -ltips -lsharememory -lini -lutils -l
 ifeq ("$(VR)","0")
 $(warning vr func are CLOSED!!!!)
 else
-  ifeq ("$(VR)","vr_baidu")
-    LDFLAGS += -lmovr
-    SRCS += vr.c
-  else ifeq ("$(VR)","vr_speech")
-    LDFLAGS += -laiserver -laispeech 
-    SRCS += modules/aitalk/mozart_aispeech.c
-  else ifeq ("$(VR)","vr_iflytek")
-    LDFLAGS += -lvr_iflytek
-    SRCS += vr.c
-  else ifeq ("$(VR)","vr_unisound")
+  ifeq ("$(VR)","vr_speech")
+    LDFLAGS +=  -laiserver -laispeech  #-lvr_atalk
+ #   SRCS += modules/aitalk/mozart_aispeech.c
+	SRCS += modules/aitalk/mozart_aitalk_asr.c 
   else ifeq ("$(VR)","vr_atalk")
-    LDFLAGS += -lvr_atalk
-    SRCS += modules/atalk/mozart_atalk_asr.c
+    LDFLAGS += -lvr_atalk	
+   	SRCS += modules/atalk/mozart_atalk_asr.c 
   endif
 endif
 
@@ -78,18 +72,19 @@ else
 $(warning lcd func CLOSED!!!!)
 endif
 
-ifeq ($(ATALK),1)
+ifeq ($(ATALK),1) # atalk
 LDFLAGS += -lwifi -ltips -lutils -lplayer -lvolume -lsharememory -ljson-c -llinklist -lcurl -lssl -lcrypto -lz -lrt
-SRCS += modules/atalk/mozart_atalk.c modules/atalk/mozart_atalk_localplayer.c modules/atalk/mozart_atalk_cloudplayer.c
-SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c modules/atalk/dl_perform.c
+   	SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c
+	SRCS += modules/atalk/mozart_atalk.c modules/atalk/mozart_atalk_localplayer.c
+	SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c modules/atalk/dl_perform.c  modules/atalk/mozart_atalk_cloudplayer.c
 else
 $(warning atalk func CLOSED!!!!)
 endif
 
-ifeq ($(AITALK),1)
-LDFLAGS += -lwifi -ltips -lutils -lplayer -lvolume -lsharememory -ljson-c -llinklist -lcurl -lssl -lcrypto -lz -lrt
-SRCS += modules/atalk/mozart_atalk.c modules/atalk/mozart_atalk_localplayer.c modules/atalk/mozart_atalk_cloudplayer.c
-SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c modules/atalk/dl_perform.c
+ifeq ($(AITALK),1) # aispeech
+	LDFLAGS += -ljson-c -lwifi -ltips -lutils -lplayer -lvolume -lsharememory -llinklist -lcurl -lssl -lcrypto -lz -lrt
+	SRCS += modules/aitalk/mozart_aitalk_cloudplayer_control.c  modules/aitalk/mozart_aitalk_cloudplayer.c 
+	SRCS += modules/aitalk/mozart_aitalk.c modules/aitalk/mozart_aitalk_localplayer.c
 else
 $(warning atalk func CLOSED!!!!)
 endif

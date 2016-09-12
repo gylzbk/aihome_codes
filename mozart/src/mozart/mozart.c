@@ -8,6 +8,7 @@
 #include <signal.h>
 #include <execinfo.h>
 #include <errno.h>
+#include <semaphore.h>
 
 #include "utils_interface.h"
 #include "localplayer_interface.h"
@@ -29,6 +30,9 @@ char *global_app_name;
 static event_handler *e_handler;
 static event_handler *e_key_handler;
 static event_handler *e_misc_handler;
+
+
+sem_t sem_aitalk;
 
 static char *signal_str[] = {
 	[1] = "SIGHUP",       [2] = "SIGINT",       [3] = "SIGQUIT",      [4] = "SIGILL",      [5] = "SIGTRAP",
@@ -88,6 +92,8 @@ static void sig_handler(int signo)
 	free(global_app_name);
 	global_app_name = NULL;
 
+//	sem_destroy(sem_aitalk);
+
 	exit(-1);
 }
 
@@ -136,13 +142,12 @@ static inline int initall(void)
 
 	return 0;
 }
-
 int main(int argc, char **argv)
 {
 	int c, daemonize = 0;
 
 	global_app_name = strdup(argv[0]);
-
+    sem_init(&sem_aitalk, 0, 0);
 	/* Get command line parameters */
 	while (1) {
 		c = getopt(argc, argv, "bBsSh");

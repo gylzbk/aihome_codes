@@ -31,7 +31,7 @@
 #include "cJSON.h"
 //#include "vr-speech_interface.h"
 extern void ai_get_song_recommend(void);
-extern bool aitalk_play_music;
+bool aitalk_play_music;
 static const char *song_recommand_param =
 "\
 {\
@@ -399,7 +399,7 @@ void ai_song_recommend_artist(char *artist){
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
-		aitalk_pipe_put(aitalk_play_music_json(NULL));
+		aitalk_pipe_put(aitalk_send_play_music(NULL));
 		#endif
 	}
 }
@@ -426,7 +426,7 @@ void *ai_song_recommend_auto_thr(void *args)
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
-		aitalk_pipe_put(aitalk_play_music_json(NULL));
+		aitalk_pipe_put(aitalk_send_play_music(NULL));
 		#endif
 	}
 	pthread_exit(&status);
@@ -439,7 +439,7 @@ int ai_song_recommend_auto(void){
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
-		aitalk_pipe_put(aitalk_play_music_json(NULL));
+		aitalk_pipe_put(aitalk_send_play_music(NULL));
 		#endif
 	}
 	return 0;

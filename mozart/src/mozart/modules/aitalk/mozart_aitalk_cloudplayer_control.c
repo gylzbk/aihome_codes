@@ -11,7 +11,7 @@
 #include <sys/un.h>
 #include <json-c/json.h>
 
-#include "dl_perform.h"
+//#include "dl_perform.h"
 #include "utils_interface.h"
 #include "player_interface.h"
 #include "volume_interface.h"
@@ -25,36 +25,40 @@
 #include "mozart_smartui.h"
 #include "mozart_prompt_tone.h"
 #include "mozart_net.h"
-#include "mozart_atalk.h"
 #include "mozart_player.h"
-#include "mozart_atalk_cloudplayer_control.h"
+
+#include "mozart_aitalk.h"
+#include "mozart_aitalk_cloudplayer_control.h"
 
 #include "vr-speech_interface.h"
 
 #include "mozart_config.h"
+#include "vr-speech_interface.h"
+#include "aiengine_app.h"
+
 
 #ifndef MOZART_RELEASE
-#define MOZART_ATALK_CLOUDPLAYER_CONTROL_DEBUG
+#define MOZART_AITALK_CLOUDPLAYER_CONTROL_DEBUG
 #endif
 
-#ifdef MOZART_ATALK_CLOUDPLAYER_CONTROL_DEBUG
+#ifdef MOZART_AITALK_CLOUDPLAYER_CONTROL_DEBUG
 #define pr_debug(fmt, args...)			\
-	printf("[ATALK_CLOUDPLAYER_CONTROL] %s: "fmt, __func__, ##args)
+	printf("[AITALK_CLOUDPLAYER_CONTROL] %s: "fmt, __func__, ##args)
 #else  /* MOZART_ATALK_CLOUDPLAYER_CONTROL_DEBUG */
 #define pr_debug(fmt, args...)			\
 	do {} while (0)
 #endif /* MOZART_ATALK_CLOUDPLAYER_CONTROL_DEBUG */
 
 #define pr_err(fmt, args...)			\
-	fprintf(stderr, "[ATALK_CLOUDPLAYER_CONTROL] [Error] %s: "fmt, __func__, ##args)
+	fprintf(stderr, "[AITALK_CLOUDPLAYER_CONTROL] [Error] %s: "fmt, __func__, ##args)
 #define pr_info(fmt, args...)			\
-	printf("[ATALK_CLOUDPLAYER_CONTROL] [Info] %s: "fmt, __func__, ##args)
+	printf("[AITALK_CLOUDPLAYER_CONTROL] [Info] %s: "fmt, __func__, ##args)
 
 #define APP_PATH "/var/run/doug/hub_app.sock"
 #define HOST_PATH "/var/run/doug/hub_host.sock"
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-struct atalk_method {
+struct aitalk_method {
 	const char *name;
 	int (*handler)(json_object *cmd);
 	bool (*is_valid)(json_object *cmd);
@@ -94,78 +98,29 @@ struct update_msg {
 	char *title;
 	char *artist;
 };
-static pthread_mutex_t q_lock = PTHREAD_MUTEX_INITIALIZER;
-static int up_die;
-static pthread_cond_t	cond = PTHREAD_COND_INITIALIZER;
-static pthread_mutex_t	cond_lock = PTHREAD_MUTEX_INITIALIZER;
-
-/*******************************************************************************
- * hub send/recv
- *******************************************************************************/
-static int hub_init(void)
-{
-	int sockfd;
-	struct sockaddr_un *un;
-
-	/* server */
-	un = &atalk.server_addr;
-	un->sun_family = AF_UNIX;
-	strcpy(un->sun_path, HOST_PATH);
-	unlink(HOST_PATH);
-	sockfd = socket(AF_UNIX, SOCK_DGRAM, 0);
-	if (sockfd == -1) {
-		printf("%s: socket fail: %s\n", __func__, strerror(errno));
-		return -1;
-	}
-	if (bind(sockfd, (struct sockaddr *)un, sizeof(struct sockaddr_un))) {
-		printf("%s: bind fail: %s\n", __func__, strerror(errno));
-		close(sockfd);
-		return -1;
-	}
-	atalk.server_sockfd = sockfd;
-
-	/* client */
-	un = &atalk.client_addr;
-	un->sun_family = AF_UNIX;
-	strcpy(un->sun_path, APP_PATH);
-	sockfd = socket(AF_UNIX, SOCK_DGRAM, 0);
-	if (sockfd == -1) {
-		printf("%s: socket fail: %s\n", __func__, strerror(errno));
-		close(atalk.server_sockfd);
-		atalk.server_sockfd = -1;
-		close(sockfd);
-		return -1;
-	}
-	atalk.client_sockfd = sockfd;
-
-	return 0;
-}
-
-static void hub_destory(void)
-{
-	close(atalk.server_sockfd);
-	close(atalk.client_sockfd);
-	atalk.server_sockfd = -1;
-	atalk.client_sockfd = -1;
-	unlink(HOST_PATH);
-}
-
-static inline int hub_recv(char *buffer, size_t len)
-{
-	return recv(atalk.server_sockfd, buffer, len, 0);
-}
-
-static inline int hub_send(char *buffer, size_t len)
-{
-	return sendto(atalk.client_sockfd, buffer, len, 0,
-		      (struct sockaddr *)&atalk.client_addr,
-		      sizeof(struct sockaddr_un));
-}
+//static pthread_mutex_t q_lock = PTHREAD_MUTEX_INITIALIZER;
+//static int up_die;
+//static pthread_cond_t	cond = PTHREAD_COND_INITIALIZER;
+//static pthread_mutex_t	cond_lock = PTHREAD_MUTEX_INITIALIZER;
 
 #define send_result_obj(cmd, result_obj)	\
 	send_obj(cmd, NULL, result_obj)
 #define send_notification_obj(method, method_obj)	\
 	send_obj(NULL, method, method_obj)
+
+int mozart_aitalk_stop(void){
+	mozart_aitalk_asr_over();
+	ai_set_enable(false);
+	ai_aiengine_stop();
+	return 0;
+}
+
+int mozart_aitalk_start(void){
+	ai_set_enable(true);
+	return 0;
+}
+
+
 static int send_obj(json_object *cmd, char *method, json_object *obj)
 {
 	const char *s;
@@ -192,7 +147,7 @@ static int send_obj(json_object *cmd, char *method, json_object *obj)
 
 	s = json_object_to_json_string(o);
 	pr_debug("<<<< %s: %s: %s\n", __func__, id ? "Result" : "Notifcation", s);
-	hub_send((char *)s, strlen(s));
+//	hub_send((char *)s, strlen(s));
 
 	json_object_put(o);
 
@@ -283,7 +238,7 @@ static int send_button_event(char *name, char *str, char *value)
  *******************************************************************************/
 static bool vendor_is_valid(json_object *cmd)
 {
-	return atalk_cloudplayer_monitor_is_valid();
+	return true;//atalk_cloudplayer_monitor_is_valid();
 }
 
 static int play_handler(json_object *cmd)
@@ -311,7 +266,7 @@ static int play_handler(json_object *cmd)
 		return 0;
 	}
 
-	ret = mozart_atalk_cloudplayer_do_play();
+	ret = mozart_aitalk_cloudplayer_do_play();
 	if (ret == 0) {
 		pr_debug("cloudplayer module isn't run\n");
 	} else if (ret < 0) {
@@ -333,7 +288,7 @@ static int play_handler(json_object *cmd)
 		send_player_state_change(player_play_state);
 	} else {
 		char *uuid = mozart_player_getuuid(atalk_player_handler);
-		mozart_atalk_cloudplayer_update_context(uuid, (char *)url);
+		mozart_aitalk_cloudplayer_update_context(uuid, (char *)url);
 		send_player_state_change(player_pause_state);
 		free(uuid);
 	}
@@ -349,28 +304,28 @@ static int play_handler(json_object *cmd)
 
 static int stop_handler(json_object *cmd)
 {
-	mozart_atalk_cloudplayer_do_stop();
+	mozart_aitalk_cloudplayer_do_stop();
 
 	return 0;
 }
 
 static int pause_handler(json_object *cmd)
 {
-	mozart_atalk_cloudplayer_do_pause();
+	mozart_aitalk_cloudplayer_do_pause();
 
 	return 0;
 }
 
 static int resume_handler(json_object *cmd)
 {
-	mozart_atalk_cloudplayer_do_resume();
+	mozart_aitalk_cloudplayer_do_resume();
 
 	return 0;
 }
 
 static int pause_toggle_handler(json_object *cmd)
 {
-	mozart_atalk_cloudplayer_do_resume_pause();
+	mozart_aitalk_cloudplayer_do_resume_pause();
 
 	return 0;
 }
@@ -435,10 +390,10 @@ static int play_voice_prompt_handler(json_object *cmd)
 		bool module_change;
 
 		mozart_module_mutex_lock();
-		module_change = __mozart_atalk_cloudplayer_is_start();
-		if (!__mozart_net_is_start() && !__mozart_atalk_localplayer_is_start() &&
-		    !atalk_cloudplayer_monitor_is_module_cancel()) {
-			if (mozart_atalk_cloudplayer_start(true)) {
+		module_change = __mozart_aitalk_cloudplayer_is_start();
+		if (!__mozart_net_is_start() && !__mozart_atalk_localplayer_is_start()){
+		 // &&   !atalk_cloudplayer_monitor_is_module_cancel())
+			if (mozart_aitalk_cloudplayer_start(true)) {
 				pr_err("start fail!\n");
 				mozart_module_mutex_unlock();
 				return -1;
@@ -447,14 +402,14 @@ static int play_voice_prompt_handler(json_object *cmd)
 					send_play_done("NULL", 0);
 				mozart_smartui_boot_welcome();
 			}
-			atalk_cloudplayer_monitor_cancel();
+			//atalk_cloudplayer_monitor_cancel();
 		}
 		mozart_module_mutex_unlock();
 	}
 
 	mozart_module_mutex_lock();
 
-	if (!__mozart_atalk_cloudplayer_is_run() || !vendor_is_valid(NULL)) {
+	if (!__mozart_aitalk_cloudplayer_is_run() || !vendor_is_valid(NULL)) {
 		pr_debug("[Warning] %s: Don't play %s\n", __func__, url);
 	} else {
 		if (!strncmp(url, "file://", 7))
@@ -478,13 +433,14 @@ static int net_state_change_handler(json_object *cmd)
 		return -1;
 
 	if (json_object_get_int(state) == 0)
-		mozart_atalk_net_change(false);
+		mozart_aitalk_net_change(false);
 	else
-		mozart_atalk_net_change(true);
+		mozart_aitalk_net_change(true);
 
 	return 0;
 }
 
+#if 0
 static int update_cache_handler(json_object *cmd)
 {
 	struct update_msg *msg;
@@ -493,10 +449,10 @@ static int update_cache_handler(json_object *cmd)
 	const char *title = NULL;
 	const char *artist = NULL;
 
-	if (up_die) {
+/*	if (up_die) {
 		printf("[Error] %s. Download function not work\n", __func__);
 		return -1;
-	}
+	}		//*/
 
 	if (!json_object_object_get_ex(cmd, "params", &params))
 		return -1;
@@ -534,18 +490,18 @@ static int update_cache_handler(json_object *cmd)
 		msg->artist = strdup(artist);
 	}
 
-	pthread_mutex_lock(&q_lock);
+/*	pthread_mutex_lock(&q_lock);
 	if (up_die) {
 		pthread_mutex_unlock(&q_lock);
 		goto out_up_die;
-	}
+	}		//*/
 	/* Insert at queue tail */
-	list_insert_at_tail(&atalk.up_queue_list, msg);
-	pthread_mutex_unlock(&q_lock);
+//	list_insert_at_tail(&atalk.up_queue_list, msg);
+//	pthread_mutex_unlock(&q_lock);
 
-	pthread_mutex_lock(&cond_lock);
-	pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&cond_lock);
+//	pthread_mutex_lock(&cond_lock);
+//	pthread_cond_signal(&cond);
+//	pthread_mutex_unlock(&cond_lock);
 
 	return 0;
 
@@ -562,6 +518,7 @@ out_up_die:
 
 	return -1;
 }
+#endif
 
 static int is_attaching_handler(json_object *cmd)
 {
@@ -647,7 +604,7 @@ static bool module_is_attach(json_object *cmd)
 	return is_attach;
 }
 
-static struct atalk_method methods[] = {
+static struct aitalk_method methods[] = {
 	{
 		.name = "play",
 		.handler = play_handler,
@@ -682,11 +639,6 @@ static struct atalk_method methods[] = {
 		.name = "net_state_change",
 		.handler = net_state_change_handler,
 	},
-	{
-		.name = "update_cache",
-		.handler = update_cache_handler,
-	},
-
 
 	/* result */
 	{
@@ -707,54 +659,10 @@ static struct atalk_method methods[] = {
 	},
 };
 
-static void *atalk_cli_func(void *args)
-{
-	char cmd[512];
-
-	pthread_detach(pthread_self());
-	while (1) {
-		int i;
-		const char *method;
-		json_object *c, *o;
-		bool is_valid = true;
-		struct atalk_method *m;
-
-		memset(cmd, 0, sizeof(cmd));
-		hub_recv(cmd, sizeof(cmd));
-		pr_debug(">>>> %s: Recv: %s\n", __func__, cmd);
-
-		c = json_tokener_parse(cmd);
-		json_object_object_get_ex(c, "method", &o);
-		method = json_object_get_string(o);
-
-		for (i = 0; i < ARRAY_SIZE(methods); i++) {
-			m = &methods[i];
-			if (!strcmp(m->name, method)) {
-				if (m->is_valid)
-					is_valid = m->is_valid(c);
-				if (is_valid)
-					m->handler(c);
-				else
-					pr_debug("     %s invalid\n", cmd);
-				break;
-			}
-		}
-
-		if (i >= ARRAY_SIZE(methods))
-			printf("%s: invalid command: %s\n", __func__, method);
-
-		json_object_put(c);
-	}
-
-	hub_destory();
-
-	return NULL;
-}
-
 /*******************************************************************************
  * Player
  *******************************************************************************/
-static int atalk_player_status_callback(player_snapshot_t *snapshot,
+static int aitalk_player_status_callback(player_snapshot_t *snapshot,
 					struct player_handler *handler, void *param)
 {
 	if (strcmp(handler->uuid, snapshot->uuid))
@@ -779,7 +687,7 @@ static int atalk_player_status_callback(player_snapshot_t *snapshot,
 	return 0;
 }
 
-int atalk_cloudplayer_resume_player(void)
+int aitalk_cloudplayer_resume_player(void)
 {
 	int ret;
 
@@ -791,7 +699,7 @@ int atalk_cloudplayer_resume_player(void)
 	return ret;
 }
 
-int atalk_cloudplayer_pause_player(void)
+int aitalk_cloudplayer_pause_player(void)
 {
 	int ret;
 
@@ -805,7 +713,7 @@ int atalk_cloudplayer_pause_player(void)
 	return ret;
 }
 
-int atalk_cloudplayer_stop_player(void)
+int aitalk_cloudplayer_stop_player(void)
 {
 	long usec;
 	struct timeval now;
@@ -842,6 +750,7 @@ int atalk_cloudplayer_stop_player(void)
 	return 0;
 }
 
+#if 0
 /*******************************************************************************
  * Download
  *******************************************************************************/
@@ -860,6 +769,7 @@ void end_func(DPres_t res, char *errStr, void *userData)
 }
 
 #define TIMEOUT 4
+
 static int atalk_update_download(const char *uri, const char *save)
 {
 	char *tempfile = NULL;
@@ -905,7 +815,7 @@ err_dl:
 }
 #undef TIMEOUT
 
-static int atalk_update_cache_clear(const char *dir, char *key)
+static int aitalk_update_cache_clear(const char *dir, char *key)
 {
 	DIR *dir_p;
 	struct dirent *entry;
@@ -943,10 +853,11 @@ static int atalk_update_cache_clear(const char *dir, char *key)
 	return 0;
 }
 
-static int atalk_queue_head(const void *data, const void *key)
+static int aitalk_queue_head(const void *data, const void *key)
 {
 	return 0;
 }
+
 
 static void atalk_list_destroy(void *data)
 {
@@ -959,7 +870,6 @@ static void atalk_list_destroy(void *data)
 		free(msg->artist);
 	free(msg);
 }
-
 static void *atalk_update_queue_handle_func(void *data)
 {
 	pthread_detach(pthread_self());
@@ -1077,11 +987,12 @@ err_pre:
 
 	return NULL;
 }
+#endif
 
 /*******************************************************************************
  * API
  *******************************************************************************/
-int atalk_cloudplayer_send_wifi_state(enum wifi_state state)
+int aitalk_cloudplayer_send_wifi_state(enum wifi_state state)
 {
 	json_object *params;
 
@@ -1096,7 +1007,7 @@ int atalk_cloudplayer_send_wifi_state(enum wifi_state state)
 	return 0;
 }
 
-int __atalk_switch_mode(bool attach)
+int __aitalk_switch_mode(bool attach)
 {
 	int ret = 0;
 
@@ -1115,13 +1026,13 @@ int __atalk_switch_mode(bool attach)
 	return ret;
 }
 
-int atalk_cloudplayer_volume_change(int vol)
+int aitalk_cloudplayer_volume_change(int vol)
 {
 	send_player_volume_change(vol);
 	return 0;
 }
 
-int atalk_cloudplayer_volume_set(int vol)
+int aitalk_cloudplayer_volume_set(int vol)
 {
 	mozart_volume_set(vol, MUSIC_VOLUME);
 	send_player_volume_change(vol);
@@ -1129,89 +1040,196 @@ int atalk_cloudplayer_volume_set(int vol)
 	return 0;
 }
 
-int atalk_cloudplayer_previous_music(void)
+int aitalk_cloudplayer_previous_music(void)
 {
 	return send_button_event("previous", NULL, NULL);
 }
 
-int atalk_cloudplayer_next_music(void)
+int aitalk_cloudplayer_next_music(void)
 {
 	return send_button_event("next", NULL, NULL);
 }
 
-int atalk_next_channel(void)
+int aitalk_next_channel(void)
 {
 	return send_button_event("next_channel", NULL, NULL);
 }
 
-int atalk_love_audio(void)
+int aitalk_love_audio(void)
 {
 	return send_button_event("love_audio", "uri", current_url);
 }
 
-void atalk_vendor_startup(void)
+void aitalk_vendor_startup(void)
 {
-#ifdef MOZART_ATALK_CLOUDPLAYER_CONTROL_DEBUG
-	if (!access("/mnt/sdcard/atalk_vendor_log.txt", R_OK | W_OK))
-		mozart_system("atalk_vendor -c /usr/fs/etc/atalk/prodconf.json >"
-			      "/mnt/sdcard/atalk_vendor_log.txt 2>&1 &");
-	else
+	mozart_aitalk_start();
+}
+
+void aitalk_vendor_shutdown(void)
+{
+//	mozart_system("killall atalk_vendor");
+//	unlink("/var/run/doug.pid");
+	mozart_aitalk_stop();
+}
+
+extern sem_t sem_aitalk;
+char *aitalk_pipe_buf = NULL;
+int aitalk_pipe_put(char *data){
+	if (!data){
+		return -1;
+	}
+
+	free(aitalk_pipe_buf);
+	aitalk_pipe_buf = NULL;
+	aitalk_pipe_buf = strdup(data);
+	sem_post(&sem_aitalk);
+	return 0;
+}
+
+int aitalk_handler_wait(void){
+	sem_wait(&sem_aitalk);
+	return 0;
+}	//*/
+
+static void *aitalk_running_func(void *args)
+{
+	pthread_detach(pthread_self());
+	static char *cmd;//[512]={}
+	static const char *method;
+	static json_object *c, *o;
+	static bool is_valid = true;
+	static struct aitalk_method *m;
+
+	while (1) {
+		int i;
+		if (aitalk_handler_wait() == -1){
+			pr_err("aitalk_handler_wait error!\n");
+		}
+		else//*/
+		{
+			cmd = aitalk_pipe_buf;
+			if (cmd){
+			//	pr_debug(">>>> %s: Recv: %s\n", __func__, cmd);
+				c = json_tokener_parse(cmd);
+				if (c){
+					if (json_object_object_get_ex(c, "method", &o)){
+						method = json_object_get_string(o);
+						for (i = 0; i < ARRAY_SIZE(methods); i++) {
+							m = &methods[i];
+							if (m->name){
+								if (!strcmp(m->name, method)) {
+									if (m->is_valid)
+										is_valid = m->is_valid(c);	//*/
+									if (is_valid){
+										pr_debug("method = %s\n", m->name);
+										m->handler(c);
+									}
+									else
+										pr_debug("     %s invalid\n", cmd);
+									break;
+								}
+							}
+						}
+
+						if (i >= ARRAY_SIZE(methods))
+							pr_debug("invalid command: %s\n", method);
+
+						json_object_put(c);
+					}
+				}
+				else{
+					pr_debug("[%s:%d] json_tokener_parse c error: %s\n", __func__,__LINE__, cmd);
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+
+int mozart_vr_speech_interface_callback(vr_info *recog)
+{
+	int ret = 0;
+//	int command = SDS_COMMAND_NULL;
+//	char str[256]={0};
+//	int vol =0;
+#if 0
+	ret = mozart_license_flag_get();
+	if (ret == -1){
+		//char *str = "试用时间到啦，请更新授权，才能继续和我玩耍哦......";
+		//mozart_tts(str,false);
+		mozart_prompt_tone_key_sync("authority", false);
+		goto exit_error;
+	}
 #endif
-		mozart_system("atalk_vendor -c /usr/fs/etc/atalk/prodconf.json >/dev/null 2>&1 &");
+	switch(recog->status){
+		case AIENGINE_STATUS_INIT:
+			break;
+	    case AIENGINE_STATUS_AEC:
+	        break;
+		case AIENGINE_STATUS_SEM:
+			break;
+		case AIENGINE_STATUS_ASR_SUCCESS:
+			mozart_aitalk_asr_over();
+			break;
+		case AIENGINE_STATUS_ASR_EXIT:
+			mozart_aitalk_asr_over();
+			break;
+		case AIENGINE_STATUS_ASR_FAIL:
+		case AIENGINE_STATUS_ERROR:
+			mozart_smartui_asr_fail("语音识别失败");
+			mozart_smartui_asr_over();
+		//	mozart_ai_error(recog->error_id);
+			break;
+		default:
+			break;
+	}
+/*
+exit_error:
+	if (ret == 0){
+		if (__mozart_aitalk_network_state() == network_online){
+			ret = 0;
+		}
+		else{
+			ret = 1;
+		}
+	}	//*/
+	return ret;
 }
 
-void atalk_vendor_shutdown(void)
-{
-	mozart_system("killall atalk_vendor");
-	unlink("/var/run/doug.pid");
-}
 
-int atalk_cloudplayer_startup(void)
+int aitalk_cloudplayer_startup(void)
 {
 	pthread_t atalk_thread;
 
 	if (!atalk_initialized) {
-		if (hub_init())
-			return -1;
+	//	if (hub_init())
+	//		return -1;
 
 		atalk_player_handler =
-			mozart_player_handler_get("atalk", atalk_player_status_callback, NULL);
+			mozart_player_handler_get("atalk", aitalk_player_status_callback, NULL);
 		if (atalk_player_handler == NULL) {
 			printf("%s: get_player_handler fail!\n", __func__);
 			return -1;
 		}
 
-		if (pthread_create(&atalk_thread, NULL, atalk_cli_func, NULL) != 0) {
+		if (pthread_create(&atalk_thread, NULL, aitalk_running_func, NULL) != 0) {
 			printf("%s: Can't create atalk_thread: %s\n",
 			       __func__, strerror(errno));
 			return -1;
 		}
-
-		up_die = 0;
-		list_init(&atalk.up_queue_list);
-		if (pthread_create(&atalk.down_thread, NULL, atalk_update_queue_handle_func, NULL) != 0) {
-			printf("%s: Can't create down_thread: %s\n",
-				__func__, strerror(errno));
-			return -1;
-		}
-
-		atalk.dp = dl_perform_init();
-		if (!atalk.dp)
-			return -1;
-
 		atalk_initialized = true;
 	}
-
-	atalk_vendor_startup();
-
+	aitalk_vendor_startup();
 	return 0;
 }
 
-int atalk_cloudplayer_shutdown(void)
+
+int aitalk_cloudplayer_shutdown(void)
 {
-	pthread_mutex_lock(&atalk_wait_stop_mutex);
-	pthread_cond_signal(&atalk_wait_stop_cond);
-	pthread_mutex_unlock(&atalk_wait_stop_mutex);
+//	pthread_mutex_lock(&atalk_wait_stop_mutex);
+//	pthread_cond_signal(&atalk_wait_stop_cond);
+//	pthread_mutex_unlock(&atalk_wait_stop_mutex);
 
 	free(play_prompt);
 	play_prompt = NULL;
@@ -1224,19 +1242,21 @@ int atalk_cloudplayer_shutdown(void)
 	__mozart_module_set_net();
 	mozart_module_mutex_unlock();
 
-	mozart_atalk_cloudplayer_do_stop();
+	mozart_aitalk_cloudplayer_do_stop();
 
-	up_die = 1;
-	dl_perform_stop(atalk.dp);
+//	up_die = 1;
+//	dl_perform_stop(atalk.dp);
 
-	pthread_mutex_lock(&cond_lock);
-	pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&cond_lock);
+//	pthread_mutex_lock(&cond_lock);
+//	pthread_cond_signal(&cond);
+//	pthread_mutex_unlock(&cond_lock);
 
-	pthread_join(atalk.down_thread, NULL);
-	dl_perform_uninit(atalk.dp);
+//	pthread_join(atalk.down_thread, NULL);
+//	dl_perform_uninit(atalk.dp);
 
-	atalk_vendor_shutdown();
+	//atalk_vendor_shutdown();
+
+	aitalk_vendor_shutdown();
 
 	if (atalk_player_handler) {
 		mozart_player_handler_put(atalk_player_handler);
@@ -1245,3 +1265,7 @@ int atalk_cloudplayer_shutdown(void)
 
 	return 0;
 }
+
+
+
+

@@ -150,7 +150,7 @@ int ai_server_fun(vr_info *recog)
 					ai_music_list_free();
 					ai_song_recommend_artist(recog->search_artist);
 					#if AI_CONTROL_MOZART
-					aitalk_pipe_put(aitalk_play_music_json(NULL));
+					aitalk_pipe_put(aitalk_send_play_music(NULL));
 					#endif
 					recog->status     = AIENGINE_STATUS_AEC;
 					goto	exit_error;
@@ -180,7 +180,7 @@ int ai_server_fun(vr_info *recog)
 				music.url = recog->music.url;
 				music.artist = recog->music.artist;
 				music.title = recog->music.title;
-				aitalk_pipe_put(aitalk_play_url_json(&music));
+				aitalk_pipe_put(aitalk_send_play_url(&music));
 			#endif
 				recog->status     = AIENGINE_STATUS_AEC;
 				break;
@@ -284,7 +284,7 @@ int ai_server_fun(vr_info *recog)
 				music.url = recog->music.url;
 				music.artist = recog->music.artist;
 				music.title = recog->music.title;
-				aitalk_pipe_put(aitalk_play_url_json(&music));
+				aitalk_pipe_put(aitalk_send_play_url(&music));
 			#endif
 				recog->status     = AIENGINE_STATUS_AEC;
 			}	//*/
@@ -432,7 +432,7 @@ exit_command:
 					ai_tts(str,false);
 				}
 				#if AI_CONTROL_MOZART
-				aitalk_pipe_put(aitalk_set_volume_json(recog->volume));
+				aitalk_pipe_put(aitalk_send_set_volume(recog->volume));
 				#endif
 			}
 			break;
@@ -441,34 +441,34 @@ DEBUG("PASS\n");
 		case SDS_COMMAND_MUSIC_PAUSE:
 			mozart_prompt_tone_key_sync("pause", false);
 		//	aitalk_play_music = false;
-			if (mozart_module_is_playing()==1){
-				aitalk_pipe_put(aitalk_pause_json(NULL));
-			}
+		//	if (mozart_module_is_playing()==1){
+				aitalk_pipe_put(aitalk_send_pause(NULL));
+		//	}
 			break;
 		case SDS_COMMAND_MUSIC_RESUME:
 			mozart_prompt_tone_key_sync("resume", false);
 		//	aitalk_play_music = true;
-			aitalk_pipe_put(aitalk_resume_json(NULL));
+			aitalk_pipe_put(aitalk_send_resume(NULL));
 			break;
 		case SDS_COMMAND_MUSIC_STOP:
 		//	aitalk_play_music = false;
 			mozart_prompt_tone_key_sync("stop", false);
-			aitalk_pipe_put(aitalk_stop_music_json(NULL));
+			aitalk_pipe_put(aitalk_send_stop_music(NULL));
 			break;
 		case SDS_COMMAND_MUSIC_PLAY:
 			if ((recog->music.url == NULL)&&(recog->output== NULL)){
 		//		aitalk_play_music = true;
 				mozart_prompt_tone_key_sync("resume", false);
-				aitalk_pipe_put(aitalk_play_music_json(NULL));
+				aitalk_pipe_put(aitalk_send_play_music(NULL));
 			}
 			break;
 		case SDS_COMMAND_MUSIC_PREVIOUS:
 			mozart_prompt_tone_key_sync("previous", false);
-			aitalk_pipe_put(aitalk_previous_music_json(NULL));
+			aitalk_pipe_put(aitalk_send_previous_music(NULL));
 			break;
 		case SDS_COMMAND_MUSIC_NEXT:
 			mozart_prompt_tone_key_sync("next", false);
-			aitalk_pipe_put(aitalk_next_music_json(NULL));
+			aitalk_pipe_put(aitalk_send_next_music(NULL));
 			break;
 		case SDS_COMMAND_EXIT:
 			DEBUG("PASS\n");

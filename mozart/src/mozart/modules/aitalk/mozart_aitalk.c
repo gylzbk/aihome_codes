@@ -12,45 +12,38 @@
 #include "mozart_module.h"
 #include "mozart_smartui.h"
 #include "mozart_prompt_tone.h"
-
-
-#include "mozart_config.h"
-#if (SUPPORT_VR == VR_ATALK)
-#include "mozart_atalk.h"
-#elif (SUPPORT_VR == VR_SPEECH)
 #include "mozart_aitalk.h"
 #include "mozart_aitalk_cloudplayer_control.h"
-#endif
 
 
 #ifndef MOZART_RELEASE
-#define MOZART_ATALK_DEBUG
+#define MOZART_AITALK_DEBUG
 #endif
 
-#ifdef MOZART_ATALK_DEBUG
+#ifdef MOZART_AITALK_DEBUG
 #define pr_debug(fmt, args...)			\
-	printf("[ATALK] %s: "fmt, __func__, ##args)
-#else  /* MOZART_ATALK_DEBUG */
+	printf("[AITALK] %s: "fmt, __func__, ##args)
+#else  /* MOZART_AITALK_DEBUG */
 #define pr_debug(fmt, args...)			\
 	do {} while (0)
-#endif /* MOZART_ATALK_DEBUG */
+#endif /* MOZART_AITALK_DEBUG */
 
 #define pr_err(fmt, args...)			\
-	fprintf(stderr, "[ATALK] [Error] %s: "fmt, __func__, ##args)
+	fprintf(stderr, "[AITALK] [Error] %s: "fmt, __func__, ##args)
 
 /*******************************************************************************
  * API
  *******************************************************************************/
-static bool atalk_network_change;
+static bool aitalk_network_change;
 static enum atalk_network_state network_original;
 
-static char *atalk_network_state_str[] = {
+static char *aitalk_network_state_str[] = {
 	[network_config] = "network_config",
 	[network_online] = "network_online",
 	[network_offline] = "network_offline",
 };
 
-static void mozart_atalk_net_change_handler(bool online)
+static void mozart_aitalk_net_change_handler(bool online)
 {
 	bool is_online, is_net;
 
@@ -77,15 +70,10 @@ static void mozart_atalk_net_change_handler(bool online)
 	}
 
 	if (online && !is_online) {
-#if (SUPPORT_VR == VR_ATALK)
-		mozart_atalk_cloudplayer_start(true);
-		atalk_cloudplayer_monitor_cancel();
-#elif (SUPPORT_VR == VR_ATALK)
 		mozart_aitalk_cloudplayer_start(true);
-#endif
-
+	//	aitalk_cloudplayer_monitor_cancel();
 		mozart_smartui_boot_welcome();
-		mozart_prompt_tone_key_sync("atalk_hi_12", true);
+		mozart_prompt_tone_key_sync("aitalk_hi_12", true);
 	} else if (!online && is_online) {
 		mozart_atalk_localplayer_start(true);
 	}
@@ -96,42 +84,29 @@ ret:
 	mozart_smartui_wifi_update();
 }
 
-static void __mozart_atalk_online_handler(enum atalk_network_state ori)
+static void __mozart_aitalk_online_handler(enum atalk_network_state ori)
 {
 	/* mozart_smartui_boot_build_display("音箱已联网"); */
-	/* mozart_prompt_tone_key_sync("atalk_wifi_link_success_11", true); */
-#if (SUPPORT_VR == VR_ATALK)
-	if (ori == network_config || ori == network_offline) {
-		atalk_cloudplayer_send_wifi_state(wifi_end_ok);
-	} else {
-		atalk_cloudplayer_send_wifi_state(wifi_start);
-		atalk_cloudplayer_send_wifi_state(wifi_end_ok);
-	}
-#elif (SUPPORT_VR == VR_SPEECH)
+	/* mozart_prompt_tone_key_sync("aitalk_wifi_link_success_11", true); */
 	if (ori == network_config || ori == network_offline) {
 		aitalk_cloudplayer_send_wifi_state(wifi_end_ok);
 	} else {
 		aitalk_cloudplayer_send_wifi_state(wifi_start);
 		aitalk_cloudplayer_send_wifi_state(wifi_end_ok);
 	}
-#endif
 }
 
-static void __mozart_atalk_offline_handler(enum atalk_network_state ori)
+static void __mozart_aitalk_offline_handler(enum atalk_network_state ori)
 {
 	if (ori == network_config) {
 		/* atalk_cloudplayer_send_wifi_state(wifi_end_fail); */
 	} else {
-		#if (SUPPORT_VR == VR_ATALK)
-			atalk_cloudplayer_send_wifi_state(wifi_start);
-		#elif (SUPPORT_VR == VR_SPEECH)
-			aitalk_cloudplayer_send_wifi_state(wifi_start);
-		#endif
-		/* atalk_cloudplayer_send_wifi_state(wifi_end_fail); */
+		aitalk_cloudplayer_send_wifi_state(wifi_start);
+		/* aitalk_cloudplayer_send_wifi_state(wifi_end_fail); */
 	}
 }
 
-enum atalk_network_state __mozart_atalk_network_state(void)
+enum atalk_network_state __mozart_aitalk_network_state(void)
 {
 	if (__mozart_module_is_net())
 		return network_config;
@@ -141,14 +116,14 @@ enum atalk_network_state __mozart_atalk_network_state(void)
 		return network_offline;
 }
 
-int __mozart_atalk_network_trigger(enum atalk_network_state cur, enum atalk_network_state ori, bool force)
+int __mozart_aitalk_network_trigger(enum atalk_network_state cur, enum atalk_network_state ori, bool force)
 {
-	pr_debug("**** cur: %s, ori: %s ****\n", atalk_network_state_str[cur], atalk_network_state_str[ori]);
+	pr_debug("**** cur: %s, ori: %s ****\n", aitalk_network_state_str[cur], aitalk_network_state_str[ori]);
 
 	if (!force && !__mozart_module_is_attach()) {
 		pr_debug("module is unattach\n");
-		if (!atalk_network_change) {
-			atalk_network_change = true;
+		if (!aitalk_network_change) {
+			aitalk_network_change = true;
 			network_original = ori;
 		}
 
@@ -161,25 +136,17 @@ int __mozart_atalk_network_trigger(enum atalk_network_state cur, enum atalk_netw
 	switch (cur) {
 	case network_config:
 		if (ori == network_online){
-		#if (SUPPORT_VR == VR_ATALK)
-			atalk_cloudplayer_send_wifi_state(wifi_start);
-		#elif (SUPPORT_VR == VR_SPEECH)
 			aitalk_cloudplayer_send_wifi_state(wifi_start);
-		#endif
 		}
 		break;
 	case network_online:
-		#if (SUPPORT_VR == VR_ATALK)
-			mozart_atalk_cloudplayer_start(true);
-		#elif (SUPPORT_VR == VR_ATALK)
-			mozart_aitalk_cloudplayer_start(true);
-		#endif
+		mozart_aitalk_cloudplayer_start(true);
 
-		__mozart_atalk_online_handler(ori);
+		__mozart_aitalk_online_handler(ori);
 		break;
 	case network_offline:
 		mozart_atalk_localplayer_start(true);
-		__mozart_atalk_offline_handler(ori);
+		__mozart_aitalk_offline_handler(ori);
 		break;
 	default:
 		break;
@@ -188,61 +155,44 @@ int __mozart_atalk_network_trigger(enum atalk_network_state cur, enum atalk_netw
 	return 0;
 }
 
-int __mozart_atalk_switch_mode(bool mode)
+int __mozart_aitalk_switch_mode(bool mode)
 {
 	int ret = 0;
 	bool change;
 	enum atalk_network_state network_state;
 
-	network_state = __mozart_atalk_network_state();
-	change = mode && atalk_network_change;
-	pr_debug("network_state: %s, change = %d\n", atalk_network_state_str[network_state], change);
+	network_state = __mozart_aitalk_network_state();
+	change = mode && aitalk_network_change;
+	pr_debug("network_state: %s, change = %d\n", aitalk_network_state_str[network_state], change);
 
 	if (change && network_state == network_online) {
 		/* 在非阿里模式时, 发生过网络变化. */
 		ret = -1;
-		#if (SUPPORT_VR == VR_ATALK)
-		atalk_vendor_shutdown();
-		#elif (SUPPORT_VR == VR_SPEECH)
 		aitalk_vendor_shutdown();
-		#endif
 	}
 
-#if (SUPPORT_VR == VR_ATALK)
-	__atalk_switch_mode(mode);
-#elif (SUPPORT_VR == VR_SPEECH)
 	__aitalk_switch_mode(mode);
-#endif
-
 	if (change) {
 		if (network_state == network_online) {
-			__mozart_atalk_online_handler(network_original);
-		#if (SUPPORT_VR == VR_ATALK)
-			atalk_vendor_startup();
-		#elif (SUPPORT_VR == VR_SPEECH)
+			__mozart_aitalk_online_handler(network_original);
 			aitalk_vendor_startup();
-		#endif
 		} else if (network_state == network_offline) {
-			__mozart_atalk_offline_handler(network_original);
+			__mozart_aitalk_offline_handler(network_original);
 		}
 	}
-	atalk_network_change = false;
+	aitalk_network_change = false;
 
 	return ret;
 }
 
-void mozart_switch_atalk_module(bool in_lock)
+void mozart_switch_aitalk_module(bool in_lock)
 {
 	pr_debug("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 	if (!in_lock)
 		mozart_module_mutex_lock();
 
 	if (__mozart_module_is_online()){
-#if (SUPPORT_VR == VR_ATALK)
-		mozart_atalk_cloudplayer_start(true);
-#elif (SUPPORT_VR == VR_ATALK)
 		mozart_aitalk_cloudplayer_start(true);
-#endif
 	}
 	else
 		mozart_atalk_localplayer_start(true);
@@ -251,7 +201,7 @@ void mozart_switch_atalk_module(bool in_lock)
 		mozart_module_mutex_unlock();
 }
 
-void mozart_atalk_net_change(bool online)
+void mozart_aitalk_net_change(bool online)
 {
 	wifi_info_t infor = get_wifi_mode();
 
@@ -260,5 +210,5 @@ void mozart_atalk_net_change(bool online)
 		return ;
 	}
 
-	mozart_atalk_net_change_handler(online);
+	mozart_aitalk_net_change_handler(online);
 }

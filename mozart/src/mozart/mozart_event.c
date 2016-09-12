@@ -18,7 +18,6 @@
 #include "mozart_battery.h"
 #include "mozart_smartui.h"
 #include "mozart_prompt_tone.h"
-#include "mozart_atalk.h"
 #include "mozart_event_str.h"
 #include "mozart_dmr.h"
 #include "mozart_airplay.h"
@@ -28,7 +27,18 @@
 #include "mozart_net.h"
 #include "mozart_linein.h"
 #include "mozart_update_control.h"
-#include "mozart_aispeech.h"
+
+
+#include "mozart_config.h"
+#if (SUPPORT_VR == VR_ATALK)
+#include "mozart_atalk.h"
+#include "vr-atalk_interface.h"
+#include "mozart_atalk_cloudplayer_control.h"
+#elif (SUPPORT_VR == VR_SPEECH)
+#include "mozart_aitalk.h"
+#include "mozart_aitalk_cloudplayer_control.h"
+#endif
+
 
 #define MOZART_EVENT_DEBUG
 
@@ -286,8 +296,8 @@ static void mozart_event_key(mozart_event event)
 	if (event.event.key.key.value == 1) {
 		switch (code) {
 		case KEY_RECORD:
-			mozart_speech_asr_over();
-		//	mozart_module_asr_wakeup();
+		//	mozart_aitalk_asr_over();
+			mozart_module_asr_wakeup();
 			break;
 		case KEY_PREVIOUSSONG:
 			mozart_module_previous_song();
@@ -436,8 +446,13 @@ static void mozart_event_misc(mozart_event event)
 			mozart_airplay_start(false);
 		} else if (!strcasecmp(type, "disconnected")) {
 			mozart_module_mutex_lock();
-			if (__mozart_airplay_is_start())
-				mozart_switch_atalk_module(true);
+			if (__mozart_airplay_is_start()){
+				#if (SUPPORT_VR == VR_ATALK)
+					mozart_switch_atalk_module(true);
+				#elif (SUPPORT_VR == VR_SPEECH)
+					mozart_switch_aitalk_module(true);
+				#endif
+			}
 			mozart_module_mutex_unlock();
 		}
 	} else if (!strcasecmp(name, "bluetooth")) {
@@ -625,8 +640,13 @@ static void mozart_event_misc(mozart_event event)
 			mozart_linein_start(false);
 		} else if (!strcasecmp(type, "plugout") && !mozart_linein_is_in()) {
 			mozart_module_mutex_lock();
-			if (__mozart_linein_is_start())
-				mozart_switch_atalk_module(true);
+			if (__mozart_linein_is_start()){
+				#if (SUPPORT_VR == VR_ATALK)
+					mozart_switch_atalk_module(true);
+				#elif (SUPPORT_VR == VR_SPEECH)
+					mozart_switch_aitalk_module(true);
+				#endif
+			}
 			mozart_module_mutex_unlock();
 		}
 	}
