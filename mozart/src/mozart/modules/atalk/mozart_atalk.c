@@ -44,11 +44,13 @@
 static bool atalk_network_change;
 static enum atalk_network_state network_original;
 
+#ifdef MOZART_ATALK_DEBUG
 static char *atalk_network_state_str[] = {
 	[network_config] = "network_config",
 	[network_online] = "network_online",
 	[network_offline] = "network_offline",
 };
+#endif
 
 static void mozart_atalk_net_change_handler(bool online)
 {
