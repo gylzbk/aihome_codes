@@ -382,7 +382,11 @@ static void mozart_event_misc(mozart_event event)
 		}
 	} else if (!strcasecmp(name, "localplayer")) {
 		if (!strcasecmp(type, "play")) {
-			mozart_atalk_localplayer_do_play();
+			#if (SUPPORT_VR == VR_ATALK)
+				mozart_atalk_localplayer_do_play();
+			#elif (SUPPORT_VR == VR_SPEECH)
+				mozart_aitalk_localplayer_do_play();
+			#endif
 		} else if (!strcasecmp(type, "playing")) {
 			char *title = NULL, *artist = NULL, *url = NULL;
 			char *local_url = mozart_localplayer_get_current_url();

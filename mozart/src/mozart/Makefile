@@ -41,6 +41,7 @@ LDFLAGS += -Wl,-rpath-link,$(MOLIB_DIR)/usr/lib:$(MOLIB_UPDATER_DIR)/usr/lib:$(M
 
 # basic depends.
 LDFLAGS += -levent -lpower -lwifi -lvolume -ltips -lsharememory -lini -lutils -lpthread -lplayer -lresample
+LDFLAGS += -ljson-c -lwifi -ltips -lutils -lplayer -lvolume -lsharememory -llinklist -lcurl -lssl -lcrypto -lz -lrt
 
 ifeq ("$(VR)","0")
 $(warning vr func are CLOSED!!!!)
@@ -82,11 +83,10 @@ $(warning atalk func CLOSED!!!!)
 endif
 
 ifeq ($(AITALK),1) # aispeech
-	LDFLAGS += -ljson-c -lwifi -ltips -lutils -lplayer -lvolume -lsharememory -llinklist -lcurl -lssl -lcrypto -lz -lrt
 	SRCS += modules/aitalk/mozart_aitalk_cloudplayer_control.c  modules/aitalk/mozart_aitalk_cloudplayer.c 
 	SRCS += modules/aitalk/mozart_aitalk.c modules/aitalk/mozart_aitalk_localplayer.c
 else
-$(warning atalk func CLOSED!!!!)
+$(warning aitalk func CLOSED!!!!)
 endif
 
 ifeq ($(WEBRTC),1)
