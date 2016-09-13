@@ -44,7 +44,14 @@ int mozart_battery_update(void)
 	}
 
 	capacity = mozart_get_battery_capacity();
+
+#if SUPPORT_BOARD==BOARD_DS1825
 	online = mozart_power_supply_online(POWER_SUPPLY_TYPE_MAINS);
+#endif
+
+#if SUPPORT_BOARD==BOARD_WB38
+	online = mozart_power_supply_online(POWER_SUPPLY_TYPE_BATTERY);
+#endif
 
 	pr_debug("online: %d, status: %d, cpt: %d\n", online, battery_st, capacity);
 
