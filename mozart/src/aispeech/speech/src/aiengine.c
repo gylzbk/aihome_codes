@@ -650,8 +650,9 @@ int ai_init(void){
 	int err = 0;
 	ai_init_data();
 	asr_quit_finish = 0;
+	is_aiengine_enable = false;
+	is_vr_speech_work_flag = false;
 	if (ai_aiengine_init() == -1){
-		is_vr_speech_work_flag = false;
 		PERROR("Ai aiengine init falsed!\n");
 		err = -1;
 		goto exit_error;
