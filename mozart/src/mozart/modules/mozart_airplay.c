@@ -248,12 +248,7 @@ static int mozart_airplay_init(void)
 
 #ifdef MOZART_RELEASE_NAME
 	memset(apname, 0, sizeof(apname));
-#if (SUPPORT_BOARD == BOARD_DS1825)
-	sprintf(apname, "DS-1825");
-#endif
-#if (SUPPORT_BOARD == BOARD_WB38)
-	sprintf(apname, "DS-WB38");
-#endif
+	sprintf(apname, AP_NAME);
 #else
 	memset(mac, 0, sizeof(mac));
 	memset(apname, 0, sizeof(apname));
