@@ -693,6 +693,7 @@ int ai_aiengine_stop(void){
 	ai_aec_stop();
 	ai_cloud_sem_stop();
 	ai_tts_stop();
+	ai_set_enable(false);
 	return 0;
 }
 

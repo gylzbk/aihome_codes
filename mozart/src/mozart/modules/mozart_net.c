@@ -581,14 +581,15 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 					mozart_smartui_boot_build_display("网络连接成功");
 				#endif
 				mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
-				printf("\n\n- online AAAAAAAAA -----------\n\n");
-				__mozart_aitalk_switch_mode(true);
+				__mozart_module_set_online();
 				#if SUPPORT_SMARTUI
 					mozart_smartui_net_success();
 				#endif
+				printf("\n\n- online AAA -----------\n\n");
+			//	mozart_aitalk_cloudplayer_start(true);
 			#endif
 		} else if (global_net_mode == NET_MODE_CFG_STA) {
-		printf("\n\n-NET_MODE_CFG_ST  --555555555555555 -----------\n\n");
+			printf("\n\n-NET_MODE_CFG_ST  --555555555555555 -----------\n\n");
 			global_net_mode = NET_MODE_STA;
 			#if (SUPPORT_VR == VR_ATALK)
 				#if SUPPORT_SMARTUI
@@ -600,8 +601,8 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 					mozart_smartui_net_success();
 				#endif
 				mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
-				printf("\n\n- online AAAAAAAAA -----------\n\n");
-				__mozart_aitalk_switch_mode(true);
+				printf("\n\n- online BBBB -----------\n\n");
+				mozart_aitalk_cloudplayer_start(true);
 			#endif
 		} else if (global_net_mode == NET_MODE_SW_STA) {
 
