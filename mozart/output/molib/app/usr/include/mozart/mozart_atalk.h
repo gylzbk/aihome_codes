@@ -29,10 +29,6 @@ extern void atalk_cloudplayer_monitor_module_cancel(void);
 extern bool atalk_cloudplayer_monitor_is_valid(void);
 extern bool atalk_cloudplayer_monitor_is_module_cancel(void);
 
-
-
-#include "mozart_config.h"
-
 /* asr */
 extern void mozart_atalk_cloudplayer_update_context(char *uuid, char *url);
 extern bool __mozart_atalk_cloudplayer_is_run(void);
@@ -49,6 +45,5 @@ extern int mozart_atalk_asr_start(void);
 extern int mozart_atalk_asr_over(void);
 extern int mozart_atalk_asr_startup(void);
 extern int mozart_atalk_asr_shutdown(void);
-
 
 #endif /* __MOZART_ATALK_H__ */

@@ -110,17 +110,17 @@ struct update_msg {
 #define send_notification_obj(method, method_obj)	\
 	send_obj(NULL, method, method_obj)
 
+int mozart_aitalk_start(void){
+	ai_aiengine_start();
+	return 0;
+}
+
 int mozart_aitalk_stop(void){
 	mozart_aitalk_asr_over();
-	ai_set_enable(false);
 	ai_aiengine_stop();
 	return 0;
 }
 
-int mozart_aitalk_start(void){
-	ai_set_enable(true);
-	return 0;
-}
 
 
 static int send_obj(json_object *cmd, char *method, json_object *obj)
@@ -598,7 +598,8 @@ static int get_volume_handler(json_object *cmd)
 static bool module_is_attach(json_object *cmd)
 {
 	bool is_attach;
-
+	return true;
+//-------------------------------- not checkout:
 	mozart_module_mutex_lock();
 	is_attach = __mozart_module_is_attach();
 	mozart_module_mutex_unlock();

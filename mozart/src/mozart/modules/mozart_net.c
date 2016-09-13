@@ -568,32 +568,49 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 			printf("\n\n-NET_MODE_SW_STA_ALLTIME--2222222222222-----------\n\n");
 			global_net_mode = NET_MODE_STA;
 			force = false;
-		} else if ((global_net_mode == NET_MODE_BOOT_STA)||(global_net_mode == NET_MODE_CFG_STA)) {
+		} else if (global_net_mode == NET_MODE_BOOT_STA) {
 
 			printf("\n\n-NET_MODE_BOOT_STA | CFG_STA --3333333333333-----------\n\n");
 			global_net_mode = NET_MODE_STA;
-		#if (SUPPORT_VR == VR_ATALK)
-			#if SUPPORT_SMARTUI
-				mozart_smartui_boot_build_display("正在连接网络服务");
+			#if (SUPPORT_VR == VR_ATALK)
+				#if SUPPORT_SMARTUI
+					mozart_smartui_boot_build_display("正在连接网络服务");
+				#endif
+			#elif (SUPPORT_VR == VR_SPEECH)
+				#if SUPPORT_SMARTUI
+					mozart_smartui_boot_build_display("网络连接成功");
+				#endif
+				mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
+				__mozart_module_set_online();
+				#if SUPPORT_SMARTUI
+					mozart_smartui_net_success();
+				#endif
+				printf("\n\n- online AAA -----------\n\n");
+			//	mozart_aitalk_cloudplayer_start(true);
 			#endif
-		#elif (SUPPORT_VR == VR_SPEECH)
-			#if SUPPORT_SMARTUI
-				mozart_smartui_boot_build_display("网络连接成功");
+		} else if (global_net_mode == NET_MODE_CFG_STA) {
+			printf("\n\n-NET_MODE_CFG_ST  --555555555555555 -----------\n\n");
+			global_net_mode = NET_MODE_STA;
+			#if (SUPPORT_VR == VR_ATALK)
+				#if SUPPORT_SMARTUI
+					mozart_smartui_net_success();
+				#endif
+				mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
+			#elif (SUPPORT_VR == VR_SPEECH)
+				#if SUPPORT_SMARTUI
+					mozart_smartui_net_success();
+				#endif
+				mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
+				printf("\n\n- online BBBB -----------\n\n");
+				mozart_aitalk_cloudplayer_start(true);
 			#endif
-			mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
-			printf("\n\n- online AAAAAAAAA -----------\n\n");
-			__mozart_aitalk_switch_mode(true);
-			#if SUPPORT_SMARTUI
-				mozart_smartui_net_success();
-			#endif
-		#endif
 		} else if (global_net_mode == NET_MODE_SW_STA) {
 
 			printf("\n\n---------net--4444444444444-----------\n\n");
 			global_net_mode = NET_MODE_STA;
-		#if SUPPORT_SMARTUI
-			mozart_smartui_boot_build_display("网络连接已恢复");
-		#endif
+			#if SUPPORT_SMARTUI
+				mozart_smartui_boot_build_display("网络连接已恢复");
+			#endif
 		}/* else if (global_net_mode == NET_MODE_CFG_STA) {
 
 			printf("\n\n---------net--55555555555555-----------\n\n");
