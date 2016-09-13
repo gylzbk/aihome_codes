@@ -357,7 +357,12 @@ static void dmr_startup(void)
         memset(macaddr, 0, sizeof (macaddr));
 
 #ifdef MOZART_RELEASE_NAME
+#if (SUPPORT_BOARD == BOARD_DS1825)
 	sprintf(deviceName, "DS-1825");
+#endif
+#if (SUPPORT_BOARD == BOARD_WB38)
+	sprintf(deviceName, "DS-WB38");
+#endif
 #else
         //FIXME: replace "wlan0" with other way. such as config file.
         get_mac_addr("wlan0", macaddr, "");

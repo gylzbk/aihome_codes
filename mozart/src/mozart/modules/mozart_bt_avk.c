@@ -367,7 +367,12 @@ static void *thr_fn(void *args)
 
 #ifdef MOZART_RELEASE_NAME
 	memset(bt_name, 0, sizeof(bt_name));
+#if (SUPPORT_BOARD == BOARD_DS1825)
 	sprintf(bt_name, "DOSS DS-1825");
+#endif
+#if (SUPPORT_BOARD == BOARD_WB38)
+	sprintf(bt_name, "DOSS DS-WB38");
+#endif
 #else
 	memset(mac, 0, sizeof(mac));
 	memset(bt_name, 0, sizeof(bt_name));
