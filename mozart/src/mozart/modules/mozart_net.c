@@ -217,9 +217,9 @@ static void __net_config_func(void)
 			return ;
 
 		stopall(APP_DEPEND_NET_ALL);
-#if SUPPORT_SMARTUI
+
 		mozart_smartui_net_start();
-#endif
+
 		switch_net_config();
 		module_mutex_unlock(&net_mode_lock);
 
@@ -298,9 +298,7 @@ static char *network_sta_error_str(char *reason)
 
 static bool network_sta_error_handler(char *reason, bool display)
 {
-	#if SUPPORT_SMARTUI
 	char *s;
-	#endif
 	if (reason == NULL)
 		return true;
 
@@ -309,21 +307,17 @@ static bool network_sta_error_handler(char *reason, bool display)
 		return false;
 	} else if (wrong_key && network_is_str(reason, sta_error_str[SCAN_SSID_FAILED])) {
 		wrong_key = false;
-		#if SUPPORT_SMARTUI
 		if (display) {
 			s = network_sta_error_str((char *)sta_error_str[WRONG_KEY]);
 			mozart_smartui_boot_display(s);
 		}
-		#endif
 		return true;
 	} else {
 		wrong_key = false;
-		#if SUPPORT_SMARTUI
 		if (display) {
 			s = network_sta_error_str(reason);
 			mozart_smartui_boot_display(s);
 		}
-		#endif
 		return true;
 	}
 }
@@ -331,9 +325,7 @@ static bool network_sta_error_handler(char *reason, bool display)
 static int __network_configure_error_handler(char *s)
 {
 	global_net_mode = NET_MODE_SW_STA;
-#if SUPPORT_SMARTUI
 	mozart_smartui_net_fail(s);
-#endif
 	module_mutex_unlock(&net_mode_lock);
 
 	/* Can stop tone */
@@ -342,9 +334,9 @@ static int __network_configure_error_handler(char *s)
 	module_mutex_lock(&net_mode_lock);
 	if (global_net_mode != NET_MODE_SW_STA)
 		return -1;
-#if SUPPORT_SMARTUI
+
 	mozart_smartui_boot_build_display("尝试恢复网络连接");
-#endif
+
 	usleep(1000 * 1000);
 
 	return 0;
@@ -353,7 +345,7 @@ static int __network_configure_error_handler(char *s)
 static inline void network_configure_handler(event_info_t network_event, struct json_object *wifi_event)
 {
 	enum atalk_network_state network_state;
-	pr_debug("-----------> network_configure_handler\n");
+
 	if (network_content_is_configure_status(&network_event, AIRKISS_STARTING)) {
 		/* net config start */
 		module_mutex_lock(&net_mode_lock);
@@ -371,9 +363,9 @@ static inline void network_configure_handler(event_info_t network_event, struct 
 		if (__mozart_net_is_start()) {
 
 			#if (SUPPORT_VR == VR_ATALK)
-				network_state = __mozart_atalk_network_state();
+					network_state = __mozart_atalk_network_state();
 			#elif (SUPPORT_VR == VR_SPEECH)
-				network_state = __mozart_aitalk_network_state();
+					network_state = __mozart_aitalk_network_state();
 			#endif
 
 			__mozart_module_set_offline();
@@ -384,13 +376,12 @@ static inline void network_configure_handler(event_info_t network_event, struct 
 			__mozart_aitalk_network_trigger(network_config, network_state, true);
 			#endif
 
-			if (!__mozart_module_is_attach()){
+			if (!__mozart_module_is_attach())
 				#if (SUPPORT_VR == VR_ATALK)
 					__mozart_atalk_switch_mode(true);
 				#elif (SUPPORT_VR == VR_SPEECH)
 					__mozart_aitalk_switch_mode(true);
 				#endif
-			}
 		} else {
 			/* net_mode is on_stop */
 			__mozart_module_set_offline();
@@ -409,9 +400,9 @@ static inline void network_configure_handler(event_info_t network_event, struct 
 			return ;
 		}
 		module_mutex_unlock(&net_mode_lock);
-#if SUPPORT_SMARTUI
+
 		mozart_smartui_net_receive_success();
-#endif
+
 	} else if ((network_content_is_configure_status(&network_event, AIRKISS_FAILED)) ||
 		   network_content_is_configure_status(&network_event, AIRKISS_CANCEL)) {
 		/* net config fail/cancel */
@@ -545,9 +536,7 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 					module_mutex_unlock(&net_mode_lock);
 					return ;
 				}
-			#if SUPPORT_SMARTUI
 				mozart_smartui_boot_build_display("网络断开,已重连");
-			#endif
 				usleep(1000 * 1000);
 			}
 			stopall(APP_DEPEND_NET_ALL);
@@ -561,50 +550,22 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 #else
 			module_mutex_unlock(&net_mode_lock);
 #endif
-			printf("\n\n-NET_MODE_STA--1111111111111-----------\n\n");
 			return ;
 		} else if (global_net_mode == NET_MODE_SW_STA_ALLTIME) {
-
-			printf("\n\n-NET_MODE_SW_STA_ALLTIME--2222222222222-----------\n\n");
 			global_net_mode = NET_MODE_STA;
 			force = false;
-		} else if ((global_net_mode == NET_MODE_BOOT_STA)||(global_net_mode == NET_MODE_CFG_STA)) {
-
-			printf("\n\n-NET_MODE_BOOT_STA | CFG_STA --3333333333333-----------\n\n");
+		} else if (global_net_mode == NET_MODE_BOOT_STA) {
 			global_net_mode = NET_MODE_STA;
-		#if (SUPPORT_VR == VR_ATALK)
-			#if SUPPORT_SMARTUI
-				mozart_smartui_boot_build_display("正在连接网络服务");
-			#endif
-		#elif (SUPPORT_VR == VR_SPEECH)
-			#if SUPPORT_SMARTUI
-				mozart_smartui_boot_build_display("网络连接成功");
-			#endif
-			mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
-			printf("\n\n- online AAAAAAAAA -----------\n\n");
-			__mozart_aitalk_switch_mode(true);
-			#if SUPPORT_SMARTUI
-				mozart_smartui_net_success();
-			#endif
-		#endif
+			/* mozart_smartui_boot_build_display("正在连接网络服务"); */
 		} else if (global_net_mode == NET_MODE_SW_STA) {
-
-			printf("\n\n---------net--4444444444444-----------\n\n");
 			global_net_mode = NET_MODE_STA;
-		#if SUPPORT_SMARTUI
-			mozart_smartui_boot_build_display("网络连接已恢复");
-		#endif
-		}/* else if (global_net_mode == NET_MODE_CFG_STA) {
-
-			printf("\n\n---------net--55555555555555-----------\n\n");
+			/* mozart_smartui_boot_build_display("网络连接已恢复"); */
+		} else if (global_net_mode == NET_MODE_CFG_STA) {
 			global_net_mode = NET_MODE_STA;
-		#if SUPPORT_SMARTUI
+
 			mozart_smartui_net_success();
-		#endif
 			mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
-		} //*/else {
-
-			printf("\n\n---------net--66666666666666-----------\n\n");
+		} else {
 			pr_err("sta mode, net_mode is %s ?\n", net_mode_str[global_net_mode]);
 			module_mutex_unlock(&net_mode_lock);
 			return ;
@@ -775,9 +736,9 @@ int mozart_net_startup(void)
 		global_net_mode = NET_MODE_BOOT_STA;
 	else
 		pr_err("Request SW_STA Failed\n");
-#if SUPPORT_SMARTUI
+
 	mozart_smartui_boot_build_display("正在连接网络");
-#endif
+
 	return 0;
 }
 
