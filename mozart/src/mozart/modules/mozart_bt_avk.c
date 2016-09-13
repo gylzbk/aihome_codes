@@ -551,9 +551,9 @@ static int bt_avk_module_start(struct mozart_module_struct *self)
 	int ret, timeout = 5;
 
 	#if (SUPPORT_VR == VR_ATALK)
-		mozart_atalk_cloudplayer_shutdown();
+	//	mozart_atalk_cloudplayer_shutdown();
 	#elif (SUPPORT_VR == VR_SPEECH)
-		mozart_aitalk_cloudplayer_shutdown();
+	//	mozart_aitalk_cloudplayer_shutdown();
 	#endif
 
 

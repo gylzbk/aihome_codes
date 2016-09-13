@@ -12,15 +12,11 @@
 #include "mozart_prompt_tone.h"
 #include "mozart_update_control.h"
 
-
 #include "mozart_config.h"
 #if (SUPPORT_VR == VR_ATALK)
 #include "mozart_atalk.h"
-#include "vr-atalk_interface.h"
-#include "mozart_atalk_cloudplayer_control.h"
 #elif (SUPPORT_VR == VR_SPEECH)
 #include "mozart_aitalk.h"
-#include "mozart_aitalk_cloudplayer_control.h"
 #endif
 
 #ifndef MOZART_RELEASE
@@ -129,23 +125,24 @@ void __mozart_module_set_unattach(void)
 void __mozart_module_set_online(void)
 {
 	global_state_map |= (1 << MODULE_STATE_ONLINE_BIT);
-#if SUPPORT_SMARTUI
-	mozart_smartui_update_hide(false);
-	mozart_smartui_wifi_update();
-#endif
-	#if (SUPPORT_VR == VR_ATALK)
+	#if SUPPORT_SMARTUI
+		mozart_smartui_update_hide(false);
+		#if (SUPPORT_VR == VR_ATALK)
 		if (!__mozart_module_is_attach())
 			mozart_smartui_wifi_update();
-	#elif (SUPPORT_VR == VR_SPEECH)
-		mozart_smartui_wifi_update();
+		#elif (SUPPORT_VR == VR_SPEECH)
+			mozart_smartui_wifi_update();
+		#endif
 	#endif
 }
 
 void __mozart_module_set_offline(void)
 {
 	global_state_map &= ~(1 << MODULE_STATE_ONLINE_BIT);
-	mozart_smartui_update_hide(true);
-	mozart_smartui_wifi_update();
+	#if SUPPORT_SMARTUI
+		mozart_smartui_update_hide(true);
+		mozart_smartui_wifi_update();
+	#endif
 }
 
 void __mozart_module_dump_state_map(void)
@@ -732,23 +729,19 @@ static int __mozart_module_start(struct mozart_module_struct *self,
 
 		if (dst->attach == module_attach && !__mozart_module_is_attach()) {
 			pr_debug("%s -> %s, switch_mode true\n", src->name, dst->name);
-
 			#if (SUPPORT_VR == VR_ATALK)
 				ret = __mozart_atalk_switch_mode(true);
 			#elif (SUPPORT_VR == VR_SPEECH)
 				ret = __mozart_aitalk_switch_mode(true);
 			#endif
 
-
 		} else if (dst->attach == module_unattach && __mozart_module_is_attach()) {
 			pr_debug("%s -> %s, switch_mode false\n", src->name, dst->name);
-
-		#if (SUPPORT_VR == VR_ATALK)
-			ret = __mozart_atalk_switch_mode(false);
-		#elif (SUPPORT_VR == VR_SPEECH)
-			ret = __mozart_aitalk_switch_mode(false);
-		#endif
-
+			#if (SUPPORT_VR == VR_ATALK)
+				ret = __mozart_atalk_switch_mode(false);
+			#elif (SUPPORT_VR == VR_SPEECH)
+				ret = __mozart_aitalk_switch_mode(false);
+			#endif
 		}
 		pr_debug("    switch_mode ret = %d\n", ret);
 		if (ret) {

@@ -817,7 +817,7 @@ ds1825_atalk_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_a
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
 		board_ds1825_config netowrk_atalk_airkiss_config aispeech_disable_config\
-		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
+		mplayer_float_config vr_atalk_config vr_wakeup_voice_config \
 		atalk_enable_config adb_enable_config battery_nv_flag_enable_config\
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
 	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
@@ -840,7 +840,7 @@ wb38_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_
 		airplay_enable_config localplayer_enable_config \
 		board_wb38_config netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
-		atalk_enable_config adb_enable_config battery_nv_flag_enable_config\
+		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
 	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
 

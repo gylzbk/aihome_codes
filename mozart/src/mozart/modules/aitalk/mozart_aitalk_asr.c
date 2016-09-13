@@ -286,3 +286,5 @@ int mozart_aitalk_asr_shutdown(void)
 	ai_speech_shutdown();
 	return 0;
 }
+
+

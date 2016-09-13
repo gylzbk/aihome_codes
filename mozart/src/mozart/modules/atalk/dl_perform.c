@@ -184,7 +184,6 @@ static int dl_debug_trace(
 
 static void *dl_perform_func(void *data)
 {
-	pthread_detach(pthread_self());
 	struct dl_perform *dp = (struct dl_perform *)data;
 	char curlError[CURL_ERROR_SIZE] = {0};
 	CURLcode eCode;
@@ -348,7 +347,7 @@ int dl_perform_async(
 		fclose(fp);
 		return -1;
 	}
-//	pthread_detach(dp->pthread);
+	pthread_detach(dp->pthread);
 
 	return 0;
 }

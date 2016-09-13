@@ -98,7 +98,8 @@ extern void ai_cloud_sem_free(void);
 
 extern void  ai_aec_stop(void);
 extern void ai_semParamInit(void);
-
+extern int ai_aiengine_start(void);
+extern int ai_aiengine_stop(void);
 //#ifdef SYN_TOO_LONG
 extern struct   timeval   t_sem_start,t_sem_end,t_tts_start,t_tts_end,t_play,t_all;
 //extern int tim_subtract(struct timeval *result, struct timeval *x, struct timeval *y);

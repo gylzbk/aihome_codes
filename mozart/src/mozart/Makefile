@@ -14,6 +14,8 @@ DMR ?= 0
 WEBRTC ?= 0
 DMS ?= 0
 AIRPLAY ?= 0
+ATALK ?= 0
+AITALK ?= 0
 LOCALPLAYER ?= 0
 
 CC = mipsel-linux-gcc
@@ -56,6 +58,9 @@ else
   else ifeq ("$(VR)","vr_atalk")
     LDFLAGS += -lvr_atalk	
    	SRCS += modules/atalk/mozart_atalk_asr.c 
+   	SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c
+	SRCS += modules/atalk/mozart_atalk.c modules/atalk/mozart_atalk_localplayer.c
+	SRCS += modules/atalk/dl_perform.c  modules/atalk/mozart_atalk_cloudplayer.c
   endif
 endif
 
@@ -77,9 +82,9 @@ $(warning lcd func CLOSED!!!!)
 endif
 
 ifeq ($(ATALK),1) # atalk
-   	SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c
-	SRCS += modules/atalk/mozart_atalk.c modules/atalk/mozart_atalk_localplayer.c
-	SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c modules/atalk/dl_perform.c  modules/atalk/mozart_atalk_cloudplayer.c
+#  	SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c
+#	SRCS += modules/atalk/mozart_atalk.c modules/atalk/mozart_atalk_localplayer.c
+#	SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c modules/atalk/dl_perform.c  modules/atalk/mozart_atalk_cloudplayer.c
 else
 $(warning atalk func CLOSED!!!!)
 endif

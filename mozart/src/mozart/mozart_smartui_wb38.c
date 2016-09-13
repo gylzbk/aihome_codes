@@ -58,7 +58,7 @@ static struct imageview_struct *asr_background_imageview;
 static struct imageview_struct *update_background_imageview;
 static struct imageview_struct *refresh_background_imageview;
 
-#define DIS_VERSION
+//#define DIS_VERSION
 #ifdef DIS_VERSION
 #define VERSION "v0.1.2-160909-15:20"
 static struct textview_struct *global_version_textview;
