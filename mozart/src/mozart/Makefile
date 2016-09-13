@@ -52,12 +52,12 @@ else
   ifeq ("$(VR)","vr_speech")
     LDFLAGS +=  -laiserver -laispeech  #-lvr_atalk
  #   SRCS += modules/aitalk/mozart_aispeech.c
-	SRCS += modules/aitalk/mozart_aitalk_asr.c
+	#SRCS += modules/aitalk/mozart_aitalk_asr.c
 	SRCS += modules/aitalk/mozart_aitalk_cloudplayer_control.c  modules/aitalk/mozart_aitalk_cloudplayer.c 
 	SRCS += modules/aitalk/mozart_aitalk.c modules/aitalk/mozart_aitalk_localplayer.c 
   else ifeq ("$(VR)","vr_atalk")
     LDFLAGS += -lvr_atalk	
-   	SRCS += modules/atalk/mozart_atalk_asr.c 
+   #	SRCS += modules/atalk/mozart_atalk_asr.c 
    	SRCS += modules/atalk/mozart_atalk_cloudplayer_control.c
 	SRCS += modules/atalk/mozart_atalk.c modules/atalk/mozart_atalk_localplayer.c
 	SRCS += modules/atalk/dl_perform.c  modules/atalk/mozart_atalk_cloudplayer.c
