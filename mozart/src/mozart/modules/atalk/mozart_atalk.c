@@ -12,16 +12,8 @@
 #include "mozart_module.h"
 #include "mozart_smartui.h"
 #include "mozart_prompt_tone.h"
-
-
-#include "mozart_config.h"
-#if (SUPPORT_VR == VR_ATALK)
 #include "mozart_atalk.h"
-#elif (SUPPORT_VR == VR_SPEECH)
-#include "mozart_aitalk.h"
-#include "mozart_aitalk_cloudplayer_control.h"
-#endif
-
+#include "mozart_atalk_cloudplayer_control.h"
 
 #ifndef MOZART_RELEASE
 #define MOZART_ATALK_DEBUG
@@ -44,13 +36,11 @@
 static bool atalk_network_change;
 static enum atalk_network_state network_original;
 
-#ifdef MOZART_ATALK_DEBUG
 static char *atalk_network_state_str[] = {
 	[network_config] = "network_config",
 	[network_online] = "network_online",
 	[network_offline] = "network_offline",
 };
-#endif
 
 static void mozart_atalk_net_change_handler(bool online)
 {
@@ -81,7 +71,6 @@ static void mozart_atalk_net_change_handler(bool online)
 	if (online && !is_online) {
 		mozart_atalk_cloudplayer_start(true);
 		atalk_cloudplayer_monitor_cancel();
-
 		mozart_smartui_boot_welcome();
 		mozart_prompt_tone_key_sync("atalk_hi_12", true);
 	} else if (!online && is_online) {
@@ -98,6 +87,7 @@ static void __mozart_atalk_online_handler(enum atalk_network_state ori)
 {
 	/* mozart_smartui_boot_build_display("音箱已联网"); */
 	/* mozart_prompt_tone_key_sync("atalk_wifi_link_success_11", true); */
+
 	if (ori == network_config || ori == network_offline) {
 		atalk_cloudplayer_send_wifi_state(wifi_end_ok);
 	} else {
@@ -145,9 +135,8 @@ int __mozart_atalk_network_trigger(enum atalk_network_state cur, enum atalk_netw
 
 	switch (cur) {
 	case network_config:
-		if (ori == network_online){
+		if (ori == network_online)
 			atalk_cloudplayer_send_wifi_state(wifi_start);
-		}
 		break;
 	case network_online:
 		mozart_atalk_cloudplayer_start(true);
@@ -201,9 +190,8 @@ void mozart_switch_atalk_module(bool in_lock)
 	if (!in_lock)
 		mozart_module_mutex_lock();
 
-	if (__mozart_module_is_online()){
+	if (__mozart_module_is_online())
 		mozart_atalk_cloudplayer_start(true);
-	}
 	else
 		mozart_atalk_localplayer_start(true);
 

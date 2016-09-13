@@ -7,13 +7,7 @@
 
 #include "player_interface.h"
 #include "volume_interface.h"
-
-#include "mozart_config.h"
-#include "mozart_atalk.h"
 #include "vr-atalk_interface.h"
-#include "mozart_atalk_cloudplayer_control.h"
-
-
 #include "sharememory_interface.h"
 
 #include "mozart_module.h"
@@ -21,6 +15,7 @@
 #include "mozart_smartui.h"
 #include "mozart_prompt_tone.h"
 #include "mozart_bt_avk.h"
+#include "mozart_atalk.h"
 #include "mozart_atalk_cloudplayer_control.h"
 
 #ifndef MOZART_RELEASE
@@ -75,15 +70,9 @@ static int cloudplayer_pause_handler(void)
 
 void mozart_atalk_cloudplayer_update_context(char *uuid, char *url)
 {
-	if ((uuid == NULL)||(url == NULL)){
-		return;
-	}
-
 	if (context.uuid) {
 		free(context.uuid);
-		context.uuid = NULL;
 		free(context.url);
-		context.url = NULL;
 	}
 
 	context.uuid = strdup(uuid);
@@ -245,7 +234,6 @@ static pthread_cond_t atalk_cloudplayer_monitor_cond = PTHREAD_COND_INITIALIZER;
 
 static void *atalk_cloudplayer_monitor_func(void *args)
 {
-	pthread_detach(pthread_self());
 	int i;
 	struct timeval now;
 	struct timespec timeout;
@@ -315,7 +303,7 @@ int create_atalk_cloudplayer_monitor_pthread(void)
 			pthread_mutex_unlock(&atalk_cloudplayer_monitor_mutex);
 			return -1;
 		}
-//		pthread_detach(atalk_cloudplayer_monitor_pthread);
+		pthread_detach(atalk_cloudplayer_monitor_pthread);
 		pr_debug("Create atalk cloudplayer monitor pthread\n");
 		cloudplayer_monitor_stage = cloudplayer_monitor_stage_wait;
 	}

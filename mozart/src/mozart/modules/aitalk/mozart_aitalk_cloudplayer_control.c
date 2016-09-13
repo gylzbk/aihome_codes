@@ -610,7 +610,7 @@ static struct aitalk_method methods[] = {
 	{
 		.name = "play",
 		.handler = play_handler,
-		.is_valid = vendor_is_valid,
+	//	.is_valid = vendor_is_valid,
 	},
 	{
 		.name = "stop",
@@ -631,7 +631,7 @@ static struct aitalk_method methods[] = {
 	{
 		.name = "set_volume",
 		.handler = set_volume_handler,
-		.is_valid = module_is_attach,
+	//	.is_valid = module_is_attach,
 	},
 	{
 		.name = "play_voice_prompt",

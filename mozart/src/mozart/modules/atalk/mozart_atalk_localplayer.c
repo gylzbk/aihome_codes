@@ -37,8 +37,6 @@ static struct player_context context;
 
 static void *localplayer_start_play(void *args)
 {
-
-	pthread_detach(pthread_self());
 	mozart_localplayer_start_playback();
 	localplayer_starting = false;
 
@@ -61,7 +59,7 @@ static void create_localplayer_start_play(void)
 		pr_err("Create pthread: %s\n", strerror(errno));
 		return ;
 	}
-//	pthread_detach(localplayer_start_play_thread);
+	pthread_detach(localplayer_start_play_thread);
 
 	return ;
 }

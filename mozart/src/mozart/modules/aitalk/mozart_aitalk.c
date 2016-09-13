@@ -176,7 +176,7 @@ int __mozart_aitalk_switch_mode(bool mode)
 	if (change) {
 		if (network_state == network_online) {
 			__mozart_aitalk_online_handler(network_original);
-			mozart_aitalk_net_change(true);		//	aitalk net connect successful
+		///	mozart_aitalk_net_change(true);		//	aitalk net connect successful
 			aitalk_vendor_startup();
 		} else if (network_state == network_offline) {
 			__mozart_aitalk_offline_handler(network_original);
