@@ -31,7 +31,8 @@
 #include "cJSON.h"
 //#include "vr-speech_interface.h"
 extern void ai_get_song_recommend(void);
-bool aitalk_play_music;
+extern bool aitalk_play_music;
+
 static const char *song_recommand_param =
 "\
 {\
@@ -333,6 +334,12 @@ music_info *ai_song_recommend_push(void){
 //	music_info *song = NULL;
 	int count = 0;
 	//	get the list end    or not success
+	if (ai_song_update_list.is_update_getting == true){
+		PERROR("Error: Getting recommend song !... \n",count);
+		return NULL;
+	}
+
+	ai_song_update_list.is_update_getting = true;
 	if((ai_song_update_list.is_update_success == false)		//
 		||(ai_song_update_list.geted_number >= ai_song_update_list.song_number)){
 		for (count = 1;count<SONG_GET_ERROR_MAX;count++){
@@ -371,8 +378,9 @@ music_info *ai_song_recommend_push(void){
 		count = ai_song_update_list.geted_number;
 	}
 	ai_song_update_list.geted_number++;
+	ai_song_update_list.is_update_getting = false;
+	DEBUG("Get url = %d, %s... \n",count,ai_song_update_list.song[count]);
 	return &ai_song_update_list.song[count];
-//	DEBUG("Get url = %d, %s... \n",count,ai_song_update_list.url[count]);
 exit_error:
 	return NULL;
 }
@@ -439,7 +447,7 @@ int ai_song_recommend_auto(void){
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
-		ai_aitalk_send(aitalk_send_play_music(NULL));
+		ai_aitalk_send(aitalk_send_play_url(&ai_song_update_list.song[0]));
 		#endif
 	}
 	return 0;

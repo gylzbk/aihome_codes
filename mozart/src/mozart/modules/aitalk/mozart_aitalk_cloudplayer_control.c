@@ -81,7 +81,8 @@ struct aitalk_struct {
 
 static char *play_prompt = NULL;
 static char *current_url = NULL;
-static bool aitalk_is_playing = false;
+bool aitalk_is_playing = false;
+
 static bool is_aitalk_run = false;
 static bool aitalk_running = false;
 static bool aitalk_initialized = false;
@@ -108,27 +109,15 @@ struct update_msg {
 //static int up_die;
 //static pthread_cond_t	cond = PTHREAD_COND_INITIALIZER;
 //static pthread_mutex_t	cond_lock = PTHREAD_MUTEX_INITIALIZER;
-
+#if 1
 #define send_result_obj(cmd, result_obj)	\
 	send_obj(cmd, NULL, result_obj)
 #define send_notification_obj(method, method_obj)	\
 	send_obj(NULL, method, method_obj)
 
-int mozart_aitalk_start(void){
-	ai_aiengine_start();
-	return 0;
-}
-
-int mozart_aitalk_stop(void){
-	mozart_aitalk_asr_over();
-	ai_aiengine_stop();
-	return 0;
-}
-
-
-
 static int send_obj(json_object *cmd, char *method, json_object *obj)
 {
+	return 0;
 	const char *s;
 	json_object *o, *m, *id = NULL;
 
@@ -160,14 +149,18 @@ static int send_obj(json_object *cmd, char *method, json_object *obj)
 	return 0;
 }
 
-enum player_state {
+typedef enum player_state {
 	player_play_state = 0,
 	player_pause_state,
 	player_stop_state,
-};
+}player_state;
+
+player_state ai_play_state;
 
 static int send_player_state_change(enum player_state state)
 {
+
+	#if 0
 	json_object *params;
 
 	params = json_object_new_object();
@@ -177,14 +170,19 @@ static int send_player_state_change(enum player_state state)
 		json_object_put(params);
 		return -1;
 	}
+	#else
+		ai_play_state = state;
+	#endif
 
 	return 0;
 }
 
 static int send_play_done(const char *url, int error_no)
 {
+	#if 0
 	json_object *params, *error = NULL;
 
+	printf("%s...!\n",__func__);
 	params = json_object_new_object();
 	json_object_object_add(params, "uri", json_object_new_string(url));
 	if (error_no) {
@@ -203,14 +201,24 @@ static int send_play_done(const char *url, int error_no)
 		json_object_put(params);
 		return -1;
 	}
-
+	#else
+	//----------- conture playing
+	if (ai_is_play_music()== true){
+		ai_play_music_order(1);;
+	}
+	else{
+		aitalk_is_playing = false;
+	}
+	#endif
 	return 0;
 }
 
 static int send_player_volume_change(int volume)
 {
+	#if 0
 	json_object *params;
 
+	printf("%s...!\n",__func__);
 	params = json_object_new_object();
 	json_object_object_add(params, "volume", json_object_new_int(volume));
 
@@ -218,14 +226,16 @@ static int send_player_volume_change(int volume)
 		json_object_put(params);
 		return -1;
 	}
-
+	#endif
 	return 0;
 }
 
 static int send_button_event(char *name, char *str, char *value)
 {
+	#if 0
 	json_object *params;
 
+	printf("%s...!\n",__func__);
 	params = json_object_new_object();
 	json_object_object_add(params, "name", json_object_new_string(name));
 	if (str && value)
@@ -235,9 +245,22 @@ static int send_button_event(char *name, char *str, char *value)
 		json_object_put(params);
 		return -1;
 	}
-
+	#endif
 	return 0;
 }
+#endif
+
+int mozart_aitalk_start(void){
+	ai_aiengine_start();
+	return 0;
+}
+
+int mozart_aitalk_stop(void){
+//	mozart_aitalk_asr_over();
+	ai_aiengine_stop();
+	return 0;
+}
+
 
 /*******************************************************************************
  * handler
@@ -410,6 +433,30 @@ static int set_volume_handler(json_object *cmd)
 #endif
 	return 0;
 }
+
+static int play_music_handler(json_object *cmd)
+{
+	printf("%s...!\n",__func__);
+	ai_play_music_order(0);
+	return 0;
+}
+
+
+static int previous_music_handler(json_object *cmd)
+{
+	printf("%s...!\n",__func__);
+	ai_play_music_order(-1);
+	return 0;
+}
+
+static int next_music_handler(json_object *cmd)
+{
+	printf("%s...!\n",__func__);
+	ai_play_music_order(1);
+	return 0;
+}
+
+
 static int play_voice_prompt_handler(json_object *cmd)
 {
 	char mp3_src[256] = {0};
@@ -696,6 +743,18 @@ static struct aitalk_method methods[] = {
 		.name = "set_volume",
 		.handler = set_volume_handler,
 		.is_valid = module_is_attach,
+	},
+	{
+		.name = "play_music",
+		.handler = play_music_handler,
+	},
+	{
+		.name = "next_music",
+		.handler = next_music_handler,
+	},
+	{
+		.name = "previous_music",
+		.handler = previous_music_handler,
 	},
 	{
 		.name = "play_voice_prompt",
@@ -1154,7 +1213,6 @@ static void *aitalk_running_func(void *args)
 		if (ai_aitalk_handler_wait() == -1){
 			pr_err("ai_aitalk_handler_wait error!\n");
 		}
-
 		if (aitalk_running == false){
 			//----------- extern running;
 			break;
@@ -1193,51 +1251,46 @@ static void *aitalk_running_func(void *args)
 				pr_debug("[%s:%d] json_tokener_parse c error: %s\n", __func__,__LINE__, cmd);
 			}
 		}
+		usleep(1000);
 	}
 	is_aitalk_run= false;
 	return NULL;
 }
 
-
 int mozart_vr_speech_interface_callback(vr_info *recog)
 {
 	int ret = 0;
-//	int command = SDS_COMMAND_NULL;
-//	char str[256]={0};
-//	int vol =0;
-#if 0
-	ret = mozart_license_flag_get();
-	if (ret == -1){
-		//char *str = "试用时间到啦，请更新授权，才能继续和我玩耍哦......";
-		//mozart_tts(str,false);
-		mozart_prompt_tone_key_sync("authority", false);
-		goto exit_error;
-	}
-#endif
 	switch(recog->status){
 		case AIENGINE_STATUS_INIT:
+		case AIENGINE_STATUS_AEC: {
+			#if SUPPORT_SMARTUI
+				mozart_smartui_asr_over();
+				if(recog->domain == RECOG_DOMAIN_WEATHER) {
+			//		mozart_smartui_weather_start(recog->weather);
+				}
+			#endif
+	    	}
 			break;
-	    case AIENGINE_STATUS_AEC:
-	        break;
-		case AIENGINE_STATUS_SEM:
-			break;
-		case AIENGINE_STATUS_ASR_SUCCESS:
-			mozart_aitalk_asr_over();
-			break;
-		case AIENGINE_STATUS_ASR_EXIT:
-			mozart_aitalk_asr_over();
-			break;
-		case AIENGINE_STATUS_ASR_FAIL:
-		case AIENGINE_STATUS_ERROR:
-			mozart_smartui_asr_fail("语音识别失败");
-			mozart_smartui_asr_over();
-		//	mozart_ai_error(recog->error_id);
-			break;
+		case AIENGINE_STATUS_SEM: {
+			#if SUPPORT_SMARTUI
+				mozart_smartui_asr_start();
+			#endif
+			mozart_prompt_tone_key_sync("welcome", false);
+		}
+		break;
+
+		case AIENGINE_STATUS_PROCESS: {
+			#if SUPPORT_SMARTUI
+				mozart_smartui_asr_recognize();
+			#endif
+		}
+		break;
+
 		default:
-			break;
+		break;
 	}
-/*
-exit_error:
+
+//exit_error:
 	if (ret == 0){
 		if (__mozart_aitalk_network_state() == network_online){
 			ret = 0;
@@ -1245,7 +1298,7 @@ exit_error:
 		else{
 			ret = 1;
 		}
-	}	//*/
+	}
 	return ret;
 }
 
@@ -1270,7 +1323,6 @@ int aitalk_cloudplayer_startup(void)
 		aitalk_initialized = true;
 	}
 
-	aitalk_vendor_startup();
 	return 0;
 }
 

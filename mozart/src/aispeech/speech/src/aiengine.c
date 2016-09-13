@@ -152,6 +152,8 @@ struct timeval t_debug;
 struct aiengine *agn = NULL;
 echo_wakeup_t *ew = NULL;
 
+bool aitalk_play_music = false;
+
 #ifdef SYN_TOO_LONG
 #include <sys/time.h>
 #include "ai_zlog.h"
@@ -314,13 +316,13 @@ exit_error:
 }
 
 
-int ai_aecing(void){
+int ai_status_aecing(void){
 	if ((ai_speech_get_status() != VR_SPEECH_INIT)
 		||(is_vr_speech_work_flag == false)){
 		return -1;
 	}
 
-	ai_cloud_sem_stop();
+//	ai_cloud_sem_stop();
 	ai_to_mozart();
 	ai_recog_free();
 #if AI_CONTROL_MOZART	  // remove tone when wakeup
@@ -329,7 +331,7 @@ int ai_aecing(void){
 
 	if (ai_aec(ew) == 0){
 	#if AI_CONTROL_MOZART_ATALK	  // remove tone when wakeup
-		ai_aitalk_send(aitalk_send_waikup(NULL));
+		//ai_aitalk_send(aitalk_send_waikup(NULL));
 		recog.status = AIENGINE_STATUS_SEM;
 	#else
 		recog.status = AIENGINE_STATUS_SEM;
@@ -345,6 +347,54 @@ int ai_aecing(void){
 }
 
 
+bool ai_is_play_music(void){
+	return aitalk_play_music;
+}
+int ai_status_seming(void){
+	int ret = 0;
+	int vol = 0;
+#if AI_CONTROL_MOZART
+	vol = mozart_volume_get();
+	if (vol == 0){
+		ai_aitalk_send(aitalk_send_set_volume("10"));	//*/
+		usleep(100000);
+	}
+	if (mozart_module_is_playing()==1){
+		ai_aitalk_send(aitalk_send_pause(NULL));
+	}
+	//ai_tone_time_end();
+#endif
+
+#if AI_CONTROL_MOZART
+	//mozart_key_ignore_set(true);
+#endif
+
+	ai_to_mozart();
+#if AI_CONTROL_MOZART	  // remove tone when wakeup
+	//mozart_prompt_tone_key_sync("welcome", false);
+#endif
+
+	ret = ai_cloud_sem(agn);
+	switch (ret){
+		case SEM_SUCCESS:
+			recog.status = AIENGINE_STATUS_PROCESS;
+			break;
+		case SEM_EXIT:
+			recog.status = AIENGINE_STATUS_AEC;
+			break;
+		case SEM_NET_LOW:
+			recog.error_type = AI_ERROR_NET_SLOW;
+			recog.status = AIENGINE_STATUS_ERROR;
+			break;
+		default:
+			recog.error_type = AI_ERROR_SERVER_BUSY;
+			recog.status = AIENGINE_STATUS_ERROR;
+			break;
+	}
+	return ret;
+}
+
+#if 0
 void *ai_seming(void *arg){
 	pthread_detach(pthread_self());
 	int ret = 0;
@@ -429,6 +479,7 @@ int ai_sem_start(void){
 	return 0;
 }
 
+#endif
 
 int ai_status_process(void){
 	ai_to_mozart();
@@ -606,22 +657,7 @@ int ai_init(void){
 		goto exit_error;
 	}
 	ai_server_init();
-/*	if (ai_aec_init() != 0){
-		err = -2;
-		PERROR("Error: ai_aec_init \n");
-		goto exit_error;
-	}
-
-	if (ai_cloudsem_init() != 0){
-		err = -3;
-		PERROR("Error: ai_cloudsem_init \n");
-		goto exit_error;
-	}	//*/
-
 exit_error:
-/*	if (err == -3){
-		ai_aec_destory();
-	}	//*/
 	if (err){
 		recog.status = AIENGINE_STATUS_ERROR;
 		recog.error_type = AI_ERROR_SYSTEM;
@@ -635,21 +671,21 @@ exit_error:
 	return err;
 }
 
-#if 0
+#if 1
 int ai_set_enable(bool enable){
 	if(enable == true){
 		DEBUG("=========================== start aiengine ...\n");
-//		if (is_aiengine_init == false){
-//			recog.status =AIENGINE_STATUS_INIT;
-//		}else{
-		//	ai_server_restart();
-//			recog.status =AIENGINE_STATUS_AEC;
-//		}
+		if (is_aiengine_init == false){
+			recog.status =AIENGINE_STATUS_INIT;
+		}else{
+			ai_server_restart();
+			recog.status =AIENGINE_STATUS_AEC;
+		}
 
-	//	recog.status =AIENGINE_STATUS_AEC;
-	//	#if AI_CONTROL_MOZART
-	//	mozart_prompt_tone_key_sync("atalk_hi_12", true);
-	//	#endif
+		recog.status =AIENGINE_STATUS_AEC;
+		#if AI_CONTROL_MOZART
+		//mozart_prompt_tone_key_sync("atalk_hi_12", true);
+		#endif
 		is_aiengine_enable = true;
 	}
 	else{
@@ -661,8 +697,8 @@ int ai_set_enable(bool enable){
 	}
 	return 0;
 }
-#endif
 
+#else
 int ai_set_enable(bool enable){
 	if (is_vr_speech_work_flag){
 		if(enable == true){
@@ -679,7 +715,7 @@ int ai_set_enable(bool enable){
 	}
 	return 0;
 }
-
+#endif
 
 #if 0
 void *ai_aec_run(void *arg){
@@ -740,34 +776,32 @@ int ai_aiengine_exit(void){
 
 #if 1
 int recog_status_last = 0;
+
 void *ai_run(void *arg){
 	pthread_detach(pthread_self());
 	int error = 0;
+//	DEBUG("=========================== ai_run: %s\n", aiengineStatus[recog.status]);
+	ai_init_data();
+//	DEBUG("=========================== ai_run: %s\n", aiengineStatus[recog.status]);
     while(is_vr_speech_work_flag){
 		while(is_aiengine_enable){
-			if (recog_status_last != recog.status){
-				DEBUG("================= AIENGINE STATUS: %s\n", aiengineStatus[recog.status]);
-				recog_status_last = recog.status;
-			}
+			DEBUG("=========================== AIENGINE STATUS: %s\n", aiengineStatus[recog.status]);
 			switch(recog.status){
-			//	case AIENGINE_STATUS_INIT:
-			//		PERROR("Error: aiengine not init\n");
-			//		is_aiengine_enable = false;
-			//		is_vr_speech_work_flag = false;
-/*					if (ai_init() != 0){
+				case AIENGINE_STATUS_INIT:
+					if (ai_init() != 0){
 						error = -1;
 						PERROR("ERROR: aiengine init !\n");
 						goto exit_error;
-					}//*/
-			//		break;
+					}
+					break;
   				case AIENGINE_STATUS_AEC:
 			//		DEBUG("=========================== AIENGINE_STATUS_AEC ...\n");
-					ai_aecing();
+					ai_status_aecing();
 					break;
 				case AIENGINE_STATUS_SEM:
 			//		DEBUG("=========================== AIENGINE_STATUS_SEM ...\n");
-			//		ai_seming();
-			//		ai_to_mozart();
+				//	ai_to_mozart();
+					ai_status_seming();
 					break;
 				case AIENGINE_STATUS_PROCESS:
 			//		DEBUG("=========================== AIENGINE_STATUS_PROCESS ...\n");
@@ -777,11 +811,9 @@ void *ai_run(void *arg){
 				case AIENGINE_STATUS_ERROR:
 					DEBUG("=========================== AIENGINE_STATUS_ERROR ...\n");
 					ai_status_error();
-					ai_to_mozart();
 					break;
 				case AIENGINE_STATUS_STOP:
 					ai_aiengine_stop();
-					ai_to_mozart();
 					break;
 				case AIENGINE_STATUS_EXIT:
 					DEBUG("=========================== AIENGINE_STATUS_EXIT ...\n");
@@ -791,7 +823,6 @@ void *ai_run(void *arg){
 				default:
 					recog.status = AIENGINE_STATUS_AEC;
 					break;	//*/
-
 			}
 			printf(".");
 			usleep(10000);
@@ -803,10 +834,10 @@ exit_error:
 	if (error){
 		recog.error_type = AI_ERROR_SYSTEM;
 		ai_status_error();
-		ai_to_mozart();
+	//	ai_to_mozart();
 	}
 	ai_exit();
-//	pthread_exit(&error);
+	pthread_exit(&error);
 }
 
 int ai_exit(void){

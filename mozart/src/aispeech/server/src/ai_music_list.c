@@ -32,7 +32,7 @@ ai_music_list_t music_list;
 int music_num_old = 0;
 
 int music_num_new = 0;
-
+extern bool aitalk_play_music;
 int ai_music_list_get_number(void){
 	return music_list.music_num;
 }
@@ -144,7 +144,7 @@ int ai_music_list_add_music(music_info *music)
 	#endif
 exit_error:
 	if (error == -1){
-		ai_music_list_free();
+		//ai_music_list_free();
 	}
 	return error;
 }
@@ -183,6 +183,29 @@ music_info *ai_music_list_play_order(int order){
 	DEBUG("play_order = %d\n",play_order);
 	return &music_list.music[play_order];
 }
+
+
+//bool play_error_tone = false;
+int ai_play_music_order(int order){
+	music_info *music = NULL;
+	music = ai_music_list_play_order(order);
+//	pr_debug("url %s\n",url);
+	if ((music)&&(music->url)){
+		ai_aitalk_send(aitalk_send_play_url(music));
+	//	play_error_tone = false;
+		return 0;
+	}
+
+	aitalk_play_music = false;
+/*	if (play_error_tone == false){
+		play_error_tone = true;
+		mozart_prompt_tone_key_sync("error_net_fail", false);
+	}	//*/
+
+	return -1;
+}
+
+
 
 #if 0
 

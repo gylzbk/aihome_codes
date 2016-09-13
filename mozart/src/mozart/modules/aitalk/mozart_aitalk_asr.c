@@ -59,6 +59,7 @@ static void speech_asr_set_volume(bool set)
 static int aitalk_asr_module_start(struct mozart_module_struct *current)
 {
 	pr_debug("------------------->>>>>> aitalk_asr_module_start\n");
+	mozart_smartui_asr_start();
 	ai_sem_start();
 	return 0;
 }
@@ -82,6 +83,7 @@ static int aitalk_asr_module_stop(struct mozart_module_struct *current)
 {
 	pr_debug("------------------->>>>>> aitalk_asr_module_stop\n");
 	speech_asr_set_volume(false);
+	mozart_smartui_asr_over();
 	return 0;
 }
 
@@ -260,7 +262,7 @@ int mozart_aitalk_asr_over(void)
 	pthread_t stop_pthread;
 
 	if (pthread_create(&stop_pthread, NULL, stop_func, NULL) == -1) {
-		pr_err("create display delay fail\n");
+		pr_err("create display delacd y fail\n");
 		return -1;
 	}
 
@@ -273,20 +275,12 @@ int mozart_aitalk_asr_startup(void)
 		pr_err("mozart_module_register fail\n");
 		return -1;
 	}
-
-	ai_aitalk_send_init();
-	//-----------------------startup aec
-	ai_speech_startup(0, mozart_vr_speech_interface_callback);
-	aitalk_cloudplayer_startup();
 	return 0;
 }
 
 int mozart_aitalk_asr_shutdown(void)
 {
 	mozart_module_unregister(&aitalk_asr_module);
-	//-----------------------shutdown aec
-	ai_speech_shutdown();
-	ai_aitalk_send_destroy();
 	return 0;
 }
 
