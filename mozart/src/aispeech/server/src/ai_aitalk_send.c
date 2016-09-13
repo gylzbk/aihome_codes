@@ -142,7 +142,7 @@ int ai_aitalk_send(char *data){
 		PERROR("is_aitalk_send_init = false \n");
 		return -1;
 	}
-	DEBUG("ai_aitalk_send ==> %s\n",data);
+	DEBUG("==> %s\n",data);
 	free(aitalk_pipe_buf);
 	aitalk_pipe_buf = NULL;
 	aitalk_pipe_buf = strdup(data);

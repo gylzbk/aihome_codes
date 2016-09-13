@@ -201,6 +201,22 @@ static struct mozart_module_struct *mozart_module_get(void)
 	return module;
 }
 
+void mozart_module_is_playing(void)
+{
+	struct mozart_module_struct *module;
+	bool (*func)(struct mozart_module_struct *self);
+
+	mozart_module_mutex_lock();
+	module = mozart_module_get();
+	func = module->kops.is_playing;
+	mozart_module_mutex_unlock();
+
+	if (func) {
+		pr_debug("%s\n", module->name);
+		func(module);
+	}
+}
+
 static int mozart_module_current_stop(void)
 {
 	mozart_module_mutex_lock();

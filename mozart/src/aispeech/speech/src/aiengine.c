@@ -145,6 +145,7 @@ bool is_aiengine_enable = false;
 bool is_aiengine_init = false;
 
 bool is_vr_speech_work_flag = false;
+bool is_seming = false;
 
 //struct aiengine_thr_s aec,sem;
 struct timeval t_debug;
@@ -355,15 +356,18 @@ void *ai_seming(void *arg){
 	}
 
 	ai_aec_stop();
+
+	DEBUG("start seming ... \n");
+	is_seming = true;
 	recog.status = AIENGINE_STATUS_SEM;
 #if AI_CONTROL_MOZART
-#if 0
+#if 1
 	vol = mozart_volume_get();
 	if (vol == 0){
 		ai_aitalk_send(aitalk_send_set_volume("10"));	//*/
 		usleep(100000);
 	}
-	if (mozart_module_is_playing()==1){
+	if (mozart_module_is_playing()==true){
 		ai_aitalk_send(aitalk_send_pause(NULL));
 	}
 #endif
@@ -374,7 +378,7 @@ void *ai_seming(void *arg){
 //	mozart_key_ignore_set(true);
 #endif
 
-	//ai_to_mozart();
+	ai_to_mozart();
 #if AI_CONTROL_MOZART	  // remove tone when wakeup
 	//mozart_prompt_tone_key_sync("welcome", false);
 #endif
@@ -396,10 +400,28 @@ void *ai_seming(void *arg){
 			recog.status = AIENGINE_STATUS_ERROR;
 			break;
 	}
+	ai_to_mozart();
+	DEBUG("stop seming ... \n");
+	is_seming = false;
 	return NULL;
 }
 
 int ai_sem_start(void){
+	int count =0;
+//-------------------- wate last seming stop;
+	if (is_seming){
+		ai_cloud_sem_stop();
+	}
+	while(is_seming){
+		count ++;
+		usleep(1000);
+		if (count   > 1000){
+			PERROR("Error: is_seming \n");
+			is_seming = false;
+			break;
+		}
+	}
+
 	pthread_t ai_sem_thread;
 	if (pthread_create(&ai_sem_thread, NULL, ai_seming, NULL) != 0) {
 		PERROR("Can't create ai_sem_thread in : %s\n",strerror(errno));

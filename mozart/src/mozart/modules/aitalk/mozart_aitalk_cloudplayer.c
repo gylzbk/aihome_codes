@@ -40,12 +40,14 @@
 
 int mozart_aitalk_cloudplayer_do_resume_pause(void);
 
+bool is_playing = false;
+
+
 static struct player_context context;
 static int cloudplayer_resume_handler(void)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	int ret = 0;
-
-	pr_debug("...\n");
 	if (context.uuid == NULL) {
 		if (aitalk_cloudplayer_resume_player()) {
 			pr_err("cloudplayer_resume fail\n");
@@ -66,6 +68,7 @@ static int cloudplayer_resume_handler(void)
 
 static int cloudplayer_pause_handler(void)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	pr_debug("...\n");
 	if (aitalk_cloudplayer_pause_player()) {
 		memset(&context, 0, sizeof(struct player_context));
@@ -77,6 +80,7 @@ static int cloudplayer_pause_handler(void)
 
 void mozart_aitalk_cloudplayer_update_context(char *uuid, char *url)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	if ((uuid == NULL)||(url == NULL)){
 		return;
 	}
@@ -95,6 +99,7 @@ void mozart_aitalk_cloudplayer_update_context(char *uuid, char *url)
 
 static int __aitalk_cloudplayer_do_resume(struct mozart_module_struct *self)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	if (__mozart_module_is_run(self)) {
 		cloudplayer_resume_handler();
 		mozart_smartui_atalk_toggle(true);
@@ -111,6 +116,7 @@ static int __aitalk_cloudplayer_do_resume(struct mozart_module_struct *self)
 
 static int __aitalk_cloudplayer_do_pause(struct mozart_module_struct *self)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	if (__mozart_module_is_run(self)) {
 		cloudplayer_pause_handler();
 		mozart_smartui_atalk_toggle(false);
@@ -130,8 +136,8 @@ static int __aitalk_cloudplayer_do_pause(struct mozart_module_struct *self)
  *******************************************************************************/
 static int aitalk_cloudplayer_module_start(struct mozart_module_struct *self)
 {
-	self->player_state = player_state_idle;
 	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
+	self->player_state = player_state_idle;
 	mozart_smartui_atalk_play("AISPEECH",NULL,NULL,NULL);
 	mozart_smartui_atalk_toggle(false);
 	mozart_prompt_tone_key_sync("atalk_hi_12", true);
@@ -190,11 +196,14 @@ static void aitalk_cloudplayer_module_resume_pause(struct mozart_module_struct *
 static void aitalk_cloudplayer_module_asr_wakeup(struct mozart_module_struct *self)
 {
 	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
+
 	if (self->player_state != player_state_idle) {
-		mozart_smartui_asr_start();
-		mozart_aitalk_asr_start();
-	//	mozart_key_wakeup();
+		mozart_aitalk_cloudplayer_do_pause();
 	}
+	mozart_smartui_asr_start();
+	//mozart_aitalk_asr_start();
+	ai_sem_start();
+	mozart_prompt_tone_key_sync("welcome", false);
 }
 
 static void aitalk_cloudplayer_module_next_song(struct mozart_module_struct *self)
@@ -221,6 +230,14 @@ static void aitalk_cloudplayer_module_next_module(struct mozart_module_struct *s
 	mozart_bt_avk_start(false);
 }
 
+
+
+static bool aitalk_cloudplayer_module_is_playing(struct mozart_module_struct *self)
+{
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
+	return is_playing;
+}
+
 static struct mozart_module_struct aitalk_cloudplayer_module = {
 	.name = "aitalk_cloudplayer",
 	.priority = 1,
@@ -240,6 +257,7 @@ static struct mozart_module_struct aitalk_cloudplayer_module = {
 		.next_channel = aitalk_cloudplayer_module_next_channel,
 		.favorite = aitalk_cloudplayer_module_favorite,
 		.next_module = aitalk_cloudplayer_module_next_module,
+		.is_playing = aitalk_cloudplayer_module_is_playing,
 	},
 };
 #if 0
