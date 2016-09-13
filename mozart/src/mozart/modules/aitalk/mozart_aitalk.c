@@ -47,7 +47,7 @@ static void mozart_aitalk_net_change_handler(bool online)
 {
 	bool is_online, is_net;
 
-	pr_debug("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+	pr_debug("++mozart_aitalk_net_change_handler = %d\n",online);
 	mozart_module_mutex_lock();
 	__mozart_module_dump_state_map();
 
@@ -161,6 +161,7 @@ int __mozart_aitalk_switch_mode(bool mode)
 	bool change;
 	enum atalk_network_state network_state;
 
+	pr_debug("PASS! %d\n",__LINE__);
 	network_state = __mozart_aitalk_network_state();
 	change = mode && aitalk_network_change;
 	pr_debug("network_state: %s, change = %d\n", aitalk_network_state_str[network_state], change);
@@ -170,11 +171,12 @@ int __mozart_aitalk_switch_mode(bool mode)
 		ret = -1;
 		aitalk_vendor_shutdown();
 	}
-
+	pr_debug("PASS! %d\n",__LINE__);
 	__aitalk_switch_mode(mode);
 	if (change) {
 		if (network_state == network_online) {
 			__mozart_aitalk_online_handler(network_original);
+			mozart_aitalk_net_change(true);		//	aitalk net connect successful
 			aitalk_vendor_startup();
 		} else if (network_state == network_offline) {
 			__mozart_aitalk_offline_handler(network_original);

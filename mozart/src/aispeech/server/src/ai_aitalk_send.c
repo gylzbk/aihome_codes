@@ -138,7 +138,7 @@ int ai_aitalk_send(char *data){
 		PERROR("is_aitalk_send_init = false \n");
 		return -1;
 	}
-
+	DEBUG("ai_aitalk_send: %s\n",data);
 	free(aitalk_pipe_buf);
 	aitalk_pipe_buf = NULL;
 	aitalk_pipe_buf = strdup(data);
@@ -153,6 +153,8 @@ char *ai_aitalk_receive(void){
 
 
 int ai_aitalk_send_destroy(void){
+	ai_aitalk_send("exit");	//	exit send
+	usleep(10000);
 	free(aitalk_pipe_buf);
 	aitalk_pipe_buf = NULL;
 	free(pjson);
@@ -167,6 +169,7 @@ int ai_aitalk_send_destroy(void){
 int ai_aitalk_handler_wait(void){
 	if(is_aitalk_send_init == false){
 		PERROR("is_aitalk_send_init = false \n");
+		sleep(1);
 		return -1;
 	}
 

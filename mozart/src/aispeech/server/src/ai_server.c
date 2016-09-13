@@ -512,8 +512,6 @@ int ai_server_init(void){
 	#if  SUPPORT_ELIFE
 	ai_elife_init();
 	#endif
-
-	ai_aitalk_send_init();
 //	ai_output_init();
 //	ai_output_url("深圳天气怎样？");
 //	ai_song_recommend_push();
@@ -526,7 +524,6 @@ int ai_server_init(void){
 }
 
 int ai_server_exit(void){
-	ai_aitalk_send_destroy();
 	ai_music_list_free();
 	ai_song_recommend_free_all();
 	#if  SUPPORT_ELIFE

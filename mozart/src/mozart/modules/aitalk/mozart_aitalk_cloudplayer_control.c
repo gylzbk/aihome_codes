@@ -434,11 +434,11 @@ static int net_state_change_handler(json_object *cmd)
 	if (!json_object_object_get_ex(params, "state", &state))
 		return -1;
 
-	if (json_object_get_int(state) == 0)
+/*	if (json_object_get_int(state) == 0)
 		mozart_aitalk_net_change(false);
 	else
 		mozart_aitalk_net_change(true);
-
+//*/
 	return 0;
 }
 
@@ -1189,6 +1189,7 @@ int aitalk_cloudplayer_startup(void)
 	pthread_t aitalk_thread;
 
 	if (!aitalk_initialized) {
+		ai_aitalk_send_init();
 
 		aitalk_player_handler =
 			mozart_player_handler_get("aitalk", aitalk_player_status_callback, NULL);
@@ -1212,9 +1213,9 @@ int aitalk_cloudplayer_startup(void)
 
 int aitalk_cloudplayer_shutdown(void)
 {
-//	pthread_mutex_lock(&aitalk_wait_stop_mutex);
-//	pthread_cond_signal(&aitalk_wait_stop_cond);
-//	pthread_mutex_unlock(&aitalk_wait_stop_mutex);
+	pthread_mutex_lock(&aitalk_wait_stop_mutex);
+	pthread_cond_signal(&aitalk_wait_stop_cond);
+	pthread_mutex_unlock(&aitalk_wait_stop_mutex);
 
 	free(play_prompt);
 	play_prompt = NULL;
@@ -1222,8 +1223,6 @@ int aitalk_cloudplayer_shutdown(void)
 	current_url = NULL;
 
 	is_aitalk_running = false;
-	aitalk_initialized = false;
-
 	mozart_module_mutex_lock();
 	__mozart_module_set_attach();
 	__mozart_module_set_offline();
@@ -1231,6 +1230,8 @@ int aitalk_cloudplayer_shutdown(void)
 	mozart_module_mutex_unlock();
 
 	mozart_aitalk_cloudplayer_do_stop();
+
+
 //	up_die = 1;
 //	dl_perform_stop(aitalk.dp);
 
@@ -1243,7 +1244,9 @@ int aitalk_cloudplayer_shutdown(void)
 
 	//aitalk_vendor_shutdown();
 
+	aitalk_initialized = false;
 	aitalk_vendor_shutdown();
+	ai_aitalk_send_destroy();
 
 	if (aitalk_player_handler) {
 		mozart_player_handler_put(aitalk_player_handler);

@@ -399,10 +399,6 @@ int mozart_atalk_cloudplayer_start(bool in_lock)
 	if (ret == 0)
 		create_atalk_cloudplayer_monitor_pthread();
 
-#if (SUPPORT_VR == VR_SPEECH)
-		ai_set_enable(true);
-#endif
-
 	return ret;
 }
 

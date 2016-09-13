@@ -272,9 +272,9 @@ again:
 			cloudplayer_monitor_stage = cloudplayer_monitor_stage_wait;
 			goto again;
 		} else if (cloudplayer_monitor_stage == cloudplayer_monitor_stage_wait) {
-			pr_debug("atalk vendor restart\n");
-			atalk_vendor_shutdown();
-			atalk_vendor_startup();
+			pr_debug("aitalk vendor restart\n");
+			aitalk_vendor_shutdown();
+			aitalk_vendor_startup();
 		} else if (cloudplayer_monitor_stage == cloudplayer_monitor_stage_module_cancel) {
 			gettimeofday(&now, NULL);
 			timeout.tv_sec = now.tv_sec + 12;
@@ -398,8 +398,8 @@ int mozart_aitalk_cloudplayer_start(bool in_lock)
 		return -1;
 	}
 
-	//if (ret == 0)
-	//	create_aitalk_cloudplayer_monitor_pthread();
+//	if (ret == 0)
+//		create_aitalk_cloudplayer_monitor_pthread();
 
 #if (SUPPORT_VR == VR_SPEECH)
 		ai_set_enable(true);
@@ -496,6 +496,8 @@ int mozart_aitalk_cloudplayer_do_stop(void)
 
 int mozart_aitalk_cloudplayer_startup(void)
 {
+
+	pr_debug("=======================> mozart_aitalk_cloudplayer_startup...!\n");
 	if (mozart_module_register(&aitalk_cloudplayer_module)) {
 		pr_err("mozart_module_register fail\n");
 		return -1;
@@ -508,6 +510,7 @@ int mozart_aitalk_cloudplayer_startup(void)
 
 int mozart_aitalk_cloudplayer_shutdown(void)
 {
+	pr_debug("=======================> mozart_aitalk_cloudplayer_shutdown...!\n");
 	if (aitalk_cloudplayer_module.stop)
 		aitalk_cloudplayer_module.stop(&aitalk_cloudplayer_module, module_cmd_stop, false);
 	mozart_module_unregister(&aitalk_cloudplayer_module);
