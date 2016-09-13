@@ -122,6 +122,11 @@ char *aitalk_send_set_volume(const char *cmd){
 	return send_obj("set_volume",params);
 }
 
+
+char *aitalk_send_waikup(const char *url){
+	return send_obj("wakeup",NULL);
+}
+
 int ai_aitalk_send_init(void){
     sem_init(&sem_aitalk, 0, 0);
 	is_aitalk_send_init = true;
@@ -133,12 +138,11 @@ int ai_aitalk_send(char *data){
 	if (!data){
 		return -1;
 	}
-
 	if(is_aitalk_send_init == false){
 		PERROR("is_aitalk_send_init = false \n");
 		return -1;
 	}
-	DEBUG("ai_aitalk_send: %s\n",data);
+	DEBUG("ai_aitalk_send ==> %s\n",data);
 	free(aitalk_pipe_buf);
 	aitalk_pipe_buf = NULL;
 	aitalk_pipe_buf = strdup(data);

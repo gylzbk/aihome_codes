@@ -602,7 +602,7 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 				#endif
 				mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
 				printf("\n\n- online BBBB -----------\n\n");
-				mozart_aitalk_cloudplayer_start(true);
+			//	mozart_aitalk_cloudplayer_start(true);
 			#endif
 		} else if (global_net_mode == NET_MODE_SW_STA) {
 

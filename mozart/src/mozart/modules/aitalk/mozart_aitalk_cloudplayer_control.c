@@ -82,7 +82,8 @@ struct aitalk_struct {
 static char *play_prompt = NULL;
 static char *current_url = NULL;
 static bool aitalk_is_playing = false;
-static bool is_aitalk_running = false;
+static bool is_aitalk_run = false;
+static bool aitalk_running = false;
 static bool aitalk_initialized = false;
 static player_handler_t *aitalk_player_handler;
 
@@ -94,6 +95,9 @@ enum aitalk_wait_stop_enum {
 
 static pthread_mutex_t aitalk_wait_stop_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t aitalk_wait_stop_cond = PTHREAD_COND_INITIALIZER;
+
+
+
 
 struct update_msg {
 	char *uri;
@@ -241,6 +245,13 @@ static int send_button_event(char *name, char *str, char *value)
 static bool vendor_is_valid(json_object *cmd)
 {
 	return true;//aitalk_cloudplayer_monitor_is_valid();
+}
+
+static int wakeup_handler(json_object *cmd)
+{
+	pr_debug("wakeup_handler...\n");
+	mozart_module_asr_wakeup();
+	return 0;
 }
 
 static int play_handler(json_object *cmd)
@@ -608,6 +619,11 @@ static bool module_is_attach(json_object *cmd)
 }
 
 static struct aitalk_method methods[] = {
+	{
+		.name = "wakeup",
+		.handler = wakeup_handler,
+		.is_valid = vendor_is_valid,
+	},
 	{
 		.name = "play",
 		.handler = play_handler,
@@ -1084,14 +1100,15 @@ static void *aitalk_running_func(void *args)
 	json_object	*o = NULL;
 	bool is_valid = true;
 	struct aitalk_method *m;
-	is_aitalk_running = true;
-	while (is_aitalk_running) {
+	is_aitalk_run = true;
+	aitalk_running= true;
+	while (aitalk_running) {
 		int i;
 		if (ai_aitalk_handler_wait() == -1){
 			pr_err("ai_aitalk_handler_wait error!\n");
 		}
 
-		if (is_aitalk_running == false){
+		if (aitalk_running == false){
 			//----------- extern running;
 			break;
 		}
@@ -1130,6 +1147,7 @@ static void *aitalk_running_func(void *args)
 			}
 		}
 	}
+	is_aitalk_run= false;
 	return NULL;
 }
 
@@ -1190,8 +1208,6 @@ int aitalk_cloudplayer_startup(void)
 	pthread_t aitalk_thread;
 
 	if (!aitalk_initialized) {
-		ai_aitalk_send_init();
-
 		aitalk_player_handler =
 			mozart_player_handler_get("aitalk", aitalk_player_status_callback, NULL);
 		if (aitalk_player_handler == NULL) {
@@ -1223,7 +1239,17 @@ int aitalk_cloudplayer_shutdown(void)
 	free(current_url);
 	current_url = NULL;
 
-	is_aitalk_running = false;
+//------------------------- wake stop
+	aitalk_running = false;
+	int count = 0;
+	while(is_aitalk_run){
+		usleep(1000);
+		count ++;
+		if (count >   1000){
+			break;
+		}
+	}
+
 	mozart_module_mutex_lock();
 	__mozart_module_set_attach();
 	__mozart_module_set_offline();
@@ -1247,7 +1273,6 @@ int aitalk_cloudplayer_shutdown(void)
 
 	aitalk_initialized = false;
 	aitalk_vendor_shutdown();
-	ai_aitalk_send_destroy();
 
 	if (aitalk_player_handler) {
 		mozart_player_handler_put(aitalk_player_handler);

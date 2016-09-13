@@ -273,9 +273,11 @@ int mozart_aitalk_asr_startup(void)
 		pr_err("mozart_module_register fail\n");
 		return -1;
 	}
+
+	ai_aitalk_send_init();
 	//-----------------------startup aec
 	ai_speech_startup(0, mozart_vr_speech_interface_callback);
-
+	aitalk_cloudplayer_startup();
 	return 0;
 }
 
@@ -284,6 +286,7 @@ int mozart_aitalk_asr_shutdown(void)
 	mozart_module_unregister(&aitalk_asr_module);
 	//-----------------------shutdown aec
 	ai_speech_shutdown();
+	ai_aitalk_send_destroy();
 	return 0;
 }
 

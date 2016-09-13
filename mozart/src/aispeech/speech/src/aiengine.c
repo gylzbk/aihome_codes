@@ -328,7 +328,7 @@ int ai_aecing(void){
 
 	if (ai_aec(ew) == 0){
 	#if AI_CONTROL_MOZART_ATALK	  // remove tone when wakeup
-		mozart_module_asr_wakeup();
+		ai_aitalk_send(aitalk_send_waikup(NULL));
 		recog.status = AIENGINE_STATUS_SEM;
 	#else
 		recog.status = AIENGINE_STATUS_SEM;
@@ -683,12 +683,13 @@ void *ai_aec_run(void *arg){
 
 
 int ai_aiengine_start(void){
+	DEBUG("aiengine start!...\n");
 	ai_set_enable(true);
 	return 0;
 }
 
 int ai_aiengine_stop(void){
-	DEBUG("aiengine exit     start!...\n");
+	DEBUG("aiengine stop!...\n");
 	is_aiengine_enable = false;
 	ai_aec_stop();
 	ai_cloud_sem_stop();
@@ -698,6 +699,7 @@ int ai_aiengine_stop(void){
 }
 
 int ai_aiengine_exit(void){
+	DEBUG("aiengine exit!...\n");
 	ai_aiengine_stop();
 	ai_cloud_sem_free();
 	if (ew){

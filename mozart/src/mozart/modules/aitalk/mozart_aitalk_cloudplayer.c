@@ -134,6 +134,7 @@ static int aitalk_cloudplayer_module_start(struct mozart_module_struct *self)
 	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	mozart_smartui_atalk_play("AISPEECH",NULL,NULL,NULL);
 	mozart_smartui_atalk_toggle(false);
+	mozart_prompt_tone_key_sync("atalk_hi_12", true);
 	return 0;
 }
 
@@ -169,22 +170,26 @@ static int aitalk_cloudplayer_module_stop(struct mozart_module_struct *self)
 
 static void aitalk_cloudplayer_module_previous_song(struct mozart_module_struct *self)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	aitalk_cloudplayer_previous_music();
 }
 
 static void aitalk_cloudplayer_module_volume_change(struct mozart_module_struct *self)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	int vol = mozart_volume_get();
 	aitalk_cloudplayer_volume_change(vol);
 }
 
 static void aitalk_cloudplayer_module_resume_pause(struct mozart_module_struct *self)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	mozart_aitalk_cloudplayer_do_resume_pause();
 }
 
 static void aitalk_cloudplayer_module_asr_wakeup(struct mozart_module_struct *self)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	if (self->player_state != player_state_idle) {
 		mozart_smartui_asr_start();
 		mozart_aitalk_asr_start();
@@ -194,21 +199,25 @@ static void aitalk_cloudplayer_module_asr_wakeup(struct mozart_module_struct *se
 
 static void aitalk_cloudplayer_module_next_song(struct mozart_module_struct *self)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	aitalk_cloudplayer_next_music();
 }
 
 static void aitalk_cloudplayer_module_next_channel(struct mozart_module_struct *self)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	aitalk_next_channel();
 }
 
 static void aitalk_cloudplayer_module_favorite(struct mozart_module_struct *self)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	aitalk_love_audio();
 }
 
 static void aitalk_cloudplayer_module_next_module(struct mozart_module_struct *self)
 {
+	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	mozart_bt_avk_start(false);
 }
 
@@ -507,9 +516,6 @@ int mozart_aitalk_cloudplayer_startup(void)
 		pr_err("mozart_module_register fail\n");
 		return -1;
 	}
-
-	aitalk_cloudplayer_startup();
-
 	return 0;
 }
 
@@ -520,7 +526,6 @@ int mozart_aitalk_cloudplayer_shutdown(void)
 		aitalk_cloudplayer_module.stop(&aitalk_cloudplayer_module, module_cmd_stop, false);
 	mozart_module_unregister(&aitalk_cloudplayer_module);
 	aitalk_cloudplayer_shutdown();
-
 	return 0;
 }
 
