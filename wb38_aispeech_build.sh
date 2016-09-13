@@ -23,10 +23,10 @@ MOZART_PATH=${local}/mozart/
 cd ${MOZART_PATH}
 make clean
 make distclean
-make ds1825_aispeech_v1.0_ap6212a_cramfs_atalk_config
-make libaiserver-rebuild -j4
-make libaispeech-rebuild -j4
-make mozart-rebuild -j4
+make wb38_aispeech_v1.0_ap6212a_cramfs_atalk_config
+#make libaiserver-rebuild -j4
+#make libaispeech-rebuild -j4
+#make mozart-rebuild -j4
 make -j4
 #./rebuild.sh
 
