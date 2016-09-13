@@ -245,6 +245,7 @@ static bool vendor_is_valid(json_object *cmd)
 
 static int play_handler(json_object *cmd)
 {
+#if 0
 	int ret;
 	const char *url;
 	json_object *params, *uri, *artist, *title, *vendor;
@@ -267,6 +268,47 @@ static int play_handler(json_object *cmd)
 		send_play_done(url, 0);
 		return 0;
 	}
+#endif
+	int ret;
+	const char *url;
+	json_object *params, *url_j, *artist, *title;
+
+	if (!json_object_object_get_ex(cmd, "params", &params)){
+		pr_err("[%d]error!\n",__LINE__);
+		return -1;
+	}
+	if (!json_object_object_get_ex(params, "url", &url_j)){
+		pr_err("[%d]error!\n",__LINE__);
+		return -1;
+	}
+	if (!json_object_object_get_ex(params, "title", &title)){
+		pr_err("[%d]error!\n",__LINE__);
+		return -1;
+	}
+	if (!json_object_object_get_ex(params, "artist", &artist)){
+		pr_err("[%d]error!\n",__LINE__);
+		return -1;
+	}
+
+	url = json_object_get_string(url_j);
+	printf("    url: %s\n", url);
+
+	if ((url == NULL) || (url[0] == '/' &&
+		access(url, R_OK))) {
+		printf("[%s %s %d]: error\n", __FILE__, __func__, __LINE__);
+		send_play_done(url, 0);
+		return 0;
+	}
+
+#if SUPPORT_SMARTUI
+	pr_debug("play_prompt = %s\n",play_prompt);
+	char *title_s =(char *)json_object_get_string(title);
+	char *artist_s =  (char *)json_object_get_string(artist);
+
+	if((artist_s)||(artist_s)){
+		mozart_smartui_atalk_play("AIspeech",title_s,artist_s,play_prompt);
+	}
+#endif
 
 	ret = mozart_aitalk_cloudplayer_do_play();
 	if (ret == 0) {
@@ -296,11 +338,12 @@ static int play_handler(json_object *cmd)
 	}
 
 	aitalk_is_playing = true;
+#if SUPPORT_SMARTUI
 	mozart_smartui_atalk_play((char *)json_object_get_string(vendor),
 				  (char *)json_object_get_string(title),
 				  (char *)json_object_get_string(artist),
 				  play_prompt);
-
+#endif
 	return 0;
 }
 
