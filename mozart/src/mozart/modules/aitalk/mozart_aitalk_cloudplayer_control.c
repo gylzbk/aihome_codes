@@ -366,93 +366,94 @@ static int pause_toggle_handler(json_object *cmd)
 
 static int set_volume_handler(json_object *cmd)
 {
-	int vol;
-	json_object *params, *volume;
+	const char *volume;
+	int vol = 0;
+	printf("%s...!\n",__func__);
+	json_object *params, *volume_j;//, *artist, *title, *vendor;
 
-	if (!json_object_object_get_ex(cmd, "params", &params))
+	if (!json_object_object_get_ex(cmd, "params", &params)){
+		pr_err("[%d]error!\n",__LINE__);
 		return -1;
-
-	if (!json_object_object_get_ex(params, "volume", &volume))
+	}
+	if (!json_object_object_get_ex(params, "volume", &volume_j)){
+		pr_err("[%d]error!\n",__LINE__);
 		return -1;
+	}
 
-	vol = json_object_get_int(volume);
-	if (vol == 1)
-		vol = 0;
+	volume = json_object_get_string(volume_j);
+	if (volume){
+		vol = mozart_volume_get();
+		pr_debug("volume = %s, last vol = %d!\n",volume,vol);
+		if(strcmp(volume, "+") == 0){
+			vol +=10;
+		}else if(strcmp(volume, "-") == 0){
+			vol -= 10;
+		}else{
+			vol = atoi(volume);
+		}	//*/
+		if (vol > 100)
+			vol = 100;
+		else if (vol < 0)
+			vol = 0;
 
-	mozart_volume_set(vol, MUSIC_VOLUME);
-
+		pr_debug("new vol = %d!\n",vol);
+		mozart_volume_set(vol, MUSIC_VOLUME);
+	}
+	else{
+		return -1;
+	}
+/*XXX*/
+#if 0
+	if(aitalk_play_music == true){
+		mozart_aitalk_do_resume();
+	}
+#endif
 	return 0;
 }
 
 static int play_voice_prompt_handler(json_object *cmd)
 {
-	char mp3_src[256] = {0};
-	const char *url;
-	json_object *params, *uri;
+	const char *volume;
+	int vol = 0;
+	printf("%s...!\n",__func__);
+	json_object *params, *volume_j;//, *artist, *title, *vendor;
 
-	if (!json_object_object_get_ex(cmd, "params", &params))
+	if (!json_object_object_get_ex(cmd, "params", &params)){
+		pr_err("[%d]error!\n",__LINE__);
 		return -1;
-	if (!json_object_object_get_ex(params, "uri", &uri))
-		return -1;
-
-	url = json_object_get_string(uri);
-
-	if (url == NULL){
+	}
+	if (!json_object_object_get_ex(params, "volume", &volume_j)){
+		pr_err("[%d]error!\n",__LINE__);
 		return -1;
 	}
 
+	volume = json_object_get_string(volume_j);
+	if (volume) {
+		vol = mozart_volume_get();
+		pr_debug("volume = %s, last vol = %d!\n", volume, vol);
+		if (strcmp(volume, "+") == 0) {
+			vol += 10;
+		} else if (strcmp(volume, "-") == 0) {
+			vol -= 10;
+		} else {
+			vol = atoi(volume);
+		}	//*/
+		if (vol > 100)
+			vol = 100;
+		else if (vol < 0)
+			vol = 0;
 
-	if (!play_tone_get_source(mp3_src, "atalk_entry_13") && !strcmp(url, mp3_src)) {
-		free(play_prompt);
-		play_prompt = strdup("栏目订阅");
-	} else if (!play_tone_get_source(mp3_src, "atalk_entry_14") && !strcmp(url, mp3_src)) {
-		free(play_prompt);
-		play_prompt = strdup("音乐电台");
-	} else if (!play_tone_get_source(mp3_src, "atalk_entry_15") && !strcmp(url, mp3_src)) {
-		free(play_prompt);
-		play_prompt = strdup("随便听听");
-	} else if (!play_tone_get_source(mp3_src, "atalk_entry_16") && !strcmp(url, mp3_src)) {
-		free(play_prompt);
-		play_prompt = strdup("广播电台");
-	} else if (!play_tone_get_source(mp3_src, "atalk_entry_17") && !strcmp(url, mp3_src)) {
-		free(play_prompt);
-		play_prompt = strdup("音乐收藏");
-	} else if (!play_tone_get_source(mp3_src, "atalk_local_4") && !strcmp(url, mp3_src)) {
-		pr_debug("skip local_4\n");
-		return 0;
-	} else if (!play_tone_get_source(mp3_src, "atalk_hi_12") && !strcmp(url, mp3_src)) {
-		bool module_change;
-
-		mozart_module_mutex_lock();
-		module_change = __mozart_aitalk_cloudplayer_is_start();
-		if (!__mozart_net_is_start() && !__mozart_aitalk_localplayer_is_start()){
-		 // &&   !atalk_cloudplayer_monitor_is_module_cancel())
-			if (mozart_aitalk_cloudplayer_start(true)) {
-				pr_err("start fail!\n");
-				mozart_module_mutex_unlock();
-				return -1;
-			} else {
-				if (!module_change)
-					send_play_done("NULL", 0);
-				mozart_smartui_boot_welcome();
-			}
-			//atalk_cloudplayer_monitor_cancel();
-		}
-		mozart_module_mutex_unlock();
-	}
-
-	mozart_module_mutex_lock();
-
-	if (!__mozart_aitalk_cloudplayer_is_run() || !vendor_is_valid(NULL)) {
-		pr_debug("[Warning] %s: Don't play %s\n", __func__, url);
+		pr_debug("new vol = %d!\n",vol);
+		mozart_volume_set(vol, MUSIC_VOLUME);
 	} else {
-		if (!strncmp(url, "file://", 7))
-			mozart_prompt_tone_play_sync((char *)url + 7, true);
-		else
-			mozart_prompt_tone_play_sync((char *)url, true);
+		return -1;
 	}
-	mozart_module_mutex_unlock();
-
+/*XXX*/
+#if 0
+	if (aitalk_play_music == true) {
+		mozart_aitalk_do_resume();
+	}
+#endif
 	return 0;
 }
 
