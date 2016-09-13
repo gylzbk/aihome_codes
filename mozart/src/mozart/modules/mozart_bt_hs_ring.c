@@ -19,6 +19,7 @@
 #include "mozart_aitalk.h"
 #endif
 
+
 #ifndef MOZART_RELEASE
 #define MOZART_BT_HS_RING_DEBUG
 #endif
@@ -38,7 +39,6 @@ static int bt_ring;
 
 static void *bt_hs_ring_play_prompt_func(void *data)
 {
-	pthread_detach(pthread_self());
 	while (bt_ring == true)
 		mozart_prompt_tone_key_sync("bt_call", false);
 	return NULL;
@@ -62,7 +62,7 @@ static int bt_hs_ring_prompt(void)
 		pr_err("Create pthread: %s\n", strerror(errno));
 		return -1;
 	}
-//	pthread_detach(prompt_thread);
+	pthread_detach(prompt_thread);
 
 	return 0;
 }
@@ -117,15 +117,13 @@ static void bt_hs_ring_module_next_module(struct mozart_module_struct *self)
 		#elif (SUPPORT_VR == VR_SPEECH)
 			mozart_aitalk_cloudplayer_start(true);
 		#endif
-
 	}
 	else{
 		#if (SUPPORT_VR == VR_ATALK)
-			mozart_atalk_cloudplayer_start(true);
+			mozart_atalk_localplayer_start(true);
 		#elif (SUPPORT_VR == VR_SPEECH)
-			mozart_aitalk_cloudplayer_start(true);
+			mozart_aitalk_localplayer_start(true);
 		#endif
-
 	}
 
 	mozart_module_mutex_unlock();

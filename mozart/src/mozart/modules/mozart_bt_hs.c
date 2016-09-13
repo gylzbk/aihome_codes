@@ -15,12 +15,10 @@
 #include "mozart_config.h"
 #if (SUPPORT_VR == VR_ATALK)
 #include "mozart_atalk.h"
-#include "vr-atalk_interface.h"
-#include "mozart_atalk_cloudplayer_control.h"
 #elif (SUPPORT_VR == VR_SPEECH)
 #include "mozart_aitalk.h"
-#include "mozart_aitalk_cloudplayer_control.h"
 #endif
+
 
 #ifndef MOZART_RELEASE
 #define MOZART_BT_HS_DEBUG
@@ -116,13 +114,12 @@ static void bt_hs_module_next_module(struct mozart_module_struct *self)
 		#elif (SUPPORT_VR == VR_SPEECH)
 			mozart_aitalk_cloudplayer_start(true);
 		#endif
-
 	}
 	else{
 		#if (SUPPORT_VR == VR_ATALK)
-			mozart_atalk_cloudplayer_start(true);
+			mozart_atalk_localplayer_start(true);
 		#elif (SUPPORT_VR == VR_SPEECH)
-			mozart_aitalk_cloudplayer_start(true);
+			mozart_aitalk_localplayer_start(true);
 		#endif
 	}
 
