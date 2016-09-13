@@ -405,7 +405,7 @@ static int set_volume_handler(json_object *cmd)
 /*XXX*/
 #if 0
 	if(aitalk_play_music == true){
-		mozart_aitalk_do_resume();
+		mozart_aitalk_cloudplayer_do_resume();
 	}
 #endif
 	return 0;

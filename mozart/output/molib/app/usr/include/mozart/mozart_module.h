@@ -53,6 +53,7 @@ struct mozart_module_key_ops {
 	void (*next_module)(struct mozart_module_struct *self);
 	void (*favorite)(struct mozart_module_struct *self);
 	void (*disconnect_handler)(struct mozart_module_struct *self);
+	bool (*is_playing)(struct mozart_module_struct *self);
 };
 
 struct mozart_module_struct {
