@@ -121,7 +121,9 @@ int startall(int depend_network)
 	#if (SUPPORT_VR == VR_ATALK)
 			mozart_atalk_asr_startup();
 	#elif (SUPPORT_VR == VR_SPEECH)
-			mozart_aitalk_asr_startup();
+
+	//-----------------------startup aec
+		ai_speech_startup(0, mozart_vr_speech_interface_callback);
 	#endif
 
 	}
@@ -165,7 +167,8 @@ int stopall(int depend_network)
 	#if (SUPPORT_VR == VR_ATALK)
 		mozart_atalk_asr_shutdown();
 	#elif (SUPPORT_VR == VR_SPEECH)
-		mozart_aitalk_asr_shutdown();
+	//-----------------------shutdown aec
+		ai_speech_shutdown();
 	#endif
 	}
 

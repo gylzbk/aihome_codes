@@ -74,7 +74,7 @@ static void mozart_aitalk_net_change_handler(bool online)
 	//	aitalk_cloudplayer_monitor_cancel();
 		mozart_smartui_boot_welcome();
 		pr_debug("---------------------------> online\n");
-		mozart_prompt_tone_key_sync("atalk_hi_12", true);
+	//	mozart_prompt_tone_key_sync("atalk_hi_12", true);
 	} else if (!online && is_online) {
 		mozart_aitalk_localplayer_start(true);
 	}

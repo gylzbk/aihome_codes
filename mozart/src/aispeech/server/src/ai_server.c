@@ -508,7 +508,7 @@ int ai_server_init(void){
 //	ai_curlInit();
 	ai_music_list_init();
 	ai_song_recommend_init();
-//	ai_song_recommend_auto();
+	ai_song_recommend_auto();
 	#if  SUPPORT_ELIFE
 	ai_elife_init();
 	#endif
