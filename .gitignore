@@ -33,6 +33,7 @@ mozart/output/mozart/*
 
 mozart/tools/device-tools/test/otact
 mozart/tools/host-tools/nvgen/nvgen
+mozart/tools/host-tools/util-linux-2.6.2/tmpwrk21185/
 
 mozart/src/aispeech/speech/libaispeech.so
 
