@@ -105,9 +105,9 @@ int _semantic_callback(void *usrdata, const char *id, int type,
 	recordId = cJSON_GetObjectItem(out, "recordId");
 	if(recordId){
 		DEBUG("recordId: %s\n", recordId->valuestring);
-	//	free(recog.recordId);
-	//	recog.recordId = NULL;
-	//	recog.recordId = strdup(recordId->valuestring);
+		free(recog.recordId);
+		recog.recordId = NULL;
+		recog.recordId = strdup(recordId->valuestring);
 		//	recog_result_flag = ASR_SUCCESS;
 		//	recog.status = AIENGINE_STATUS_ASR_SUCCESS;
 	}		//*/
@@ -118,11 +118,11 @@ int _semantic_callback(void *usrdata, const char *id, int type,
 #ifdef SYN_TOO_LONG
     gettimeofday(&t_sem_end,NULL);
 #endif
-		free(sem_param);
-		sem_param = NULL;
-		sem_param = cJSON_PrintUnformatted(result);
+	//	free(sem_param);
+	//	sem_param = NULL;
+	//	sem_param = cJSON_PrintUnformatted(result);
 
-		if(ai_slot_resolve(&recog,sem_param) == -1){
+		if(ai_slot_resolve(&recog,result) == -1){
 			ai_sem_error_count++;
 			if (ai_sem_error_count == 1){
 				recog.error_type = AI_ERROR_SEM_FAIL_1;
@@ -199,8 +199,8 @@ void ai_cloud_sem_stop(void){
 }
 
 void ai_cloud_sem_free(void){
-//	free(recog.recordId);
-//	recog.recordId = NULL;
+	free(recog.recordId);
+	recog.recordId = NULL;
 	free(sem_param);
 	sem_param = NULL;
 	free(new_semantic_param);

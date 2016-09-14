@@ -101,8 +101,8 @@ typedef struct ai_slot_t {
 extern ai_sem_search_t ai_sem_search;
 extern ai_slot_t ai_slot;
 
-
-extern int ai_slot_resolve(vr_info *recog,char *sem_param);
+extern int ai_slot_resolve(vr_info *recog,cJSON *sem_json);
+//extern int ai_slot_resolve(vr_info *recog,char *sem_param);
 extern const char *aiSlotRadioName[AI_SLOT_RADIO_MAX];
 
 
