@@ -2,6 +2,7 @@
 #define __MOZART_SMARTUI_H__
 
 #include <stdbool.h>
+#include "vr-speech_interface.h"
 #include "mozart_config.h"
 
 extern char *mozart_smartui_owner(void);
@@ -62,7 +63,7 @@ extern void mozart_smartui_update_progress(int percent);
 extern void mozart_smartui_update_cancel(void);
 
 #if SUPPORT_BOARD==BOARD_WB38
-extern void mozart_smartui_weather_start(char *area, char *weather, char*temperature, char *wind);
+extern void mozart_smartui_weather_start(weather_info recog);
 #endif
 
 #endif	/* __MOZART_SMARTUI_H__ */
