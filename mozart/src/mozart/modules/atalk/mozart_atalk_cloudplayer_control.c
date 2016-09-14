@@ -28,7 +28,7 @@
 #include "mozart_atalk.h"
 #include "mozart_player.h"
 #include "mozart_atalk_cloudplayer_control.h"
-
+#include "mozart_key.h"
 #include "vr-speech_interface.h"
 
 #ifndef MOZART_RELEASE

@@ -14,7 +14,7 @@
 #include "ai_slot.h"
 
 #if AI_CONTROL_MOZART
-//#include "mozart_key.h"
+#include "mozart_key.h"
 #endif
 
 #if AI_CONTROL_MOZART_ATALK
@@ -325,17 +325,12 @@ int ai_status_aecing(void){
 //	ai_cloud_sem_stop();
 	ai_to_mozart();
 	ai_recog_free();
-#if AI_CONTROL_MOZART	  // remove tone when wakeup
-	//mozart_key_ignore_set(false);
-#endif
 
 	if (ai_aec(ew) == 0){
-	#if AI_CONTROL_MOZART_ATALK	  // remove tone when wakeup
-		//ai_aitalk_send(aitalk_send_waikup(NULL));
+		#if AI_CONTROL_MOZART	  // remove tone when wakeup
+			mozart_key_ignore_set(true);
+		#endif
 		recog.status = AIENGINE_STATUS_SEM;
-	#else
-		recog.status = AIENGINE_STATUS_SEM;
-	#endif
 		return 0;
 	}
 	else{

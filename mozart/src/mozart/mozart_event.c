@@ -28,7 +28,7 @@
 #include "mozart_linein.h"
 #include "mozart_update_control.h"
 
-
+#include "mozart_key.h"
 #include "mozart_config.h"
 #if (SUPPORT_VR == VR_ATALK)
 #include "mozart_atalk.h"
@@ -294,10 +294,30 @@ static void mozart_event_key(mozart_event event)
 	pr_debug("%s: %s\n", keycode_str[code], keyvalue_str[value]);
 
 	if (event.event.key.key.value == 1) {
+		if(code  == KEY_POWER){	//-------------- wifi config
+			mozart_stop_tone();
+			mozart_key_ignore_set(false);
+			mozart_module_power_off("正在关机");
+			return;
+		}
+		if(code  == KEY_F1){		//-------------- wifi
+			mozart_stop_tone();
+			mozart_key_ignore_set(false);
+			mozart_module_wifi_config();
+			return;
+		}
+	}
+
+	if (mozart_key_ignore_get()){
+		pr_debug("Error: key ignore !\n");
+		return;
+	}
+
+	if (event.event.key.key.value == 1) {
 		switch (code) {
 		case KEY_RECORD:
 		//	mozart_aitalk_asr_over();
-			mozart_module_asr_wakeup();
+		//	mozart_module_asr_wakeup();
 			break;
 		case KEY_PREVIOUSSONG:
 			mozart_module_previous_song();
@@ -320,10 +340,6 @@ static void mozart_event_key(mozart_event event)
 		case KEY_F3:
 			mozart_module_next_channel();
 			break;
-		case KEY_F1:
-			mozart_stop_tone();
-			mozart_module_wifi_config();
-			break;
 		case KEY_F10:
 			mozart_module_mutex_lock();
 			if (__mozart_module_is_online())
@@ -340,10 +356,7 @@ static void mozart_event_key(mozart_event event)
 		case KEY_HELP:
 			create_key_long_press_pthread(&help_key_info);
 			break;
-		case KEY_POWER:
-			mozart_stop_tone();
-			mozart_module_power_off("正在关机");
-			break;
+
 		default:
 			break;
 		}

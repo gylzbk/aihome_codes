@@ -36,6 +36,7 @@
 #include "vr-speech_interface.h"
 #include "aiengine_app.h"
 
+#include "mozart_key.h"
 
 #ifndef MOZART_RELEASE
 #define MOZART_AITALK_CLOUDPLAYER_CONTROL_DEBUG
@@ -260,6 +261,7 @@ int mozart_aitalk_start(void){
 int mozart_aitalk_stop(void){
 //	mozart_aitalk_asr_over();
 	ai_aiengine_stop();
+	mozart_key_ignore_set(false);
 	return 0;
 }
 
@@ -1197,6 +1199,7 @@ void aitalk_vendor_shutdown(void)
 //	mozart_system("killall aitalk_vendor");
 //	unlink("/var/run/doug.pid");
 	mozart_aitalk_stop();
+	mozart_key_ignore_set(false);
 }
 
 static void *aitalk_running_func(void *args)
@@ -1266,6 +1269,7 @@ int mozart_vr_speech_interface_callback(vr_info *recog)
 		case AIENGINE_STATUS_INIT:
 		case AIENGINE_STATUS_AEC: {
 			is_aitalk_asr = false;
+			mozart_key_ignore_set(false);
 			#if SUPPORT_SMARTUI
 				mozart_smartui_asr_over();
 				if(recog->domain == RECOG_DOMAIN_WEATHER) {

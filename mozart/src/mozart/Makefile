@@ -27,9 +27,9 @@ PREFIX = /usr
 INITDIR = /etc/init.d/
 SBINDIR = $(PREFIX)/sbin
 
-SRCS = mozart.c mozart_module.c mozart_app.c mozart_event.c mozart_player.c
-SRCS += modules/mozart_prompt_tone.c modules/mozart_net.c modules/mozart_linein.c modules/mozart_dmr.c
-SRCS += mozart_battery.c mozart_misc.c
+SRCS = mozart.c mozart_module.c mozart_app.c mozart_event.c mozart_player.c mozart_key.c
+SRCS += modules/mozart_prompt_tone.c modules/mozart_net.c modules/mozart_linein.c modules/mozart_dmr.c 
+SRCS += mozart_battery.c mozart_misc.c 
 
 # common opts.
 CFLAGS = -fPIC -Wall -g -O2 -I. -I$(MOLIB_DIR)/usr/include  -I$(MOLIB_DIR)/usr/include/mozart -I$(MOLIB_UPDATER_DIR)/usr/include -I$(MOZART_DIR)/usr/include -I$(DIR_CUR)/include/

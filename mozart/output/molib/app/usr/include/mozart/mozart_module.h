@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <unistd.h>
+#include <pthread.h>
 struct mozart_module_struct;
 
 enum module_attach_enum {

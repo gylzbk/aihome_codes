@@ -422,7 +422,7 @@ void mozart_module_factory_reset(void)
 
 	printf("%s. Reset config file and empty sd card\n", __func__);
 	/* Reset config file */
-	mozart_system("rm -rf /mnt/sdcard/*");
+	mozart_system("rm -rf /mnt/sdcard/music/*");
 	mozart_system("rm -rf /usr/data/*");
 	mozart_system("cp -a /usr/share/data/* /usr/data");
 	system("reboot");
