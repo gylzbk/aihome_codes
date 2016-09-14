@@ -219,7 +219,7 @@ void mozart_module_is_playing(void)
 
 static int mozart_module_current_stop(void)
 {
-	mozart_module_mutex_lock();
+	//mozart_module_mutex_lock();
 
 	__mozart_module_stop(current_module, module_cmd_stop);
 
