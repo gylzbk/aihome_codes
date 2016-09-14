@@ -84,6 +84,8 @@ static char *current_url = NULL;
 bool aitalk_is_playing = false;
 
 static bool is_aitalk_run = false;
+bool is_aitalk_asr = false;
+
 static bool aitalk_running = false;
 static bool aitalk_initialized = false;
 static player_handler_t *aitalk_player_handler;
@@ -1263,6 +1265,7 @@ int mozart_vr_speech_interface_callback(vr_info *recog)
 	switch(recog->status){
 		case AIENGINE_STATUS_INIT:
 		case AIENGINE_STATUS_AEC: {
+			is_aitalk_asr = false;
 			#if SUPPORT_SMARTUI
 				mozart_smartui_asr_over();
 				if(recog->domain == RECOG_DOMAIN_WEATHER) {
@@ -1272,6 +1275,7 @@ int mozart_vr_speech_interface_callback(vr_info *recog)
 	    	}
 			break;
 		case AIENGINE_STATUS_SEM: {
+			is_aitalk_asr = true;
 			#if SUPPORT_SMARTUI
 				mozart_smartui_asr_start();
 			#endif

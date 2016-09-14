@@ -40,6 +40,7 @@
 
 int mozart_aitalk_cloudplayer_do_resume_pause(void);
 
+extern bool is_aitalk_asr;
 static struct player_context context;
 static int cloudplayer_resume_handler(void)
 {
@@ -164,8 +165,13 @@ static int aitalk_cloudplayer_module_stop(struct mozart_module_struct *self)
 {
 	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	aitalk_cloudplayer_stop_player();
-	aitalk_vendor_shutdown();
 	mozart_smartui_atalk_toggle(false);
+	aitalk_vendor_shutdown();
+	if(is_aitalk_asr){
+		mozart_smartui_asr_over();
+		is_aitalk_asr = false;
+	}
+
 	self->player_state = player_state_idle;
 
 //	aitalk_cloudplayer_monitor_module_cancel();
