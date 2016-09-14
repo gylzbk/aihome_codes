@@ -692,8 +692,10 @@ int ai_set_enable(bool enable){
 	else{
 		if (is_aiengine_enable){
 			DEBUG("=========================== stop aiengine ...\n");
-			ai_aiengine_stop();
-		//	recog.status = AIENGINE_STATUS_STOP;
+			is_aiengine_enable = false;
+			ai_aec_stop();
+			ai_cloud_sem_stop();
+			ai_tts_stop();
 		}
 	}
 	return 0;
@@ -744,15 +746,12 @@ void *ai_aec_run(void *arg){
 int ai_aiengine_start(void){
 	DEBUG("aiengine start!...\n");
 	ai_set_enable(true);
+	ai_song_recommend_auto();
 	return 0;
 }
 
 int ai_aiengine_stop(void){
 	DEBUG("aiengine stop!...\n");
-	is_aiengine_enable = false;
-	ai_aec_stop();
-	ai_cloud_sem_stop();
-	ai_tts_stop();
 	ai_set_enable(false);
 	return 0;
 }

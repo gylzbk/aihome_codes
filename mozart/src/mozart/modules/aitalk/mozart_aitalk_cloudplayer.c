@@ -164,6 +164,7 @@ static int aitalk_cloudplayer_module_stop(struct mozart_module_struct *self)
 {
 	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	aitalk_cloudplayer_stop_player();
+	aitalk_vendor_shutdown();
 	mozart_smartui_atalk_toggle(false);
 	self->player_state = player_state_idle;
 
