@@ -459,16 +459,19 @@ DEBUG("PASS\n");
 			if ((recog->music.url == NULL)&&(recog->output== NULL)){
 		//		aitalk_play_music = true;
 				mozart_prompt_tone_key_sync("resume", false);
-				ai_aitalk_send(aitalk_send_play_music(NULL));
+			//	ai_aitalk_send(aitalk_send_play_music(NULL));
+				ai_play_music_order(0);
 			}
 			break;
 		case SDS_COMMAND_MUSIC_PREVIOUS:
 			mozart_prompt_tone_key_sync("previous", false);
-			ai_aitalk_send(aitalk_send_previous_music(NULL));
+			//ai_aitalk_send(aitalk_send_previous_music(NULL));
+			ai_play_music_order(-1);
 			break;
 		case SDS_COMMAND_MUSIC_NEXT:
-			mozart_prompt_tone_key_sync("next", false);
+		//	mozart_prompt_tone_key_sync("next", false);
 			ai_aitalk_send(aitalk_send_next_music(NULL));
+			ai_play_music_order(1);
 			break;
 		case SDS_COMMAND_EXIT:
 			DEBUG("PASS\n");
