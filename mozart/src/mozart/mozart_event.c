@@ -311,10 +311,8 @@ static void mozart_event_key(mozart_event event)
 			mozart_module_next_module();
 			return;
 		}
-		if(code  == KEY_RECORD){		//-------------- mode
-			if(__mozart_aitalk_cloudplayer_is_asr()){
+		if(code  == KEY_RECORD){		//-------------- stop sam
 				mozart_aitalk_sem_stop();
-			}
 			return;
 		}
 	}

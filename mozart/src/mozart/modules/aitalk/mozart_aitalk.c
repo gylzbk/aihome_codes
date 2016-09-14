@@ -23,6 +23,12 @@
 #ifdef MOZART_AITALK_DEBUG
 #define pr_debug(fmt, args...)			\
 	printf("[AITALK] %s: "fmt, __func__, ##args)
+
+static char *aitalk_network_state_str[] = {
+	[network_config] = "network_config",
+	[network_online] = "network_online",
+	[network_offline] = "network_offline",
+};
 #else  /* MOZART_AITALK_DEBUG */
 #define pr_debug(fmt, args...)			\
 	do {} while (0)
@@ -37,11 +43,7 @@
 static bool aitalk_network_change;
 static enum atalk_network_state network_original;
 
-static char *aitalk_network_state_str[] = {
-	[network_config] = "network_config",
-	[network_online] = "network_online",
-	[network_offline] = "network_offline",
-};
+
 
 static void mozart_aitalk_net_change_handler(bool online)
 {

@@ -120,7 +120,7 @@ struct update_msg {
 
 static int send_obj(json_object *cmd, char *method, json_object *obj)
 {
-	return 0;
+	#if 0
 	const char *s;
 	json_object *o, *m, *id = NULL;
 
@@ -148,7 +148,7 @@ static int send_obj(json_object *cmd, char *method, json_object *obj)
 //	hub_send((char *)s, strlen(s));
 
 	json_object_put(o);
-
+#endif
 	return 0;
 }
 
@@ -259,10 +259,11 @@ int mozart_aitalk_start(void){
 }
 
 int mozart_aitalk_sem_stop(void){
-	ai_cloud_sem_stop();
-	mozart_key_ignore_set(false);
-	is_aitalk_asr = false;
-	mozart_key_ignore_set(false);
+	if(	__mozart_aitalk_cloudplayer_is_asr()){
+		ai_cloud_sem_stop();
+		is_aitalk_asr = false;
+		mozart_key_ignore_set(false);
+	}
 	return 0;
 }
 
