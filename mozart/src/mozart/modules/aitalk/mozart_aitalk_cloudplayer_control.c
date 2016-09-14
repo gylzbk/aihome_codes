@@ -1266,7 +1266,9 @@ int mozart_vr_speech_interface_callback(vr_info *recog)
 			#if SUPPORT_SMARTUI
 				mozart_smartui_asr_over();
 				if(recog->domain == RECOG_DOMAIN_WEATHER) {
-			//		mozart_smartui_weather_start(recog->weather);
+#if SUPPORT_BOARD==BOARD_WB38
+					mozart_smartui_weather_start(recog->weather);
+#endif
 				}
 			#endif
 	    	}

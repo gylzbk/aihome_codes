@@ -1731,7 +1731,7 @@ static int mozart_smartui_build_weather_view(void)
 
 	return 0;
 }
-void mozart_smartui_weather_start(char *area, char *weather, char*temperature, char *wind)
+void mozart_smartui_weather_start(weather_info recog)
 {	
 #ifdef SUPPORY_REFRESH_PIC
 	//mozart_smartui_stop_refreash_pic();
@@ -1740,7 +1740,7 @@ void mozart_smartui_weather_start(char *area, char *weather, char*temperature, c
 	pthread_mutex_lock(&mutex);
 
 	if (mozart_smartui_build_weather_view())
-		smartui_imageview_display(global_background_imageview, mozart_smartui_get_weather_pic(weather));
+		smartui_imageview_display(global_background_imageview, mozart_smartui_get_weather_pic(recog.weather));
 	
 	smartui_textview_display(global_info_textview, "DS-WB38");
 	smartui_imageview_display(global_wifi_imageview, mozart_smartui_wifi_image());
@@ -1749,9 +1749,9 @@ void mozart_smartui_weather_start(char *area, char *weather, char*temperature, c
 	smartui_textview_display(global_version_textview, VERSION);
 #endif
 
-	smartui_textview_display(weather_area_textview, area);
-	smartui_textview_display(weather_temp_textview, temperature);
-	smartui_textview_display(weather_info_textview, wind);
+	smartui_textview_display(weather_area_textview, recog.area);
+	smartui_textview_display(weather_temp_textview, recog.temperature);
+	smartui_textview_display(weather_info_textview, recog.wind);
 
 	mozart_smartui_sync();
 	pthread_mutex_unlock(&mutex);
