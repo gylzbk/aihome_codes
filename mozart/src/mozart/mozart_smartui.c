@@ -1070,7 +1070,7 @@ void mozart_smartui_asr_start(void)
 	mozart_smartui_build_asr_view();
 	smartui_imageview_display(asr_background_imageview,  SMARTUI_PATH"asr.bmp");
 	smartui_imageview_display(asr_icon_imageview,  SMARTUI_PATH"asr_success.bmp");
-	smartui_textview_display(asr_prompt_textview, "告诉我您想听的内容");
+	smartui_textview_display(asr_prompt_textview, "请吩咐");
 	mozart_smartui_sync();
 
 	pthread_mutex_unlock(&mutex);
