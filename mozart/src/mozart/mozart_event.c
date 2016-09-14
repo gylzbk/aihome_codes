@@ -306,6 +306,17 @@ static void mozart_event_key(mozart_event event)
 			mozart_module_wifi_config();
 			return;
 		}
+		if(code  == KEY_MODE){		//-------------- mode
+			mozart_stop_tone();
+			mozart_module_next_module();
+			return;
+		}
+		if(code  == KEY_RECORD){		//-------------- mode
+			if(__mozart_aitalk_cloudplayer_is_asr()){
+				mozart_aitalk_sem_stop();
+			}
+			return;
+		}
 	}
 
 	if (mozart_key_ignore_get()){
@@ -348,10 +359,6 @@ static void mozart_event_key(mozart_event event)
 			break;
 		case KEY_F12:
 			create_key_long_press_pthread(&facotry_reset_key_info);
-			break;
-		case KEY_MODE:
-			mozart_stop_tone();
-			mozart_module_next_module();
 			break;
 		case KEY_HELP:
 			create_key_long_press_pthread(&help_key_info);

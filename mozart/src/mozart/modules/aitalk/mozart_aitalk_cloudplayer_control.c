@@ -258,6 +258,14 @@ int mozart_aitalk_start(void){
 	return 0;
 }
 
+int mozart_aitalk_sem_stop(void){
+	ai_cloud_sem_stop();
+	mozart_key_ignore_set(false);
+	is_aitalk_asr = false;
+	mozart_key_ignore_set(false);
+	return 0;
+}
+
 int mozart_aitalk_stop(void){
 //	mozart_aitalk_asr_over();
 	ai_aiengine_stop();

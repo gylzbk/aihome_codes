@@ -15,7 +15,8 @@ extern int __mozart_aitalk_network_trigger(enum atalk_network_state cur,
 extern int __mozart_aitalk_switch_mode(bool mode);
 extern void mozart_switch_aitalk_module(bool in_lock);
 extern void mozart_aitalk_net_change(bool online);
-
+extern bool __mozart_aitalk_cloudplayer_is_asr(void);
+extern int mozart_aitalk_sem_stop(void);
 /* localplayer */
 extern bool __mozart_aitalk_localplayer_is_start(void);
 extern int mozart_aitalk_localplayer_start(bool in_lock);

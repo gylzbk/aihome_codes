@@ -426,6 +426,14 @@ bool __mozart_aitalk_cloudplayer_is_start(void)
 	return __mozart_module_is_start(&aitalk_cloudplayer_module);
 }
 
+
+bool __mozart_aitalk_cloudplayer_is_asr(void){
+	if (__mozart_aitalk_cloudplayer_is_run())
+		return is_aitalk_asr;
+	else
+		return false;
+}
+
 int mozart_aitalk_cloudplayer_start(bool in_lock)
 {
 	int ret = -1;
