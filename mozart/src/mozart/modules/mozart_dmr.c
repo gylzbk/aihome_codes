@@ -352,12 +352,12 @@ static void dmr_startup(void)
          * this is our default frendlyname rule in librender.so,
          * and you can create your own frendlyname rule.
          */
-        char deviceName[64] = {};
+        char deviceName[64] = {0};
         char macaddr[] = "255.255.255.255";
         memset(macaddr, 0, sizeof (macaddr));
 
 #ifdef MOZART_RELEASE_NAME
-	sprintf(deviceName, "DS-1825");
+	sprintf(deviceName, DEVICE_NAME);
 #else
         //FIXME: replace "wlan0" with other way. such as config file.
         get_mac_addr("wlan0", macaddr, "");

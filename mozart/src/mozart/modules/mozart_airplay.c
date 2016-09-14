@@ -248,7 +248,7 @@ static int mozart_airplay_init(void)
 
 #ifdef MOZART_RELEASE_NAME
 	memset(apname, 0, sizeof(apname));
-	sprintf(apname, "DS-1825");
+	sprintf(apname, AP_NAME);
 #else
 	memset(mac, 0, sizeof(mac));
 	memset(apname, 0, sizeof(apname));

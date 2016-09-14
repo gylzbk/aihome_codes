@@ -395,11 +395,17 @@ board_ds1825_config: board_type_define_config
 	@echo "SUPPORT_BOARD=board_ds1825" >> $(TOPDIR)/configs/config.mk
 	@echo "" >> $(TOPDIR)/configs/config.mk
 	@echo "#define SUPPORT_BOARD BOARD_DS1825" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define DEVICE_NAME \"DS-WB38\"" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define BT_NAME \"DOSS DS-WB38\"" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define AP_NAME DEVICE_NAME" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 board_wb38_config: board_type_define_config
 	@echo "SUPPORT_BOARD=board_wb38" >> $(TOPDIR)/configs/config.mk
 	@echo "" >> $(TOPDIR)/configs/config.mk
 	@echo "#define SUPPORT_BOARD BOARD_WB38" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define DEVICE_NAME \"DS-WB38\"" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define BT_NAME \"DOSS DS-WB38\"" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define AP_NAME DEVICE_NAME" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 
 

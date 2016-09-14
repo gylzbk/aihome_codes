@@ -367,7 +367,7 @@ static void *thr_fn(void *args)
 
 #ifdef MOZART_RELEASE_NAME
 	memset(bt_name, 0, sizeof(bt_name));
-	sprintf(bt_name, "DOSS DS-1825");
+	sprintf(bt_name, BT_NAME);
 #else
 	memset(mac, 0, sizeof(mac));
 	memset(bt_name, 0, sizeof(bt_name));
