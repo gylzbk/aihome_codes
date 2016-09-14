@@ -38,7 +38,7 @@ const char *aiSlotState[SDS_STATE_MAX]
 const char *aiSlotCommand[SDS_COMMAND_MAX]
 			= {"null","音量","操作"};//	NULL,volume;
 
-#if 0
+#if 1
 
 int ai_slot_recog_free(vr_info *recog){
 	recog->state =	   SDS_STATE_NULL;

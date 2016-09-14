@@ -806,7 +806,7 @@ void *ai_run(void *arg){
 				case AIENGINE_STATUS_PROCESS:
 			//		DEBUG("=========================== AIENGINE_STATUS_PROCESS ...\n");
 					ai_status_process();
-					ai_to_mozart();
+				//	ai_to_mozart();
 					break;
 				case AIENGINE_STATUS_ERROR:
 					DEBUG("=========================== AIENGINE_STATUS_ERROR ...\n");
