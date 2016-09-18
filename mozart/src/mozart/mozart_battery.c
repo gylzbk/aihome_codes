@@ -57,7 +57,7 @@ int mozart_battery_update(void)
 
 	mozart_smartui_battery_update(capacity, online);
 
-	if (capacity == 0)
+	if (capacity == 15)
 		mozart_module_power_off("电量过低");
 
 	pthread_mutex_lock(&battery_lock);
