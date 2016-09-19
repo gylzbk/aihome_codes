@@ -72,7 +72,7 @@ typedef enum refresh_pic_type_tag
 	REFRESH_PIC_ASR_RECONG,
 
 	REFRESH_PIC_MAX,
-	
+
 } refresh_pic_type_t;
 
 void mozart_smartui_stop_refreash_pic(void);
@@ -168,7 +168,7 @@ static int mozart_smartui_build_net_view(void)
 		net_result_imageview = smartui_imageview(&view);
 		if (net_result_imageview == NULL)
 			pr_err("build net_result_imageview fail!\n");
-		
+
 		strncpy(owner, "net", 64);
 		return 1;
 	}
@@ -863,7 +863,7 @@ void mozart_smartui_startup(void)
 	if (global_battery_imageview == NULL)
 		pr_err("build global_battery_imageview fail!\n");
 	smartui_imageview_set_global(global_battery_imageview);
-	
+
 #ifdef SUPPORY_REFRESH_PIC
 		mozart_smartui_refresh_pic_start();
 #endif
@@ -874,7 +874,7 @@ void mozart_smartui_shutdown(void)
 #ifdef SUPPORY_REFRESH_PIC
 	mozart_smartui_refresh_pic_stop();
 #endif
-	
+
 	system("echo 0 > /sys/devices/platform/pwm-backlight.0/backlight/pwm-backlight.0/brightness");
 	smartui_imageview_destory(asr_background_imageview);
 	smartui_imageview_destory(global_background_imageview);
@@ -1032,7 +1032,7 @@ void mozart_smartui_net_start(void)
 #ifndef SUPPORY_REFRESH_PIC
 	mozart_smartui_start_refreash_pic(REFRESH_PIC_NET);
 #endif
-	
+
 }
 
 void mozart_smartui_net_receive_success(void)
@@ -1179,7 +1179,7 @@ void mozart_smartui_asr_start(void)
 
 #ifdef SUPPORY_REFRESH_PIC
 	asr_recog_mutl++;
-	if (asr_recog_mutl >= 2) 
+	if (asr_recog_mutl >= 2)
 		mozart_smartui_stop_refreash_pic();
 
 	mozart_smartui_start_refreash_pic(REFRESH_PIC_ASR_SPEACK);
@@ -1541,7 +1541,7 @@ static int mozart_smartui_build_standby_view(void)
 		.align = center_align,
 		.bottom_view = &global_background_imageview->v,
 	};
-		
+
 	if (strcmp(owner, "standby")) {
 		smartui_clear_top(&global_background_imageview->v);
 
@@ -1551,14 +1551,14 @@ static int mozart_smartui_build_standby_view(void)
 				pr_err("build standby_time_textview fail!\n");
 			//smartui_textview_font_set(standby_time_textview, HZK16);
 		}
-		
+
 		view.left = 0;
 		view.top = 110;
 		view.right = 176;
 		view.bottom = 110 + 16;
 		view.layer = top_layer;
 		view.align = center_align;
-		
+
 		if (standby_date_textview == NULL) {
 			standby_date_textview = smartui_textview(&view);
 			if (standby_date_textview == NULL)
@@ -1637,17 +1637,17 @@ char * substring(char *ch, int pos, int length)
 }
 
 static char *mozart_smartui_get_weather_pic(char * des)
-{	
+{
 	int i;
 	int pic_type = 0;
 	char *world;
-	
+
 	for(i=0; i<strlen(des); i++) {
 		if(i % 3 != 0)
 			continue;
-		
+
 		world = substring(des, i, 3);
-		
+
 		if(!strcmp(world, "晴")) {
 			pic_type = WEATHER_SUNNY;
 			break;
@@ -1670,7 +1670,7 @@ static char *mozart_smartui_get_weather_pic(char * des)
 		}
 	}
 
-	return weather_pic[pic_type];		
+	return weather_pic[pic_type];
 }
 
 static struct textview_struct *weather_area_textview;
@@ -1692,7 +1692,7 @@ static int mozart_smartui_build_weather_view(void)
 		.align = center_align,
 		.bottom_view = &global_background_imageview->v,
 	};
-		
+
 	if (strcmp(owner, "weather")) {
 		smartui_clear_top(&global_background_imageview->v);
 
@@ -1712,7 +1712,7 @@ static int mozart_smartui_build_weather_view(void)
 		if (weather_info_textview == NULL)
 			pr_err("build weather_info_textview fail!\n");
 		smartui_textview_font_set(weather_info_textview, HZK16);
-		
+
 		view.left = 60;
 		view.top = 120;
 		view.right = 176;
@@ -1732,7 +1732,7 @@ static int mozart_smartui_build_weather_view(void)
 	return 0;
 }
 void mozart_smartui_weather_start(weather_info recog)
-{	
+{
 #ifdef SUPPORY_REFRESH_PIC
 	//mozart_smartui_stop_refreash_pic();
 #endif
@@ -1741,7 +1741,7 @@ void mozart_smartui_weather_start(weather_info recog)
 
 	if (mozart_smartui_build_weather_view())
 		smartui_imageview_display(global_background_imageview, mozart_smartui_get_weather_pic(recog.weather));
-	
+
 	smartui_textview_display(global_info_textview, "DS-WB38");
 	smartui_imageview_display(global_wifi_imageview, mozart_smartui_wifi_image());
 
@@ -1802,7 +1802,7 @@ static int mozart_smartui_build_refresh_pic_view(refresh_pic_type_t pic_type)
 			view.right = 44 + 88;
 			view.bottom = 67 + 59;
 			view.align = center_align;
-			
+
 			if (refresh_net_icon_imageview == NULL) {
 				refresh_net_icon_imageview = smartui_imageview(&view);
 				if (refresh_net_icon_imageview == NULL)
@@ -1810,7 +1810,7 @@ static int mozart_smartui_build_refresh_pic_view(refresh_pic_type_t pic_type)
 				}
 		}
 		break;
-		
+
 		case REFRESH_PIC_BT: {
 			if (refresh_bt_icon_imageview == NULL) {
 				refresh_bt_icon_imageview = smartui_imageview(&view);
@@ -1826,7 +1826,7 @@ static int mozart_smartui_build_refresh_pic_view(refresh_pic_type_t pic_type)
 			view.right = 44 + 88;
 			view.bottom = 67 + 59;
 			view.align = center_align;
-				
+
 			if (refresh_asr_icon_imageview == NULL) {
 				refresh_asr_icon_imageview = smartui_imageview(&view);
 				if (refresh_asr_icon_imageview == NULL)
@@ -1840,16 +1840,16 @@ static int mozart_smartui_build_refresh_pic_view(refresh_pic_type_t pic_type)
 			view.right = 62 + 51;
 			view.bottom = 95 + 31;
 			view.align = center_align;
-			
+
 			if (refresh_asr_recong_icon_imageview == NULL) {
 				refresh_asr_recong_icon_imageview = smartui_imageview(&view);
 				if (refresh_asr_recong_icon_imageview == NULL)
 					pr_err("build refresh_asr_icon_imageview fail!\n");
 			}
-			
+
 		}
 		break;
-		case REFRESH_PIC_MAX: 
+		case REFRESH_PIC_MAX:
 		default:
 		break;
 	}
@@ -1861,16 +1861,17 @@ int g_refresh_pic_stop = 0;
 
 void *create_refresh_pic_func(void *arg)
 {
+	pthread_detach(pthread_self());
 	int count = 0;
 	int res;
 	char tmp[50];
-	
-	res = sem_init(&sem_refresh_pic, 0, 0);  
-    	if (res == -1) {  
- 		perror("semaphore intitialization failed\n");  
-        		exit(EXIT_FAILURE);  
-    	} 
-		
+
+	res = sem_init(&sem_refresh_pic, 0, 0);
+    	if (res == -1) {
+ 		perror("semaphore intitialization failed\n");
+        		exit(EXIT_FAILURE);
+    	}
+
 	while(!g_refresh_pic_stop) {
 		pr_debug("------sem_wait----------\n");
 		count = 0;
@@ -1879,7 +1880,7 @@ void *create_refresh_pic_func(void *arg)
 		switch (gpic_type) {
 		case REFRESH_PIC_NET: {
 				pr_debug("------gpic_type---1-- \n");
-				
+
 				mozart_smartui_build_refresh_pic_view(REFRESH_PIC_NET);
 				smartui_textview_display(refresh_asr_textview, "正在配置网络");
 		}
@@ -1896,7 +1897,7 @@ void *create_refresh_pic_func(void *arg)
 		break;
 		case REFRESH_PIC_ASR_RECONG: {
 			pr_debug("------gpic_type---3-- \n");
-						
+
 			mozart_smartui_build_refresh_pic_view(REFRESH_PIC_ASR_RECONG);
 			//smartui_textview_clear(refresh_asr_textview);
 			smartui_textview_display(refresh_asr_textview, "识别中");
@@ -1906,35 +1907,35 @@ void *create_refresh_pic_func(void *arg)
 		default :
 		break;
 		}
-		
+
 		while (!gstop_refresh_flag) {
-			
+
 			pthread_mutex_lock(&mutex);
 
 			if (count++ >= 5)
 				count = 1;
-			
+
 			sprintf (tmp, "%s%s%02d.bmp", SMARTUI_PATH, gpic_name, count);
 
 			switch (gpic_type) {
-			case REFRESH_PIC_NET: 
+			case REFRESH_PIC_NET:
 				smartui_imageview_display(refresh_net_icon_imageview, tmp);
 			break;
-			case REFRESH_PIC_ASR_SPEACK: 
+			case REFRESH_PIC_ASR_SPEACK:
 				smartui_imageview_display(refresh_asr_icon_imageview, tmp);
 			break;
-			case REFRESH_PIC_ASR_RECONG: 
+			case REFRESH_PIC_ASR_RECONG:
 				smartui_imageview_display(refresh_asr_recong_icon_imageview, tmp);
 			break;
-			case REFRESH_PIC_BT: 
+			case REFRESH_PIC_BT:
 			break;
-			case REFRESH_PIC_MAX: 
+			case REFRESH_PIC_MAX:
 			default:
 			break;
 			}
 
 			mozart_smartui_sync();
-			
+
 			pthread_mutex_unlock(&mutex);
 			//usleep(100 * 1000);
 			usleep(10 * 1000);
@@ -1943,7 +1944,7 @@ void *create_refresh_pic_func(void *arg)
 		smartui_textview_clear(refresh_asr_textview);
 		smartui_imageview_clear(refresh_asr_icon_imageview);
 		smartui_imageview_clear(refresh_asr_recong_icon_imageview);
-		
+
 		gstop_refresh_flag_end = 1;
 		pr_debug("----after----while(!gstop_refresh_flag)------gstop_refresh_flag_end: %d \n", gstop_refresh_flag_end);
 		usleep(1 * 1000);
@@ -1956,31 +1957,31 @@ void *create_refresh_pic_func(void *arg)
 void mozart_smartui_refresh_pic_start(void)
 {
 	pthread_t refresh_pic;
-	
+
 	g_refresh_pic_stop = 0;
 
-	if (pthread_create(&refresh_pic, NULL, create_refresh_pic_func, NULL) ) 
+	if (pthread_create(&refresh_pic, NULL, create_refresh_pic_func, NULL) )
 	{
 		pr_err("create_smartui_thread pthread_create error: %s \n", strerror(errno));
 	}
 
-	if (pthread_detach(refresh_pic) ) 
-	{
-		pr_err("create_smartui_thread pthread_create error: %s \n", strerror(errno));
-	}
+//	if (pthread_detach(refresh_pic) )
+//	{
+//		pr_err("create_smartui_thread pthread_create error: %s \n", strerror(errno));
+//	}
 }
 
 void mozart_smartui_refresh_pic_stop(void)
 {
 	int timeout = 0;
-	
+
 	g_refresh_pic_stop = 1;
-	
+
 	while(g_refresh_pic_stop == 0) {
 		usleep(1 * 1000);
 
 		if (timeout ++ > 5000)
-			break;		
+			break;
 	}
 }
 
@@ -2009,7 +2010,7 @@ void mozart_smartui_start_refreash_pic(refresh_pic_type_t pic_type)
 			gpic_type = REFRESH_PIC_ASR_RECONG;
 		}
 		break;
-		case REFRESH_PIC_MAX: 
+		case REFRESH_PIC_MAX:
 		default:
 		break;
 	}
@@ -2019,7 +2020,7 @@ void mozart_smartui_start_refreash_pic(refresh_pic_type_t pic_type)
 	pr_debug("------sem_post-------\n");
 	sem_post(&sem_refresh_pic);
 	usleep(10 * 1000);
-	
+
 }
 
 void mozart_smartui_stop_refreash_pic(void)
@@ -2033,7 +2034,7 @@ void mozart_smartui_stop_refreash_pic(void)
 		if (timeout++ > 500)
 			break;
 	}
-	gstop_refresh_flag_end = 0;	
+	gstop_refresh_flag_end = 0;
 }
 
 void mozart_smartui_stop_refreash_pic_show(void)
@@ -2041,7 +2042,7 @@ void mozart_smartui_stop_refreash_pic_show(void)
 	//sem_wait(&sem_refresh_pic);
 	int timeout = 0;
 
-	
+
 	gstop_refresh_flag = 1;
 
 	pr_debug("----stop----while(!gstop_refresh_flag_end)--------gstop_refresh_flag_end: %d \n", gstop_refresh_flag_end);

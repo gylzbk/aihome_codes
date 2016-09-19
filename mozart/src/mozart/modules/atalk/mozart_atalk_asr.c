@@ -140,6 +140,7 @@ static int mozart_vr_atalk_interface_callback(void *arg)
 
 static void *stop_func(void *args)
 {
+	pthread_detach(pthread_self());
 	usleep(500 * 1000);
 	mozart_smartui_asr_over();
 	if (atalk_asr_module.stop)
@@ -158,7 +159,7 @@ int mozart_atalk_asr_over(void)
 		pr_err("create display delay fail\n");
 		return -1;
 	}
-	pthread_detach(stop_pthread);
+	//pthread_detach(stop_pthread);
 
 	return 0;
 }

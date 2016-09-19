@@ -684,6 +684,7 @@ static struct atalk_method methods[] = {
 
 static void *atalk_cli_func(void *args)
 {
+	pthread_detach(pthread_self());
 	char cmd[512];
 
 	while (1) {
@@ -936,6 +937,7 @@ static void atalk_list_destroy(void *data)
 
 static void *atalk_update_queue_handle_func(void *data)
 {
+	pthread_detach(pthread_self());
 	char dir_target[] = {"/mnt/sdcard/atalk-favorite"};
 	char *path_title = NULL;
 	int title_size;
@@ -1159,7 +1161,7 @@ int atalk_cloudplayer_startup(void)
 			       __func__, strerror(errno));
 			return -1;
 		}
-		pthread_detach(atalk_thread);
+	//	pthread_detach(atalk_thread);
 
 		up_die = 0;
 		list_init(&atalk.up_queue_list);

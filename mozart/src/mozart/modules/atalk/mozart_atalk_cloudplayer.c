@@ -252,7 +252,7 @@ static void *atalk_cloudplayer_monitor_func(void *args)
 	int i;
 	struct timeval now;
 	struct timespec timeout;
-
+	pthread_detach(pthread_self());
 	pthread_mutex_lock(&atalk_cloudplayer_monitor_mutex);
 again:
 	for (i = 0; i < 5; i++) {
@@ -318,7 +318,7 @@ int create_atalk_cloudplayer_monitor_pthread(void)
 			pthread_mutex_unlock(&atalk_cloudplayer_monitor_mutex);
 			return -1;
 		}
-		pthread_detach(atalk_cloudplayer_monitor_pthread);
+	//	pthread_detach(atalk_cloudplayer_monitor_pthread);
 		pr_debug("Create atalk cloudplayer monitor pthread\n");
 		cloudplayer_monitor_stage = cloudplayer_monitor_stage_wait;
 	}

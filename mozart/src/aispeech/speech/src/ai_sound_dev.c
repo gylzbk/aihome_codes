@@ -382,6 +382,7 @@ void sound_wake_end(void){
 
 void *aec_handle(void *args)
 {
+	pthread_detach(pthread_self());
 	int status = 0;
 	/*
 	   struct timeval {
@@ -433,6 +434,5 @@ void *aec_handle(void *args)
 result:
 	DEBUG("----------------------------------------------------> Stop aec_handle +++++++++\n");
 	is_aec_read_running = false;
-	pthread_exit(&status);
 }
 
