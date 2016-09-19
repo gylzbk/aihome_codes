@@ -466,7 +466,8 @@ void mozart_module_power_off(char *reason)
 	mozart_smartui_boot_power_off(reason);
 	__mozart_prompt_tone_key_sync("power_off");
 	mozart_smartui_shutdown();
-	mozart_power_off();
+	//mozart_power_off();
+	system("poweroff");
 }
 
 /*******************************************************************************
