@@ -325,7 +325,6 @@ static int play_handler(json_object *cmd)
 		return 0;
 	}
 
-#if SUPPORT_SMARTUI
 	pr_debug("play_prompt = %s\n",play_prompt);
 	char *title_s =(char *)json_object_get_string(title);
 	char *artist_s =  (char *)json_object_get_string(artist);
@@ -333,7 +332,6 @@ static int play_handler(json_object *cmd)
 	if((artist_s)||(artist_s)){
 		mozart_smartui_atalk_play("AIspeech",title_s,artist_s,play_prompt);
 	}
-#endif
 
 	ret = mozart_aitalk_cloudplayer_do_play();
 	if (ret == 0) {
@@ -363,12 +361,10 @@ static int play_handler(json_object *cmd)
 	}
 
 	aitalk_is_playing = true;
-#if SUPPORT_SMARTUI
 	mozart_smartui_atalk_play((char *)json_object_get_string(vendor),
 				  (char *)json_object_get_string(title),
 				  (char *)json_object_get_string(artist),
 				  play_prompt);
-#endif
 	return 0;
 }
 
@@ -1279,29 +1275,23 @@ int mozart_vr_speech_interface_callback(vr_info *recog)
 		case AIENGINE_STATUS_AEC: {
 			is_aitalk_asr = false;
 			mozart_key_ignore_set(false);
-			#if SUPPORT_SMARTUI
 				mozart_smartui_asr_over();
 				if(recog->domain == RECOG_DOMAIN_WEATHER) {
 #if SUPPORT_BOARD==BOARD_WB38
 					mozart_smartui_weather_start(recog->weather);
 #endif
 				}
-			#endif
 	    	}
 			break;
 		case AIENGINE_STATUS_SEM: {
 			is_aitalk_asr = true;
-			#if SUPPORT_SMARTUI
-				mozart_smartui_asr_start();
-			#endif
+			mozart_smartui_asr_start();
 			mozart_prompt_tone_key_sync("welcome", false);
 		}
 		break;
 
 		case AIENGINE_STATUS_PROCESS: {
-			#if SUPPORT_SMARTUI
-				mozart_smartui_asr_recognize();
-			#endif
+			mozart_smartui_asr_recognize();
 		}
 		break;
 

@@ -29,7 +29,7 @@ SBINDIR = $(PREFIX)/sbin
 
 SRCS = mozart.c mozart_module.c mozart_app.c mozart_event.c mozart_player.c mozart_key.c
 SRCS += modules/mozart_prompt_tone.c modules/mozart_net.c modules/mozart_linein.c modules/mozart_dmr.c 
-SRCS += mozart_battery.c mozart_misc.c 
+SRCS += mozart_misc.c 
 
 # common opts.
 CFLAGS = -fPIC -Wall -g -O2 -I. -I$(MOLIB_DIR)/usr/include  -I$(MOLIB_DIR)/usr/include/mozart -I$(MOLIB_UPDATER_DIR)/usr/include -I$(MOZART_DIR)/usr/include -I$(DIR_CUR)/include/
@@ -68,15 +68,20 @@ ifeq ("$(BOARD)","0")
 $(warning vr func are CLOSED!!!!)
 else
   ifeq ("$(BOARD)","board_ds1825")
-    SRCS += mozart_smartui.c
+    SRCS += mozart_battery.c 
   else ifeq ("$(BOARD)","board_wb38")
-    SRCS += mozart_smartui_wb38.c
+    SRCS += mozart_battery.c 
   endif
 endif
 
 ifeq ($(SMARTUI),1)
 LDFLAGS += -lsmartui
-CFLAGS += -DSUPPORT_SMARTUI
+CFLAGS += -DSUPPORT_SMARTUI 	
+	ifeq ("$(BOARD)","board_ds1825")
+    		SRCS += mozart_smartui_ds1825.c
+  	else ifeq ("$(BOARD)","board_wb38")
+    		SRCS += mozart_smartui_wb38.c 
+  	endif
 else
 $(warning lcd func CLOSED!!!!)
 endif
