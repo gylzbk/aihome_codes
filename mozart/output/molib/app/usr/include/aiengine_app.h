@@ -52,20 +52,24 @@ extern void *record_buf;
 extern vr_info recog;
 
 
-/*
-struct aiengine_thr_s{
-	bool is_working;
+typedef struct ai_status_s{
+	bool is_init;
+	bool aec_enable;
 	bool is_running;
-	int status;
-	int status_last;
-	pthread_t _thr;
-	sem_t  _sem;
-	int (*start)(void);
-	void (*running)(void *arg);
-	int (*stop)(void);
-	int (*exit)(void);
-};
-//*/
+	bool is_working;
+	bool run_enable;
+	bool quit_finish;
+	int mode_cfg;
+	bool is_play_music;
+	int vr_status;
+//	echo_wakeup_t *ew;
+//	struct aiengine *agn;
+//	pthread_mutex_t mutex_lock;
+//	mozart_vr_speech_callback vr_callback_pointer;
+}ai_status_s;
+
+extern ai_status_s ai_flag;
+
 struct aiengine * aiengine_new(const char *cfg);
 int aiengine_delete(struct aiengine *engine);
 int aiengine_start(struct aiengine *engine, const char *param, char id[64], aiengine_callback callback, const void *usrdata);
@@ -100,6 +104,8 @@ extern void  ai_aec_stop(void);
 extern void ai_semParamInit(void);
 extern int ai_aiengine_start(void);
 extern int ai_aiengine_stop(void);
+extern int ai_aiengine_delete(void);
+
 //#ifdef SYN_TOO_LONG
 extern struct   timeval   t_sem_start,t_sem_end,t_tts_start,t_tts_end,t_play,t_all;
 //extern int tim_subtract(struct timeval *result, struct timeval *x, struct timeval *y);
