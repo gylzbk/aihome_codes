@@ -780,7 +780,10 @@ void *ai_run(void *arg){
 //	DEBUG("=========================== ai_run: %s\n", aiengineStatus[recog.status]);
     while(is_vr_speech_work_flag){
 		while(is_aiengine_enable){
-			DEBUG("=========================== AIENGINE STATUS: %s\n", aiengineStatus[recog.status]);
+			if((recog.status_last !=    recog.status)
+			 &&(recog.status < AIENGINE_STATUS_MAX)){
+				DEBUG("=================== AIENGINE STATUS: %s\n", aiengineStatus[recog.status]);
+			}
 			switch(recog.status){
 				case AIENGINE_STATUS_INIT:
 					if (ai_init() != 0){
