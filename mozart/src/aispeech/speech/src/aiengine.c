@@ -139,15 +139,12 @@ vr_speech_status_type vr_speech_status = VR_SPEECH_NULL;
 vr_info recog;
 
 int asr_mode_cfg = AI_CLOUD;
-static int asr_quit_finish = 0;
-mozart_vr_speech_callback vr_speech_callback_pointer;
-bool is_aiengine_enable = false;
-bool is_aiengine_init = false;
 
-bool is_vr_speech_work_flag = false;
-bool is_seming = false;
+mozart_vr_speech_callback vr_speech_callback_pointer;
+
 extern sem_t sem_ai_startup;
 extern sem_t sem_ai_enable;
+
 //struct aiengine_thr_s aec,sem;
 struct timeval t_debug;
 struct aiengine *agn = NULL;
@@ -385,7 +382,7 @@ exit_error:
 
 int ai_status_aecing(void){
 /*	if ((ai_speech_get_status() != VR_SPEECH_INIT)
-		||(is_vr_speech_work_flag == false)){
+		||(ai_flag.is_working == false)){
 		return -1;
 	}	//*/
 
@@ -394,7 +391,7 @@ int ai_status_aecing(void){
 	ai_recog_free();
 
 	if (ai_aec(ew) == 0){
-		if(is_aiengine_enable){
+		if(ai_flag.is_running){
 			#if AI_CONTROL_MOZART	  // remove tone when wakeup
 				mozart_key_ignore_set(true);
 			#endif
@@ -442,7 +439,7 @@ int ai_status_seming(void){
 #endif
 
 	ret = ai_cloud_sem(agn);
-	if(is_aiengine_enable){
+	if(ai_flag.is_running){
 		switch (ret){
 			case SEM_SUCCESS:
 				recog.status = AIENGINE_STATUS_PROCESS;
@@ -472,7 +469,7 @@ void *ai_seming(void *arg){
 	int ret = 0;
 	int vol = 0;
 	if ((ai_speech_get_status() != VR_SPEECH_INIT)
-		||(is_vr_speech_work_flag == false)){
+		||(ai_flag.is_working == false)){
 		PERROR("ERROR: not init \n");
 		return NULL;
 	}
@@ -721,9 +718,7 @@ int ai_init_data(void){
 int ai_init(void){
 	int err = 0;
 	ai_init_data();
-	asr_quit_finish = 0;
-	is_aiengine_enable = false;
-	is_vr_speech_work_flag = false;
+	ai_flag.is_running = false;
 	if (ai_aiengine_init() == -1){
 		PERROR("Ai aiengine init falsed!\n");
 		err = -1;
@@ -739,8 +734,6 @@ exit_error:
 	}
 	else{
 		recog.status = AIENGINE_STATUS_AEC;
-		is_vr_speech_work_flag = true;
-		is_vr_speech_work_flag = true;
 	}
 	return err;
 }
@@ -756,13 +749,14 @@ int ai_set_enable(bool enable){
 		//	ai_server_restart();
 		//	ai_song_recommend_auto();
 			recog.status =AIENGINE_STATUS_AEC;
-			is_aiengine_enable = true;
+			ai_flag.is_running = true;
+			ai_song_recommend_auto();
 	//	}
 	}
 	else{
-		if (is_aiengine_enable){
+		if (ai_flag.is_running){
 			DEBUG("=========================== stop aiengine ...\n");
-			is_aiengine_enable = false;
+			ai_flag.is_running = false;
 			ai_aec_stop();
 			ai_cloud_sem_stop();
 			ai_tts_stop();
@@ -774,15 +768,15 @@ int ai_set_enable(bool enable){
 
 #else
 int ai_set_enable(bool enable){
-	if (is_vr_speech_work_flag){
+	if (ai_flag.is_working){
 		if(enable == true){
 			DEBUG("=========== start aec ...\n");
-			is_aiengine_enable = true;
+			ai_flag.is_running = true;
 		}
 		else{
-			if (is_aiengine_enable){
+			if (ai_flag.is_running){
 				DEBUG("=================== stop aec ...\n");
-				is_aiengine_enable = false;
+				ai_flag.is_running = false;
 				ai_aec_stop();
 			}
 		}
@@ -794,7 +788,7 @@ int ai_set_enable(bool enable){
 #if 0
 void *ai_aec_run(void *arg){
 	pthread_detach(pthread_self());
-    while(is_vr_speech_work_flag){
+    while(ai_flag.is_working){
 		while(is_aec_enable){
 			ai_aecing();
 			printf(".");
@@ -843,11 +837,13 @@ int ai_aiengine_delete(void){
 
 int ai_aiengine_exit(void){
 	DEBUG("aiengine exit!...\n");
+	ai_flag.is_running = false;
 	ai_aec_stop();
 	ai_cloud_sem_stop();
 	ai_tts_stop();
 	ai_cloud_sem_free();
 
+	ai_recog_free();
 	free(recog.env);
 	recog.env = NULL;
 	free(recog.contextId);
@@ -856,6 +852,7 @@ int ai_aiengine_exit(void){
 	recog.recordId = NULL;
 
 	recog.status = AIENGINE_STATUS_INIT;
+	ai_server_exit();
 	DEBUG("aiengine exit finished     !...\n");
 	return 0;
 //	is_aiengine_init = false;
@@ -870,8 +867,9 @@ void *ai_run(void *arg){
 //	DEBUG("=========================== ai_run: %s\n", aiengineStatus[recog.status]);
 //	ai_init_data();
 //	DEBUG("=========================== ai_run: %s\n", aiengineStatus[recog.status]);
-    while(is_vr_speech_work_flag){
-		while(is_aiengine_enable){
+	ai_flag.is_working = true;
+	while(ai_flag.is_working){
+		while(ai_flag.is_running){
 			if((recog.status_last !=    recog.status)
 			 &&(recog.status < AIENGINE_STATUS_MAX)){
 				DEBUG("=================== AIENGINE STATUS: %s\n", aiengineStatus[recog.status]);
@@ -907,14 +905,14 @@ void *ai_run(void *arg){
 					break;
 				case AIENGINE_STATUS_EXIT:
 					DEBUG("=========================== AIENGINE_STATUS_EXIT ...\n");
-					is_aiengine_enable = false;
-					is_vr_speech_work_flag = false;
+					ai_flag.is_running = false;
+					ai_flag.is_working = false;
 					break;
 				default:
 					recog.status = AIENGINE_STATUS_AEC;
 					break;	//*/
 			}
-			printf(".");
+			printf("*");
 			usleep(10000);
 		}
 		printf(">");
@@ -931,14 +929,13 @@ exit_error:
 }
 
 int ai_exit(void){
-	is_aiengine_enable = false;
-	is_vr_speech_work_flag = false;
+	ai_flag.is_running = false;
+	ai_flag.is_working = false;
 	ai_aiengine_exit();
 //	ai_aec_destory();
 //	ai_cloudsem_destory();
-	ai_server_exit();
-	ai_recog_free();
-	asr_quit_finish = 1;
+//	ai_server_exit();
+//	ai_recog_free();
 #ifdef SYN_TOO_LONG
 	ai_log_add(LOG_DEBUG,"ai_asr_runing thread exit");//*/
 #endif
@@ -996,7 +993,7 @@ int ai_tts(char *data,int enable_stop){
 int mozart_key_wakeup(void){
 	DEBUG("mozart_key_wakeup start...\n");
 	ai_aec_stop();
-/*	if(is_aiengine_enable){
+/*	if(ai_flag.is_running){
 		switch(recog.status){
 			case AIENGINE_STATUS_AEC:
 				break;
@@ -1036,15 +1033,16 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 			PERROR("AI init error!...\n");
 			goto exit_error;
 		}
+		DEBUG("vr speech     asr start!...\n");
+		vr_speech_callback_pointer = callback;
+		ai_flag.is_working = true;
+		if (pthread_create(&voice_recog_thread, NULL, ai_run, NULL) != 0) {
+			PERROR("Can't create voice_recog_thread in : %s\n",strerror(errno));
+			goto exit_error;
+		}
 	}
 
-	DEBUG("vr speech     asr start!...\n");
-	vr_speech_callback_pointer = callback;
-	is_vr_speech_work_flag = true;
-	if (pthread_create(&voice_recog_thread, NULL, ai_run, NULL) != 0) {
-		PERROR("Can't create voice_recog_thread in : %s\n",strerror(errno));
-		goto exit_error;
-	}
+
 
 	ai_speech_set_status(VR_SPEECH_INIT);
 exit_error:
@@ -1072,7 +1070,7 @@ int ai_speech_shutdown(void){
 		case VR_SPEECH_INIT:
 			DEBUG("vr_speech shutdown!\n");
 			ai_speech_set_status(VR_SPEECH_QUIT);
-			ai_exit();
+			ai_aiengine_exit();
 		/*	int timeout =0;
 			while(!asr_quit_finish){
 				usleep(1000);
