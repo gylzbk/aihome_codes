@@ -105,7 +105,8 @@ extern void ai_semParamInit(void);
 extern int ai_aiengine_start(void);
 extern int ai_aiengine_stop(void);
 extern int ai_aiengine_delete(void);
-
+extern int ai_aitalk_sem_init(void);
+extern int ai_aitalk_sem_destory(void);
 //#ifdef SYN_TOO_LONG
 extern struct   timeval   t_sem_start,t_sem_end,t_tts_start,t_tts_end,t_play,t_all;
 //extern int tim_subtract(struct timeval *result, struct timeval *x, struct timeval *y);

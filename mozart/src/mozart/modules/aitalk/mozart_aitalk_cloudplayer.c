@@ -543,7 +543,6 @@ int mozart_aitalk_cloudplayer_startup(void)
 		return -1;
 	}
 	aitalk_cloudplayer_startup();
-	ai_aitalk_send_init();
 	return 0;
 }
 

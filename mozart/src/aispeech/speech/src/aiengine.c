@@ -142,8 +142,26 @@ int asr_mode_cfg = AI_CLOUD;
 
 mozart_vr_speech_callback vr_speech_callback_pointer;
 
-extern sem_t sem_ai_startup;
-extern sem_t sem_ai_enable;
+
+bool is_aitalk_send_init = false;
+sem_t sem_ai_startup;
+sem_t sem_ai_enable;
+sem_t sem_ai_send;
+
+int ai_aitalk_sem_init(void){
+    sem_init(&sem_ai_send, 0, 0);
+	sem_init(&sem_ai_startup, 0, 1);
+	sem_init(&sem_ai_enable, 0, 1);
+	is_aitalk_send_init = true;
+	return 0;
+}
+
+int ai_aitalk_sem_destory(void){
+	sem_destroy(&sem_ai_startup);
+	sem_destroy(&sem_ai_enable);
+	ai_aitalk_send_destroy();
+	return 0;
+}
 
 //struct aiengine_thr_s aec,sem;
 struct timeval t_debug;
