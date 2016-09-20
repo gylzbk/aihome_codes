@@ -18,9 +18,9 @@ typedef enum aiengine_status{
 //	AIENGINE_STATUS_AEC,				//
 //	AIENGINE_STATUS_WAIT_WAKEUP,			//
 //	AIENGINE_STATUS_SEM,				//
-	AIENGINE_STATUS_ASR_FAIL,				//
-	AIENGINE_STATUS_ASR_SUCCESS,			//
-	AIENGINE_STATUS_ASR_EXIT,			//
+//	AIENGINE_STATUS_ASR_FAIL,				//
+//	AIENGINE_STATUS_ASR_SUCCESS,			//
+//	AIENGINE_STATUS_ASR_EXIT,			//
 //	AIENGINE_STATUS_TTS_ANSWER,				//
 //	AIENGINE_STATUS_WAIT_TO_PLAY,			//
 //	AIENGINE_STATUS_STOP_AEC,				//	stop wakeup engine
@@ -172,7 +172,7 @@ typedef struct weather_info_t {
 
 typedef struct vr_info {
 	int status;
-//	int next_status;
+	int status_last;
 //	int intent;
 	int domain;
 //	int tts_enable;

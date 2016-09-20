@@ -270,7 +270,7 @@ void *dmic_read(void *args)
 	int status = 0;
 	char bufdmic[AEC_SIZE] = {0};
 	DEBUG("----------------------------------------------------> Start dmic_read\n");
-	while (AEC_END!= aec_wakeup_flag && !error_flag && !aec_end_flag) {
+	while (AEC_END!= aec_wakeup_flag) {
 		status = read(fd_dsp_rd, bufdmic, AEC_SIZE);
 		if (status != AEC_SIZE) {
 			error_flag = true;
@@ -323,7 +323,7 @@ void *loopback_read(void *args)
 		goto result;
 	}
 	DEBUG("----------------------------------------------------> Start loopback_read\n");
-	while (AEC_END!= aec_wakeup_flag && !error_flag && !aec_end_flag) {
+	while (AEC_END!= aec_wakeup_flag) {
 		status = read(fd_dsp_rp, bufloop_tmp, AEC_SIZE * 6);
 		if (status != AEC_SIZE * 6) {
 			error_flag = true;
@@ -375,13 +375,15 @@ void sound_wake_end(void){
 		if (count > 1000){
 			break;
 		}
-		usleep(1000);
+		usleep(10000);
+		aec_wakeup_flag = AEC_END;
 	}
 }
 
-
+#if 0
 void *aec_handle(void *args)
 {
+	pthread_detach(pthread_self());
 	int status = 0;
 	/*
 	   struct timeval {
@@ -433,6 +435,5 @@ void *aec_handle(void *args)
 result:
 	DEBUG("----------------------------------------------------> Stop aec_handle +++++++++\n");
 	is_aec_read_running = false;
-	pthread_exit(&status);
 }
-
+#endif

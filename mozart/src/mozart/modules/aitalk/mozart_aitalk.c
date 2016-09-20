@@ -163,17 +163,18 @@ int __mozart_aitalk_switch_mode(bool mode)
 	bool change;
 	enum atalk_network_state network_state;
 
-	pr_debug("PASS! %d\n",__LINE__);
+//	pr_debug("PASS! %d\n",__LINE__);
 	network_state = __mozart_aitalk_network_state();
 	change = mode && aitalk_network_change;
 	pr_debug("network_state: %s, change = %d\n", aitalk_network_state_str[network_state], change);
-
+#if 0
 	if (change && network_state == network_online) {
 		/* 在非阿里模式时, 发生过网络变化. */
 		ret = -1;
 		aitalk_vendor_shutdown();
 	}
-	pr_debug("PASS! %d\n",__LINE__);
+#endif
+//	pr_debug("PASS! %d\n",__LINE__);
 	__aitalk_switch_mode(mode);
 	if (change) {
 		if (network_state == network_online) {

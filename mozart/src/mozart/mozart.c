@@ -26,13 +26,21 @@
 #include "mozart_battery.h"
 #include "mozart_prompt_tone.h"
 
+#include "mozart_config.h"
+#if (SUPPORT_VR == VR_ATALK)
+#include "mozart_atalk.h"
+#elif (SUPPORT_VR == VR_SPEECH)
+#include "mozart_aitalk.h"
+#endif
+
 char *global_app_name;
 static event_handler *e_handler;
 static event_handler *e_key_handler;
 static event_handler *e_misc_handler;
 
 
-sem_t sem_aitalk;
+sem_t sem_ai_startup;
+sem_t sem_ai_enable;
 
 static char *signal_str[] = {
 	[1] = "SIGHUP",       [2] = "SIGINT",       [3] = "SIGQUIT",      [4] = "SIGILL",      [5] = "SIGTRAP",
@@ -89,6 +97,7 @@ static void sig_handler(int signo)
 	share_mem_clear();
 	share_mem_destory();
 
+	ai_aiengine_delete();
 	free(global_app_name);
 	global_app_name = NULL;
 
@@ -137,6 +146,9 @@ static inline int initall(void)
 
 	mozart_volume_set(60, BT_VOLUME);
 	mozart_volume_set(40, MUSIC_VOLUME);
+
+	sem_init(&sem_ai_startup, 0, 1);
+	sem_init(&sem_ai_enable, 0, 1);
 
 	system("echo 0 > /proc/jz/rtc/alarm_flag");
 

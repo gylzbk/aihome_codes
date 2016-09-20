@@ -315,7 +315,7 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 	if (error){
 		type = cJSON_GetObjectItem(error, "type");
 		if (type){
-			PERROR("sds error = %s\n",type->valuestring);
+		//	PERROR("sds error = %s\n",type->valuestring);
 			recog->error_type= AI_ERROR_UNKNOW;
 			if (type->valuestring){
 				if(strcmp(type->valuestring, "INVALID DOMAIN") == 0){

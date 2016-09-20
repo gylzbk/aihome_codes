@@ -95,6 +95,7 @@ int startall(int depend_network)
 	if (depend_network & APP_DEPEND_NO_NET) {
 		mozart_smartui_startup();
 		mozart_prompt_tone_startup();
+
 		mozart_battery_startup();
 		mozart_startup_prompt();
 

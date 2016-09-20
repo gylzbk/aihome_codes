@@ -78,6 +78,11 @@ void ai_song_recommend_init(void){
 	}
 	ai_song_update_list.type = SONG_RECOMMEND_TYPE_AUTO;
 	ai_song_update_list.search_artist = NULL;
+	ai_song_update_list.is_update_success = false;
+	ai_song_update_list.is_update_getting = false;
+	ai_song_update_list.song_number = 0;
+	ai_song_update_list.geted_number = 0;
+
 }
 
 
@@ -122,6 +127,10 @@ void ai_song_recommend_free_all(void){
 	free(ai_song_update_list.search_artist);
 	ai_song_update_list.search_artist = NULL;
 	ai_song_recommend_stoping();
+	ai_song_update_list.is_update_success = false;
+	ai_song_update_list.is_update_getting = false;
+	ai_song_update_list.song_number = 0;
+	ai_song_update_list.geted_number = 0;
 }
 
 int ai_song_recommend_get_from_param(cJSON *param){
@@ -442,12 +451,23 @@ void *ai_song_recommend_auto_thr(void *args)
 #endif
 
 int ai_song_recommend_auto(void){
+	music_info *music = NULL;
 	ai_song_recommend_push();
 	if (ai_song_update_list.is_update_success == true){
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
-		ai_aitalk_send(aitalk_send_play_url(&ai_song_update_list.song[0]));
+		music = &ai_song_update_list.song[0];
+		if (music){
+			if (music->url != NULL){
+				ai_music_list_add_music(music);
+			}
+			else{
+				return 0;
+			}
+		}
+		ai_aitalk_send(aitalk_send_play_url(music));
+		ai_song_update_list.geted_number++;
 		#endif
 	}
 	return 0;

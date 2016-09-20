@@ -160,8 +160,13 @@ music_info *ai_music_list_play_order(int order){
 		DEBUG("At the end of music list.\n");//	get new song from list
 		music_info *music;
 		music = ai_song_recommend_push();
-		if (music->url != NULL){
-			ai_music_list_add_music(music);
+		if (music){
+			if (music->url != NULL){
+				ai_music_list_add_music(music);
+			}
+			else{
+				return NULL;
+			}
 		}
 		else{
 		//	mozart_prompt_tone_key_sync("error_net_fail", true);

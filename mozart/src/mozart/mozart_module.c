@@ -125,24 +125,21 @@ void __mozart_module_set_unattach(void)
 void __mozart_module_set_online(void)
 {
 	global_state_map |= (1 << MODULE_STATE_ONLINE_BIT);
-	#if SUPPORT_SMARTUI
-		mozart_smartui_update_hide(false);
-		#if (SUPPORT_VR == VR_ATALK)
-		if (!__mozart_module_is_attach())
-			mozart_smartui_wifi_update();
-		#elif (SUPPORT_VR == VR_SPEECH)
-			mozart_smartui_wifi_update();
-		#endif
+	mozart_smartui_update_hide(false);
+	#if (SUPPORT_VR == VR_ATALK)
+	if (!__mozart_module_is_attach())
+		mozart_smartui_wifi_update();
+	#elif (SUPPORT_VR == VR_SPEECH)
+		mozart_smartui_wifi_update();
 	#endif
+
 }
 
 void __mozart_module_set_offline(void)
 {
 	global_state_map &= ~(1 << MODULE_STATE_ONLINE_BIT);
-	#if SUPPORT_SMARTUI
-		mozart_smartui_update_hide(true);
-		mozart_smartui_wifi_update();
-	#endif
+	mozart_smartui_update_hide(true);
+	mozart_smartui_wifi_update();
 }
 
 void __mozart_module_dump_state_map(void)
