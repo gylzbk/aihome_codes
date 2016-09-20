@@ -746,10 +746,9 @@ int ai_set_enable(bool enable){
 	//	if (is_aiengine_init == false){
 	//		recog.status =AIENGINE_STATUS_STOP;
 	//	}else{
-		//	ai_server_restart();
-		//	ai_song_recommend_auto();
 			recog.status =AIENGINE_STATUS_AEC;
 			ai_flag.is_running = true;
+			ai_server_restart();
 			ai_song_recommend_auto();
 	//	}
 	}

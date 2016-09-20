@@ -78,6 +78,11 @@ void ai_song_recommend_init(void){
 	}
 	ai_song_update_list.type = SONG_RECOMMEND_TYPE_AUTO;
 	ai_song_update_list.search_artist = NULL;
+	ai_song_update_list.is_update_success = false;
+	ai_song_update_list.is_update_getting = false;
+	ai_song_update_list.song_number = 0;
+	ai_song_update_list.geted_number = 0;
+
 }
 
 
@@ -122,6 +127,10 @@ void ai_song_recommend_free_all(void){
 	free(ai_song_update_list.search_artist);
 	ai_song_update_list.search_artist = NULL;
 	ai_song_recommend_stoping();
+	ai_song_update_list.is_update_success = false;
+	ai_song_update_list.is_update_getting = false;
+	ai_song_update_list.song_number = 0;
+	ai_song_update_list.geted_number = 0;
 }
 
 int ai_song_recommend_get_from_param(cJSON *param){
