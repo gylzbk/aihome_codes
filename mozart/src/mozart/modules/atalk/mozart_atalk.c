@@ -191,9 +191,9 @@ void mozart_switch_atalk_module(bool in_lock)
 		mozart_module_mutex_lock();
 
 	if (__mozart_module_is_online())
-		mozart_atalk_cloudplayer_start(true);
+		mozart_atalk_cloudplayer_start(in_lock);
 	else
-		mozart_atalk_localplayer_start(true);
+		mozart_atalk_localplayer_start(in_lock);
 
 	if (!in_lock)
 		mozart_module_mutex_unlock();
