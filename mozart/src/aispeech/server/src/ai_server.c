@@ -276,7 +276,7 @@ int ai_server_fun(vr_info *recog)
 			break;
 	//	----------------------------------------  chat
 		case RECOG_DOMAIN_CHAT:
-		//	aitalk_play_music = false;
+		//	ai_flag.is_play_music = false;
 			if (recog->music.url){
 				DEBUG("url=%s\n",recog->music.url);
 			#if AI_CONTROL_MOZART
@@ -440,24 +440,24 @@ exit_command:
 DEBUG("PASS\n");
 		case SDS_COMMAND_MUSIC_PAUSE:
 			mozart_prompt_tone_key_sync("pause", false);
-		//	aitalk_play_music = false;
+		//	ai_flag.is_play_music = false;
 		//	if (mozart_module_is_playing()==1){
 				ai_aitalk_send(aitalk_send_pause(NULL));
 		//	}
 			break;
 		case SDS_COMMAND_MUSIC_RESUME:
 			mozart_prompt_tone_key_sync("resume", false);
-		//	aitalk_play_music = true;
+		//	ai_flag.is_play_music = true;
 			ai_aitalk_send(aitalk_send_resume(NULL));
 			break;
 		case SDS_COMMAND_MUSIC_STOP:
-		//	aitalk_play_music = false;
+		//	ai_flag.is_play_music = false;
 			mozart_prompt_tone_key_sync("stop", false);
 			ai_aitalk_send(aitalk_send_stop_music(NULL));
 			break;
 		case SDS_COMMAND_MUSIC_PLAY:
 			if ((recog->music.url == NULL)&&(recog->output== NULL)){
-		//		aitalk_play_music = true;
+		//		ai_flag.is_play_music = true;
 				mozart_prompt_tone_key_sync("resume", false);
 			//	ai_aitalk_send(aitalk_send_play_music(NULL));
 				ai_play_music_order(0);
