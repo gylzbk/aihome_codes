@@ -748,17 +748,21 @@ int ai_set_enable(bool enable){
 	//	}else{
 			recog.status =AIENGINE_STATUS_AEC;
 			ai_flag.is_running = true;
-			ai_server_restart();
-			ai_song_recommend_auto();
+			if (ai_flag.is_init){
+				ai_server_restart();
+				ai_song_recommend_auto();
+			}
 	//	}
 	}
 	else{
 		if (ai_flag.is_running){
 			DEBUG("=========================== stop aiengine ...\n");
 			ai_flag.is_running = false;
-			ai_aec_stop();
-			ai_cloud_sem_stop();
-			ai_tts_stop();
+			if (ai_flag.is_init){
+				ai_aec_stop();
+				ai_cloud_sem_stop();
+				ai_tts_stop();
+			}
 		}
 	}
 	sem_post(&sem_ai_enable);
@@ -914,7 +918,7 @@ void *ai_run(void *arg){
 			printf("*");
 			usleep(10000);
 		}
-		printf(">");
+	//printf(">");
 		usleep(10000);
     }
 exit_error:
@@ -1040,9 +1044,6 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 			goto exit_error;
 		}
 	}
-
-
-
 	ai_speech_set_status(VR_SPEECH_INIT);
 exit_error:
 	DEBUG("mozart_vr_speech_startup finish.\n");
