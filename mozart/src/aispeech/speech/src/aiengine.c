@@ -242,7 +242,71 @@ int ai_recog_free(void){
 	recog.music_num =0;
 	recog.error_id = 0;
 	recog.error_type = AI_ERROR_NONE;
-	return 0;
+
+	recog.domain = RECOG_DOMAIN_NULL;
+	free(recog.input);
+	recog.input = NULL;
+	free(recog.output);
+	recog.output = NULL;
+	free(recog.volume);
+	recog.volume = NULL;
+	free(recog.object);
+	recog.object = NULL;
+	free(recog.operation);
+	recog.operation = NULL;
+	free(recog.device);
+	recog.device = NULL;
+ 	free(recog.location);
+	recog.location = NULL;
+
+	free(recog.search_artist);
+	recog.search_artist= NULL;
+	free(recog.search_title);
+	recog.search_title= NULL;
+
+	recog.music_num =0;
+	free(recog.music.artist);
+	recog.music.artist = NULL;
+	free(recog.music.title);
+	recog.music.title = NULL;
+	free(recog.music.url);
+	recog.music.url = NULL;
+
+	free(recog.weather.temperature);
+	recog.weather.temperature = NULL;
+	free(recog.weather.weather);
+	recog.weather.weather= NULL;
+	free(recog.weather.wind);
+	recog.weather.wind= NULL;
+	free(recog.weather.area);
+	recog.weather.area= NULL;
+
+	free(recog.movie.name);
+	recog.movie.name = NULL;
+	free(recog.movie.sequence);
+	recog.movie.sequence= NULL;
+	free(recog.movie.director);
+	recog.movie.director = NULL;
+	free(recog.movie.player);
+	recog.movie.player= NULL;
+	free(recog.movie.type);
+	recog.movie.type= NULL;
+	free(recog.movie.area);
+	recog.movie.area= NULL;
+
+	free(recog.date);
+	recog.date = NULL;
+	free(recog.time);
+	recog.time = NULL;
+	free(recog.event);
+	recog.event = NULL;
+
+//--------------------- for sds
+//	free(recog.env);
+//	recog.env = NULL;
+//	free(recog.contextId);
+//	recog.contextId = NULL;
+
 }
 
 int ai_to_mozart(void)
@@ -763,6 +827,13 @@ int ai_aiengine_exit(void){
 		aiengine_delete(agn);
 		agn = NULL;
 	}
+	free(recog.env);
+	recog.env = NULL;
+	free(recog.contextId);
+	recog.contextId = NULL;
+	free(recog.recordId);
+	recog.recordId = NULL;
+
 	recog.status = AIENGINE_STATUS_INIT;
 	DEBUG("aiengine exit finished     !...\n");
 	return 0;
