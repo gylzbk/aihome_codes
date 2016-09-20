@@ -1053,43 +1053,26 @@ exit_error:
 
 int ai_speech_shutdown(void){
 	sem_wait(&sem_ai_startup);
-	//wait for record_input quit.
-
-//	pthread_mutex_lock(&ai_mutex);
 	int status = ai_speech_get_status();
-
 	DEBUG("vr speech shutdown!...\n");
 	switch (status){
 		case VR_SPEECH_NULL:
 			DEBUG("vr_speech is not startup!\n");
-			return 0;
 			break;
 		case VR_SPEECH_ERROR:
 			DEBUG("vr_speech running wrong or vr_speech quit!\n");
 			break;
 		case VR_SPEECH_INIT:
 			DEBUG("vr_speech shutdown!\n");
-			ai_speech_set_status(VR_SPEECH_QUIT);
 			ai_aiengine_exit();
-		/*	int timeout =0;
-			while(!asr_quit_finish){
-				usleep(1000);
-				if (++timeout > 2000){
-						break;
-				}
-			}	//*/
+			ai_speech_set_status(VR_SPEECH_NULL);
 			break;
 		default:
 			DEBUG("vr_speech unknown status!\n");
-			return 0;
 			break;
 	}
-//    mozart_soundcard_uninit(record_info);
-/*	if(0 != share_mem_set(VR_DOMAIN, RESPONSE_CANCEL)){
-		PERROR("share_mem_set STATUS_SHUTDOWN failure.\n");
-	}	//*/
-	ai_speech_set_status(VR_SPEECH_NULL);
-//	pthread_mutex_unlock(&ai_mutex);
+
+	DEBUG("vr speech shutdown finish!...\n");
 	sem_post(&sem_ai_startup);
 	return 0;
 }
