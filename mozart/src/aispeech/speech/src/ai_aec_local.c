@@ -72,8 +72,9 @@ int _wakeup_aec_callback(const void *usrdata, const char *id,
 
 int  ai_aec_stoping(void){
 	int timeout = 0;
+	sound_wake_end();
 	while(g_aec_stop_flag){
-		usleep(1000);		//	100ms*50 = 5s
+		usleep(10000);		//	10ms*5000 = 50s
 		if (++timeout > 5000){
 			break;
 		}
@@ -84,15 +85,14 @@ int  ai_aec_stoping(void){
 void  ai_aec_stop(void){
 	DEBUG("=================> Stop aec!\n");
 	if (ai_aec_working){
-		aec_end_flag = true;
 		if (aec_wakeup_flag == AEC_START){
 			g_aec_stop_flag = 1;
-			aec_wakeup_flag = AEC_WAKEUP;
+			aec_wakeup_flag = AEC_END;
 			ai_aec_stoping();
 		}
-		aec_end_flag = false;
 	}
 }
+
 #ifdef AEC_FILE_DEBUG
 	int record_count;
 	int fdr = -1;
@@ -108,7 +108,6 @@ int ai_aec(echo_wakeup_t *ew)
     pthread_t tid2 = 0;
 //    pthread_t tid3 = 0;
 	ai_aec_working = 1;
-    aec_end_flag = false;
 	error_flag = false;
     aec_wakeup_flag = AEC_START;
 	g_aec_stop_flag = 0;
@@ -201,7 +200,7 @@ int ai_aec(echo_wakeup_t *ew)
 //------------------------------------------------------- start aec_handle thread
 	DEBUG("-----------------------------------> Start aec_handle\n");
 	while (AEC_WAKEUP != aec_wakeup_flag && AEC_END != aec_wakeup_flag
-		&& !error_flag && !aec_end_flag) {
+		&& !error_flag) {
 		status = read(fddmic[0], bufr, AEC_SIZE);
 		if (status != AEC_SIZE) {
 			if (status == 0) {
@@ -258,7 +257,6 @@ error_exit:
     {
 		ret = -1;
     }
-    aec_end_flag = false;
 	aec_wakeup_flag = AEC_IDEL;
 	DEBUG("Stoped aec! \n");
 	return ret;

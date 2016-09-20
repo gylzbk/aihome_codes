@@ -178,7 +178,7 @@ int  ai_cloud_sem_stoping(void){
 	int timeout = 0;
 	while(g_speak_stop_flag){
 		timeout ++;
-		usleep(1000);		//	100ms*50 = 5s
+		usleep(10000);		//	100ms*50 = 5s
 		if (++timeout > 5000){
 			PERROR("ERROR: Stop cloud sem time out!\n");
 			break;
