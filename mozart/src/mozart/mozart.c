@@ -33,6 +33,7 @@ static event_handler *e_misc_handler;
 
 
 sem_t sem_aitalk;
+sem_t sem_ai_startup;
 
 static char *signal_str[] = {
 	[1] = "SIGHUP",       [2] = "SIGINT",       [3] = "SIGQUIT",      [4] = "SIGILL",      [5] = "SIGTRAP",
@@ -190,7 +191,7 @@ int main(int argc, char **argv)
 	signal(SIGPIPE, SIG_IGN);
 
 	initall();
-
+	sem_init(&sem_ai_startup, 0, 1);
 	 /* start modules do not depend network. */
 	startall(APP_DEPEND_NO_NET);
 

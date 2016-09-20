@@ -999,16 +999,19 @@ int ai_speech_get_status(){
 /*
  * usage : ./demo /path/to/libaiengine.so w/s/t
  */
+ extern sem_t sem_ai_startup;
 int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 {
+	sem_wait(&sem_ai_startup);
 	pthread_t voice_recog_thread;
 	if (ai_speech_get_status() != VR_SPEECH_NULL){
-		ai_speech_shutdown();
+		ai_aiengine_exit();
+		ai_speech_set_status(VR_SPEECH_NULL);
 	}
 
 	if(ai_init()== -1){
 		PERROR("AI init error!...\n");
-		return -1;
+		goto exit_error;
 	}
 	DEBUG("vr speech     asr start!...\n");
 	vr_speech_callback_pointer = callback;
@@ -1020,10 +1023,12 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 	ai_speech_set_status(VR_SPEECH_INIT);
 exit_error:
 	DEBUG("mozart_vr_speech_startup finish.\n");
+	sem_post(&sem_ai_startup);
 	return 0;
 }
 
 int ai_speech_shutdown(void){
+	sem_wait(&sem_ai_startup);
 	//wait for record_input quit.
 
 //	pthread_mutex_lock(&ai_mutex);
@@ -1061,6 +1066,7 @@ int ai_speech_shutdown(void){
 	}	//*/
 	ai_speech_set_status(VR_SPEECH_NULL);
 //	pthread_mutex_unlock(&ai_mutex);
+	sem_post(&sem_ai_startup);
 	return 0;
 }
 
