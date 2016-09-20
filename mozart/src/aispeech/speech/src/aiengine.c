@@ -931,6 +931,8 @@ exit_error:
 }
 
 int ai_exit(void){
+	is_aiengine_enable = false;
+	is_vr_speech_work_flag = false;
 	ai_aiengine_exit();
 //	ai_aec_destory();
 //	ai_cloudsem_destory();
@@ -1070,7 +1072,7 @@ int ai_speech_shutdown(void){
 		case VR_SPEECH_INIT:
 			DEBUG("vr_speech shutdown!\n");
 			ai_speech_set_status(VR_SPEECH_QUIT);
-			ai_aiengine_exit();
+			ai_exit();
 		/*	int timeout =0;
 			while(!asr_quit_finish){
 				usleep(1000);
