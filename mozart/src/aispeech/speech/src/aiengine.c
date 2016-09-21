@@ -643,7 +643,6 @@ exit_error:
 }
 
 int ai_set_enable(bool enable){
-//	sem_wait(&sem_ai_enable);
 	if(enable == true){
 		DEBUG("=========================== start aiengine ...\n");
 	//	if (is_aiengine_init == false){
@@ -668,7 +667,6 @@ int ai_set_enable(bool enable){
 			}
 		}
 	}
-//	sem_post(&sem_ai_enable);
 	return 0;
 }
 
