@@ -27,9 +27,9 @@
 
 
 static char *pjson = NULL;
-static sem_t sem_aitalk;
 char *aitalk_pipe_buf = NULL;
-static bool is_aitalk_send_init = false;
+extern  bool is_aitalk_send_init;
+extern sem_t sem_ai_send;
 
 char *send_obj(char *method,json_object *obj)
 {
@@ -127,13 +127,6 @@ char *aitalk_send_waikup(const char *url){
 	return send_obj("wakeup",NULL);
 }
 
-int ai_aitalk_send_init(void){
-    sem_init(&sem_aitalk, 0, 0);
-	is_aitalk_send_init = true;
-	return 0;
-
-}
-
 int ai_aitalk_send(char *data){
 	if (!data){
 		return -1;
@@ -147,7 +140,7 @@ int ai_aitalk_send(char *data){
 	aitalk_pipe_buf = NULL;
 	aitalk_pipe_buf = strdup(data);
 
-	sem_post(&sem_aitalk);
+	sem_post(&sem_ai_send);
 	return 0;
 }
 
@@ -155,16 +148,20 @@ char *ai_aitalk_receive(void){
 	return aitalk_pipe_buf;
 }
 
-
-int ai_aitalk_send_destroy(void){
-	ai_aitalk_send("exit");	//	exit send
-	usleep(10000);
+int ai_aitalk_send_stop(void){
+	ai_aitalk_send("exit");	//	stop send
+	usleep(1000);
 	free(aitalk_pipe_buf);
 	aitalk_pipe_buf = NULL;
 	free(pjson);
 	pjson =   NULL;
+	return 0;
+}
+
+int ai_aitalk_send_destroy(void){
+	ai_aitalk_send_stop();
 	if(is_aitalk_send_init == true){
-		sem_destroy(&sem_aitalk);
+		sem_destroy(&sem_ai_send);
 		is_aitalk_send_init = false;
 	}
 	return 0;
@@ -177,7 +174,7 @@ int ai_aitalk_handler_wait(void){
 		return -1;
 	}
 
-	sem_wait(&sem_aitalk);
+	sem_wait(&sem_ai_send);
 	return 0;
 }	//*/
 

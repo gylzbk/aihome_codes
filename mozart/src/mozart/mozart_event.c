@@ -309,7 +309,7 @@ static void mozart_event_key(mozart_event event)
 		if(code  == KEY_MODE){		//-------------- mode
 			mozart_stop_tone();
 			mozart_module_next_module();
-			sleep(1);
+		//	sleep(1);
 			return;
 		}
 		if(code  == KEY_RECORD){		//-------------- stop sam

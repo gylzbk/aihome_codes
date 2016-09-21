@@ -38,10 +38,6 @@ static event_handler *e_handler;
 static event_handler *e_key_handler;
 static event_handler *e_misc_handler;
 
-
-sem_t sem_ai_startup;
-sem_t sem_ai_enable;
-
 static char *signal_str[] = {
 	[1] = "SIGHUP",       [2] = "SIGINT",       [3] = "SIGQUIT",      [4] = "SIGILL",      [5] = "SIGTRAP",
 	[6] = "SIGABRT",      [7] = "SIGBUS",       [8] = "SIGFPE",       [9] = "SIGKILL",     [10] = "SIGUSR1",
@@ -101,7 +97,7 @@ static void sig_handler(int signo)
 	free(global_app_name);
 	global_app_name = NULL;
 
-//	sem_destroy(sem_aitalk);
+	ai_aitalk_sem_destory();
 
 	exit(-1);
 }
@@ -147,8 +143,7 @@ static inline int initall(void)
 	mozart_volume_set(60, BT_VOLUME);
 	mozart_volume_set(40, MUSIC_VOLUME);
 
-	sem_init(&sem_ai_startup, 0, 1);
-	sem_init(&sem_ai_enable, 0, 1);
+	ai_aitalk_sem_init();
 
 	system("echo 0 > /proc/jz/rtc/alarm_flag");
 

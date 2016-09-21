@@ -75,8 +75,9 @@ static void mozart_aitalk_net_change_handler(bool online)
 		mozart_aitalk_cloudplayer_start(true);
 	//	aitalk_cloudplayer_monitor_cancel();
 		mozart_smartui_boot_welcome();
+		mozart_smartui_atalk_play("AISPEECH",NULL,NULL,NULL);
 		pr_debug("---------------------------> online\n");
-	//	mozart_prompt_tone_key_sync("atalk_hi_12", true);
+		mozart_prompt_tone_key_sync("atalk_hi_12", true);
 	} else if (!online && is_online) {
 		mozart_aitalk_localplayer_start(true);
 	}
@@ -197,9 +198,9 @@ void mozart_switch_aitalk_module(bool in_lock)
 		mozart_module_mutex_lock();
 
 	if (__mozart_module_is_online()){
-		mozart_aitalk_cloudplayer_start(true);
+		mozart_aitalk_cloudplayer_start(in_lock);
  	} else {
-		mozart_aitalk_localplayer_start(true);
+		mozart_aitalk_localplayer_start(in_lock);
 	}
 
 	if (!in_lock)

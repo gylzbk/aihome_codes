@@ -15,6 +15,7 @@ extern int ai_aitalk_send(char *data);
 extern char *ai_aitalk_receive(void);
 extern int ai_aitalk_send_init(void);
 extern int ai_aitalk_send_destroy(void);
+extern int ai_aitalk_send_stop(void);
 extern int ai_aitalk_handler_wait(void);
 #endif /* __MOZART_AITALK_JSON_H__ */
 

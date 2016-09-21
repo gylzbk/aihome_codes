@@ -1196,6 +1196,9 @@ int aitalk_love_audio(void)
 
 void aitalk_vendor_startup(void)
 {
+//	mozart_smartui_atalk_play("AISPEECH",NULL,NULL,NULL);
+	//mozart_smartui_atalk_toggle(false);
+//	mozart_prompt_tone_key_sync("atalk_hi_12", true);
 	mozart_aitalk_start();
 }
 
@@ -1224,6 +1227,7 @@ static void *aitalk_running_func(void *args)
 			pr_err("ai_aitalk_handler_wait error!\n");
 		}
 		if (aitalk_running == false){
+			pr_err("aitalk_running_func exit !\n");
 			//----------- extern running;
 			break;
 		}
@@ -1338,6 +1342,7 @@ int aitalk_cloudplayer_startup(void)
 
 int aitalk_cloudplayer_shutdown(void)
 {
+	int count = 0;
 	pthread_mutex_lock(&aitalk_wait_stop_mutex);
 	pthread_cond_signal(&aitalk_wait_stop_cond);
 	pthread_mutex_unlock(&aitalk_wait_stop_mutex);
@@ -1347,9 +1352,10 @@ int aitalk_cloudplayer_shutdown(void)
 	free(current_url);
 	current_url = NULL;
 
+	mozart_module_mutex_lock();
 //------------------------- wake stop
+	ai_aitalk_send_destroy();
 	aitalk_running = false;
-	int count = 0;
 	while(is_aitalk_run){
 		usleep(1000);
 		count ++;
@@ -1358,7 +1364,6 @@ int aitalk_cloudplayer_shutdown(void)
 		}
 	}
 
-	mozart_module_mutex_lock();
 	__mozart_module_set_attach();
 	__mozart_module_set_offline();
 	__mozart_module_set_net();
