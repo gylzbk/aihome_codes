@@ -80,10 +80,13 @@ int ai_music_list_add_music(music_info *music)
 {
     int error = 0;
 	int i = 0;
-	if((music->url == NULL)){
+	if((music == NULL) ||(music->url == NULL)){
 		PERROR("Error: music->url = null\n");
 		error = -1;
 		goto exit_error;
+	}
+	if (music_list.music_num >= MUSIC_LIST_MAX -1){
+		ai_music_list_free();
 	}
 	//---------------------list is not full ,add to end
 	if (music_list.music_num < MUSIC_LIST_MAX){
@@ -95,15 +98,18 @@ int ai_music_list_add_music(music_info *music)
 		music_list.music[music_list.music_num].title =NULL;
 		if (music->url){
 			music_list.music[music_list.music_num].url = strdup(music->url);
+			if (music->artist){
+				music_list.music[music_list.music_num].artist = strdup(music->artist);
+			}
+			if (music->title){
+				music_list.music[music_list.music_num].title = strdup(music->title);
+			}
 		}
-		if (music->artist){
-			music_list.music[music_list.music_num].artist = strdup(music->artist);
-		}
-		if (music->title){
-			music_list.music[music_list.music_num].title = strdup(music->title);
-		}
+
 		music_list.music_num ++;
+		DEBUG("music_num = %d\n ",music_list.music_num);
 	}
+	#if 0
 	//--------------------list is full ,clean hand and  add to end
 	else{
 		free(music_list.music[0].url);
@@ -112,28 +118,29 @@ int ai_music_list_add_music(music_info *music)
 		music_list.music[0].artist = NULL;
 		free(music_list.music[0].title);
 		music_list.music[0].title= NULL;
-		for (i=1;i<music_list.music_num;i++){
+		for (i=1;i<music_list.music_num-1;i++){
 			music_list.music[i-1].url= music_list.music[i].url;
 			music_list.music[i-1].artist= music_list.music[i].artist;
 			music_list.music[i-1].title= music_list.music[i].title;
 		}
 		//--------------- copy music info to list end.
-		free(music_list.music[music_list.music_num-1].url);
-		music_list.music[music_list.music_num-1].url = NULL;
-		free(music_list.music[music_list.music_num-1].artist);
-		music_list.music[music_list.music_num-1].artist = NULL;
-		free(music_list.music[music_list.music_num-1].title);
-		music_list.music[music_list.music_num-1].title = NULL;
+	//	free(music_list.music[music_list.music_num-1].url);
+	//	music_list.music[music_list.music_num-1].url = NULL;
+	//	free(music_list.music[music_list.music_num-1].artist);
+	//	music_list.music[music_list.music_num-1].artist = NULL;
+	//	free(music_list.music[music_list.music_num-1].title);
+	//	music_list.music[music_list.music_num-1].title = NULL;
 		if (music->url){
 			music_list.music[music_list.music_num-1].url = strdup(music->url);
-		}
-		if (music->artist){
-			music_list.music[music_list.music_num-1].artist = strdup(music->artist);
-		}
-		if (music->title){
-			music_list.music[music_list.music_num-1].title = strdup(music->title);
+			if (music->artist){
+				music_list.music[music_list.music_num-1].artist = strdup(music->artist);
+			}
+			if (music->title){
+				music_list.music[music_list.music_num-1].title = strdup(music->title);
+			}
 		}
 	}
+	#endif
 	#if 0
 	DEBUG("music_num = %d\n",music_list.music_num);
 	for (i=0;i<music_list.music_num;i++){
@@ -158,7 +165,7 @@ music_info *ai_music_list_play_order(int order){
 	}
 	if (play_order >= music_list.music_num){
 		DEBUG("At the end of music list.\n");//	get new song from list
-		music_info *music;
+		music_info *music = NULL;
 		music = ai_song_recommend_push();
 		if (music){
 			if (music->url != NULL){
@@ -173,8 +180,8 @@ music_info *ai_music_list_play_order(int order){
 			return NULL;
 		}
 	}
-	if (play_order >= MUSIC_LIST_MAX){
-		play_order = MUSIC_LIST_MAX - 1;
+	if (play_order > music_list.music_num){
+		play_order = music_list.music_num;
 	}
 
 	music_list.play_order = play_order;
