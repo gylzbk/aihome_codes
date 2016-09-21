@@ -136,6 +136,10 @@ static int aitalk_cloudplayer_module_start(struct mozart_module_struct *self)
 {
 	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	self->player_state = player_state_idle;
+	mozart_smartui_atalk_play("AISPEECH",NULL,NULL,NULL);
+	mozart_smartui_atalk_toggle(false);
+	__mozart_prompt_tone_key_sync("atalk_hi_12");
+	aitalk_vendor_startup();
 	return 0;
 }
 
@@ -441,7 +445,7 @@ int mozart_aitalk_cloudplayer_start(bool in_lock)
 		pr_err("aitalk_cloudplayer_module isn't registered!\n");
 		return -1;
 	}
-	aitalk_vendor_startup();
+//	aitalk_vendor_startup();
 //	if (ret == 0)
 //		create_aitalk_cloudplayer_monitor_pthread();
 
