@@ -144,20 +144,20 @@ mozart_vr_speech_callback vr_speech_callback_pointer;
 
 
 bool is_aitalk_send_init = false;
-sem_t sem_ai_startup;
+//sem_t sem_ai_startup;
 sem_t sem_ai_enable;
 sem_t sem_ai_send;
 
 int ai_aitalk_sem_init(void){
     sem_init(&sem_ai_send, 0, 0);
-	sem_init(&sem_ai_startup, 0, 1);
+//	sem_init(&sem_ai_startup, 0, 1);
 	sem_init(&sem_ai_enable, 0, 1);
 	is_aitalk_send_init = true;
 	return 0;
 }
 
 int ai_aitalk_sem_destory(void){
-	sem_destroy(&sem_ai_startup);
+//	sem_destroy(&sem_ai_startup);
 	sem_destroy(&sem_ai_enable);
 	ai_aitalk_send_destroy();
 	return 0;
@@ -1043,7 +1043,7 @@ int ai_speech_get_status(){
 
 int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 {
-	sem_wait(&sem_ai_startup);
+//	sem_wait(&sem_ai_startup);
 	pthread_t voice_recog_thread;
 /*	if (ai_speech_get_status() != VR_SPEECH_NULL){
 		ai_aiengine_exit();
@@ -1065,12 +1065,12 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 	ai_speech_set_status(VR_SPEECH_INIT);
 exit_error:
 	DEBUG("mozart_vr_speech_startup finish.\n");
-	sem_post(&sem_ai_startup);
+//	sem_post(&sem_ai_startup);
 	return 0;
 }
 
 int ai_speech_shutdown(void){
-	sem_wait(&sem_ai_startup);
+//	sem_wait(&sem_ai_startup);
 	int status = ai_speech_get_status();
 	DEBUG("vr speech shutdown!...\n");
 	switch (status){
@@ -1091,7 +1091,7 @@ int ai_speech_shutdown(void){
 	}
 
 	DEBUG("vr speech shutdown finish!...\n");
-	sem_post(&sem_ai_startup);
+//	sem_post(&sem_ai_startup);
 	return 0;
 }
 
