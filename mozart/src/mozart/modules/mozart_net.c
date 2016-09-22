@@ -22,11 +22,8 @@
 #include "mozart_config.h"
 #if (SUPPORT_VR == VR_ATALK)
 #include "mozart_atalk.h"
-#include "vr-atalk_interface.h"
-#include "mozart_atalk_cloudplayer_control.h"
 #elif (SUPPORT_VR == VR_SPEECH)
 #include "mozart_aitalk.h"
-#include "mozart_aitalk_cloudplayer_control.h"
 #endif
 
 #ifndef MOZART_RELEASE
@@ -152,19 +149,14 @@ static bool switch_net_config(void)
 	new_mode.cmd = SW_NETCFG;
 	new_mode.param.network_config.timeout = 120;
 	strcpy(new_mode.name, global_app_name);
-	strcpy(new_mode.param.network_config.wl_module, netcfg_method_str[BROADCOM]);
-	strcpy(new_mode.param.network_config.product_model, "WONDERS_ENTERTAINMENT_ATALK_DS1825");
-//	new_mode.param.network_config.method |= 0x01;
-   //new_mode.param.network_config.method |= 0x01;
-   //ATALK = 0x01 or AIRKISS_WE = 0x04 means can use airkiss and atalk at the same time,new_mode.param.network_config.method |= 0x05
-//   new_mode.param.network_config.method |= 0x05;		//		atalk  (0x01) + airkiss (0x04)
-#if (SUPPORT_NETWORK == NETWORK_COOEE_AIRKISS)
-	new_mode.param.network_config.method |= 0x0C;		//		cooee  (0x08) + airkiss (0x04)
-#elif(SUPPORT_NETWORK == NETWORK_ATALK_AIRKISS)
-	new_mode.param.network_config.method |= 0x05;		//		atalk  (0x01) + airkiss (0x04)
-#else
-	new_mode.param.network_config.method |= 0x05;		//		atalk  (0x01) + airkiss (0x04)
-#endif
+
+	#if (SUPPORT_VR == VR_ATALK)
+		strcpy(new_mode.param.network_config.method, netcfg_method_str[ATALK]);
+		strcpy(new_mode.param.network_config.product_model, "WONDERS_ENTERTAINMENT_ATALK_DS1825");
+	#elif (SUPPORT_VR == VR_SPEECH)
+		strcpy(new_mode.param.network_config.method, netcfg_method_str[BROADCOM]);
+	#endif
+
 	if (request_wifi_mode(new_mode)) {
 		return true;
 	}else{
@@ -350,7 +342,7 @@ static inline void network_configure_handler(event_info_t network_event, struct 
 		if (global_net_mode == NET_MODE_SW_NETCFG) {
 			global_net_mode = NET_MODE_CFG_START;
 		} else {
-			stop_net_config();
+		//	stop_net_config();
 			pr_err("netcfg start, net_mode is %s ?\n", net_mode_str[global_net_mode]);
 			module_mutex_unlock(&net_mode_lock);
 			return ;

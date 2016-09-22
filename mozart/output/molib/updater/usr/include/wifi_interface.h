@@ -447,8 +447,8 @@ typedef struct switch_network_config_cmd_param {
 	/*
 	 * @brief the network configuration method in keeping with Manufacture.
 	 */
-	char wl_module[16];
-	char method;
+	//char wl_module[16];
+	char method[16];
 } network_config_t;
 
 /**
