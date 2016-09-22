@@ -224,7 +224,7 @@ int ai_song_recommend_get_from_param(cJSON *param){
 			}/*end if(strcmp(domain->valuestring, "music") == 0)*/
 		}/*eand if (domain->valuestring)*/
 	}/*end if(domain)*/
-	 	DEBUG("PASS %d\n",__LINE__);
+	DEBUG("get music number =  %d\n",   ai_song_update_list.song_number);
 exit_error:
 
  /*   if (param != NULL){
@@ -256,14 +256,14 @@ int ai_song_recommand_semantic_callback(void *usrdata, const char *id, int type,
 //    DEBUG("result: \n%s\n", cJSON_Print(result));
     if (result)
     {
-		 param = cJSON_GetObjectItem(result, "sds");
+		is_callback_end = true;
+		param = cJSON_GetObjectItem(result, "sds");
 	    if (param){
 	        if(ai_song_recommend_get_from_param(param) == -1){
 	            PERROR("param_s error!\n");
 		        error = -1;
 		        goto exit_error;
 	        }
-			is_callback_end = true;
 	    }
     }//*/
 
@@ -322,6 +322,7 @@ int ai_song_recommend_update(char *text){
         goto exit_error;
     }
 	if (ai_song_recommend_stoping()){
+		aiengine_cancel(agn);
 		error = -1;
         goto exit_error;
 	}
@@ -372,11 +373,12 @@ music_info *ai_song_recommend_push(void){
 				}
 			}
 		}
-		if(ai_song_update_list.is_update_success == false){
-			PERROR("Error: Get recommend song false!... \n");
-			goto exit_error;
-		}
 	}
+	if(ai_song_update_list.is_update_success == false){
+		PERROR("Error: Get recommend song false!... \n");
+		goto exit_error;
+	}
+
 	if (ai_song_update_list.geted_number >= ai_song_update_list.song_number){
 		ai_song_update_list.geted_number =0;
 		ai_song_update_list.song_number = 0;
