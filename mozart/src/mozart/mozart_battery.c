@@ -34,7 +34,7 @@ static int lowpower_prompted;
 #define BATTERY_LOWPOWER_THRESHOLD	20
 int mozart_battery_update(void)
 {
-	int capacity, online;
+	int capacity, online, i;
 	enum battery_status battery_st;
 
 	battery_st = mozart_get_battery_status();
@@ -57,8 +57,13 @@ int mozart_battery_update(void)
 
 	mozart_smartui_battery_update(capacity, online);
 
-	if (capacity == 15)
+	if (capacity <= 15 && online) {
+		for (i=0; i<3; i++) {
+			mozart_prompt_tone_key_sync("battery_low", false);
+			sleep(10);
+		}
 		mozart_module_power_off("电量过低");
+	}
 
 	pthread_mutex_lock(&battery_lock);
 
