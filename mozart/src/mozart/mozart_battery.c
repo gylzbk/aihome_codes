@@ -36,7 +36,9 @@ int mozart_battery_update(void)
 {
 	int capacity, online;
 	enum battery_status battery_st;
-
+	int i;
+	static bool battery_low_flag = false;
+	
 	battery_st = mozart_get_battery_status();
 	if (battery_st == POWER_SUPPLY_STATUS_UNKNOWN) {
 		pr_debug("unknown status ???\n");
@@ -57,8 +59,18 @@ int mozart_battery_update(void)
 
 	mozart_smartui_battery_update(capacity, online);
 
-	if (capacity == 15)
-		mozart_module_power_off("电量过低");
+	if (online)
+		battery_low_flag = false;
+
+	if (capacity <= 15 && !online) {
+		for (i=0; i<1&&!battery_low_flag; i++) {
+			battery_low_flag = true;
+			mozart_prompt_tone_key_sync("battery_low", false);
+		}
+
+		if (capacity <= 10)
+			mozart_module_power_off("电量过低");
+	}
 
 	pthread_mutex_lock(&battery_lock);
 
