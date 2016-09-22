@@ -534,7 +534,7 @@ int ai_status_error(void){
 		break;
 	case  AI_ERROR_SYSTEM:
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_system".false);
+		mozart_prompt_tone_key_sync("error_system",false);
 		#endif
 		recog.status = AIENGINE_STATUS_EXIT;
 		break;

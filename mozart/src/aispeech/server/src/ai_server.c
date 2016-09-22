@@ -150,9 +150,9 @@ int ai_server_fun(vr_info *recog)
 					DEBUG("-------------Only search artist!...\n");
 					ai_music_list_free();
 					ai_song_recommend_artist(recog->search_artist);
-					#if AI_CONTROL_MOZART
-						ai_aitalk_send(aitalk_send_play_music(NULL));
-					#endif
+				//	#if AI_CONTROL_MOZART
+				//		ai_aitalk_send(aitalk_send_play_music(NULL));
+				//	#endif
 					recog->next_status     = AIENGINE_STATUS_AEC;
 					goto	exit_error;
 					break;
