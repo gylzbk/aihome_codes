@@ -191,7 +191,7 @@ static void aitalk_cloudplayer_module_resume_pause(struct mozart_module_struct *
 	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	mozart_aitalk_cloudplayer_do_resume_pause();
 }
-
+/*
 static void aitalk_cloudplayer_module_asr_wakeup(struct mozart_module_struct *self)
 {
 	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
@@ -203,7 +203,7 @@ static void aitalk_cloudplayer_module_asr_wakeup(struct mozart_module_struct *se
 	//mozart_aitalk_asr_start();
 	//ai_sem_start();
 	//mozart_prompt_tone_key_sync("welcome", false);
-}
+}	//*/
 
 static void aitalk_cloudplayer_module_previous_song(struct mozart_module_struct *self)
 {
@@ -260,7 +260,7 @@ static struct mozart_module_struct aitalk_cloudplayer_module = {
 		.next_song = aitalk_cloudplayer_module_next_song,
 		.volume_change = aitalk_cloudplayer_module_volume_change,
 		.resume_pause = aitalk_cloudplayer_module_resume_pause,
-		.asr_wakeup = aitalk_cloudplayer_module_asr_wakeup,
+	//	.asr_wakeup = aitalk_cloudplayer_module_asr_wakeup,
 		.next_channel = aitalk_cloudplayer_module_next_channel,
 		.favorite = aitalk_cloudplayer_module_favorite,
 		.next_module = aitalk_cloudplayer_module_next_module,

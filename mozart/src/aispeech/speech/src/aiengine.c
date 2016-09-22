@@ -397,24 +397,14 @@ exit_error:
 
 
 int ai_status_aecing(void){
-/*	if ((ai_speech_get_status() != VR_SPEECH_INIT)
-		||(ai_flag.is_working == false)){
-		return -1;
-	}	//*/
-
-//	ai_cloud_sem_stop();
 	ai_to_mozart();
 	ai_recog_free();
-
 	if (ai_aec(ew) == 0){
 		if(ai_flag.is_running){
 			#if AI_CONTROL_MOZART	  // remove tone when wakeup
 				mozart_key_ignore_set(true);
 			#endif
 			recog.status = AIENGINE_STATUS_SEM;
-		}
-		else{
-			recog.status = AIENGINE_STATUS_STOP;
 		}
 		return 0;
 	}
@@ -833,24 +823,28 @@ int ai_tts(char *data,int enable_stop){
 	return 0;
 }
 
-#if 0
-int mozart_key_wakeup(void){
+int ai_key_record(void){
 	DEBUG("mozart_key_wakeup start...\n");
-	ai_aec_stop();
-/*	if(ai_flag.is_running){
+	if ((ai_flag.is_running)&&(ai_flag.is_init)){
 		switch(recog.status){
 			case AIENGINE_STATUS_AEC:
+				ai_aec_stop();
 				break;
 			case AIENGINE_STATUS_SEM:
-			//	ai_cloud_sem_stop();
+			case AIENGINE_STATUS_PROCESS:
+				ai_cloud_sem_stop();
+				mozart_stop_tone();
+				recog.status = AIENGINE_STATUS_AEC;
+				mozart_key_ignore_set(false);
 				break;
 			default:
-				break;
+				break;	//*/
 		}
-	}//*/
+		usleep(500*1000); // wake 0.5s to deal
+	}
 	return 0;
 }
-#endif
+
 
 void ai_speech_set_status(vr_speech_status_type status){
 	vr_speech_status = status;

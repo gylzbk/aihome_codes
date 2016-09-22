@@ -184,7 +184,7 @@ static void atalk_cloudplayer_module_asr_wakeup(struct mozart_module_struct *sel
 		mozart_atalk_asr_start();
 		mozart_key_wakeup();
 #elif (SUPPORT_VR == VR_SPEECH)
-		mozart_speech_asr_start();
+		//mozart_speech_asr_start();
 #endif
 	}
 }

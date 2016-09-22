@@ -124,7 +124,7 @@ extern int ai_set_enable(bool enable);
 extern int ai_aiengine_stop(void);
 extern int ai_aecing(void);
 extern int ai_sem_start(void);
-
+extern int ai_key_record(void);
 
 extern int ai_play_music_order(int order);
 extern bool ai_is_play_music(void);

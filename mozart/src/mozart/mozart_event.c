@@ -312,10 +312,13 @@ static void mozart_event_key(mozart_event event)
 		//	sleep(1);
 			return;
 		}
+	#if (SUPPORT_VR == VR_SPEECH)
 		if(code  == KEY_RECORD){		//-------------- stop sam
-			mozart_aitalk_sem_stop();
+			//mozart_aitalk_sem_stop();
+			ai_key_record();
 			return;
 		}
+	#endif
 	}
 
 	if (mozart_key_ignore_get()){
@@ -326,6 +329,9 @@ static void mozart_event_key(mozart_event event)
 	if (event.event.key.key.value == 1) {
 		switch (code) {
 		case KEY_RECORD:
+			#if (SUPPORT_VR == VR_ATALK)
+				mozart_module_asr_wakeup();
+			#endif
 		//	mozart_aitalk_asr_over();
 		//	mozart_module_asr_wakeup();
 			break;
