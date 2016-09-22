@@ -16,6 +16,7 @@
 #include "mozart_app.h"
 #include "mozart_net.h"
 #include "mozart_bt_avk.h"
+#include "mozart_config.h"
 
 
 #include "mozart_config.h"
@@ -157,9 +158,9 @@ static bool switch_net_config(void)
    //new_mode.param.network_config.method |= 0x01;
    //ATALK = 0x01 or AIRKISS_WE = 0x04 means can use airkiss and atalk at the same time,new_mode.param.network_config.method |= 0x05
 //   new_mode.param.network_config.method |= 0x05;		//		atalk  (0x01) + airkiss (0x04)
-#if (SUPPORT_NETWORK == NETWORK_ATALK_AIRKISS)
+#if (SUPPORT_NETWORK == NETWORK_COOEE_AIRKISS)
 	new_mode.param.network_config.method |= 0x0C;		//		cooee  (0x08) + airkiss (0x04)
-#elif(SUPPORT_NETWORK == NETWORK_COOEE_AIRKISS)
+#elif(SUPPORT_NETWORK == NETWORK_ATALK_AIRKISS)
 	new_mode.param.network_config.method |= 0x05;		//		atalk  (0x01) + airkiss (0x04)
 #else
 	new_mode.param.network_config.method |= 0x05;		//		atalk  (0x01) + airkiss (0x04)
