@@ -37,7 +37,6 @@ int mozart_battery_update(void)
 	int capacity, online;
 	enum battery_status battery_st;
 	int i;
-	static int count = 0;
 	static bool battery_low_flag = false;
 	
 	battery_st = mozart_get_battery_status();
