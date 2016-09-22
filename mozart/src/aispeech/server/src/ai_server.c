@@ -44,9 +44,9 @@ int ai_server_prompt(vr_info *recog,char *prompt){
 	free(recog->output);
 	recog->output = strdup(prompt);
 	if(recog->output)
-		recog->status = AIENGINE_STATUS_TTS_ANSWER;
+		recog->next_status = AIENGINE_STATUS_TTS_ANSWER;
 	else
-		recog->status = AIENGINE_STATUS_AEC;
+		recog->next_status = AIENGINE_STATUS_AEC;
 
 
 	return 0;
@@ -101,36 +101,38 @@ int ai_server_fun(vr_info *recog)
 	int error = 0;
 	char str[256]={0};
 	int command = SDS_COMMAND_NULL;
+	recog->next_status     = AIENGINE_STATUS_AEC;
+
 	if (recog == NULL){
 		recog->error_type = AI_ERROR_SYSTEM;
-		recog->status    = AIENGINE_STATUS_ERROR;
+		recog->next_status    = AIENGINE_STATUS_ERROR;
 		error = -1;
 		goto exit_error;
 	}	//*/
 //-------------------------------------------------- sem error
 #if 0
 	//-------------------------------------------- long work test
-	recog->status     = AIENGINE_STATUS_AEC;
+	recog->next_status     = AIENGINE_STATUS_AEC;
 	DEBUG("DEBUG: long work test \n");
 	goto exit_error;
 #endif
     /***Add sem timeout prompt to restart to wakeup after aoubt 8s by Ray Zhang***/
 	if(NULL == recog->input){
-		recog->status     = AIENGINE_STATUS_ERROR;
+		recog->next_status     = AIENGINE_STATUS_ERROR;
 		recog->error_type = AI_ERROR_NO_VOICE;
 		error = -1;
 		goto exit_error;
 	}
     /***Add sem timeout prompt to restart to wakeup after aoubt 8s by Ray Zhang***/
 	if(SDS_STATE_EXIT==recog->state){
-		recog->status     = AIENGINE_STATUS_AEC;
+		recog->next_status     = AIENGINE_STATUS_AEC;
 		goto exit_error;
 	}
 	if (recog->operation){
 		if((strcmp(recog->operation, "退出") == 0)
 		||(strcmp(recog->operation, "结束") == 0)){
 			recog->domain = RECOG_DOMAIN_COMMAND;
-			recog->status  = AIENGINE_STATUS_AEC;
+			recog->next_status  = AIENGINE_STATUS_AEC;
 			command = SDS_COMMAND_EXIT;
 			goto exit_command;
 		}
@@ -142,27 +144,25 @@ int ai_server_fun(vr_info *recog)
 	//	----------------------------------------  netfm
 		case RECOG_DOMAIN_NETFM:
 			if (recog->domain== RECOG_DOMAIN_MUSIC){
-//------------------------------ only artist
+			//-------------------- play music-- only artist
 				if((recog->search_artist)
 					&&(recog->search_title == NULL)){
 					DEBUG("-------------Only search artist!...\n");
-				//	ai_tts(recog->search_artist,false);
 					ai_music_list_free();
 					ai_song_recommend_artist(recog->search_artist);
 					#if AI_CONTROL_MOZART
-					ai_aitalk_send(aitalk_send_play_music(NULL));
+						ai_aitalk_send(aitalk_send_play_music(NULL));
 					#endif
-					recog->status     = AIENGINE_STATUS_AEC;
+					recog->next_status     = AIENGINE_STATUS_AEC;
 					goto	exit_error;
-						break;
+					break;
 				}
 			}
+			//-------------------- play music-- music name
 			if ((recog->music.url)&&(recog->music.title)){
 				char str[512]={0};
-			//	strcpy(str,"准备播放");
 				if (recog->music.artist){
 					strcpy(str,recog->music.artist);
-				//	strcat (str,recog->music.artist);
 					strcat(str,",");
 					strcat (str,recog->music.title);
 				}
@@ -182,34 +182,34 @@ int ai_server_fun(vr_info *recog)
 				music.title = recog->music.title;
 				ai_aitalk_send(aitalk_send_play_url(&music));
 			#endif
-				recog->status     = AIENGINE_STATUS_AEC;
+				recog->next_status     = AIENGINE_STATUS_AEC;
 				break;
 			}
 			switch(recog->state)
 			{
 				case SDS_STATE_DO:
-					recog->status     = AIENGINE_STATUS_AEC;
+					recog->next_status     = AIENGINE_STATUS_AEC;
 				break;
 
 				case SDS_STATE_OFFERNONE:
-					recog->status     = AIENGINE_STATUS_SEM;
+					recog->next_status     = AIENGINE_STATUS_SEM;
 					recog->sds_flag = 1;
 				break;
 
 				case SDS_STATE_OFFER:
-					recog->status     = AIENGINE_STATUS_AEC;
+					recog->next_status     = AIENGINE_STATUS_AEC;
 				break;
 
 				case SDS_STATE_INTERACT:
-					recog->status     = AIENGINE_STATUS_SEM;
+					recog->next_status     = AIENGINE_STATUS_SEM;
 					recog->sds_flag = 1;
 				break;
 				default:
-					recog->status     = AIENGINE_STATUS_AEC;
+					recog->next_status     = AIENGINE_STATUS_AEC;
 					break;
 			}
 			if (recog->output){
-				if (recog->status == AIENGINE_STATUS_SEM){
+				if (recog->next_status == AIENGINE_STATUS_SEM){
 					ai_tts(recog->output,false);
 				}
 				else{
@@ -226,15 +226,15 @@ int ai_server_fun(vr_info *recog)
 			switch(recog->state)
 			{
 				case SDS_STATE_DO:
-					recog->status     = AIENGINE_STATUS_AEC;
+					recog->next_status     = AIENGINE_STATUS_AEC;
 				break;
 				case SDS_STATE_INTERACT:
-					recog->status     = AIENGINE_STATUS_SEM;
+					recog->next_status     = AIENGINE_STATUS_SEM;
 					recog->sds_flag = 1;
 				break;
 			}
 			if (recog->output){
-				if (recog->status == AIENGINE_STATUS_SEM){
+				if (recog->next_status == AIENGINE_STATUS_SEM){
 					ai_tts(recog->output,false);
 				}
 				else{
@@ -250,23 +250,23 @@ int ai_server_fun(vr_info *recog)
 				case SDS_STATE_DO:
 					if (recog->music.url){
 						DEBUG("url = %s\n",recog->music.url);
-						recog->status     = AIENGINE_STATUS_AEC;
+						recog->next_status     = AIENGINE_STATUS_AEC;
 					}
 					else{
-						recog->status     = AIENGINE_STATUS_SEM;
+						recog->next_status     = AIENGINE_STATUS_SEM;
 					}
 				break;
 				case SDS_STATE_INTERACT:
-					recog->status     = AIENGINE_STATUS_SEM;
+					recog->next_status     = AIENGINE_STATUS_SEM;
 					recog->sds_flag = 1;
 				break;
 				default:
-					recog->status     = AIENGINE_STATUS_SEM;
+					recog->next_status     = AIENGINE_STATUS_SEM;
 					break;
 			}
 
 			if (recog->output){
-				if (recog->status == AIENGINE_STATUS_SEM){
+				if (recog->next_status == AIENGINE_STATUS_SEM){
 					ai_tts(recog->output,false);
 				}
 				else{
@@ -286,13 +286,13 @@ int ai_server_fun(vr_info *recog)
 				music.title = recog->music.title;
 				ai_aitalk_send(aitalk_send_play_url(&music));
 			#endif
-				recog->status     = AIENGINE_STATUS_AEC;
+				recog->next_status     = AIENGINE_STATUS_AEC;
 			}	//*/
 			else{
-				recog->status     = AIENGINE_STATUS_SEM;
 				if (recog->output){
 					ai_tts(recog->output,false);
 				}
+				recog->next_status     = AIENGINE_STATUS_SEM;
 			}
 			break;
 	//	----------------------------------------weather
@@ -300,17 +300,17 @@ int ai_server_fun(vr_info *recog)
 			switch(recog->state){
 				case SDS_STATE_DO:
 				case SDS_STATE_OFFERNONE:
-					recog->status     = AIENGINE_STATUS_AEC;
 					if (recog->output){
 						ai_tts(recog->output,true);
 					}
+					recog->next_status     = AIENGINE_STATUS_AEC;
 					break;
                 case SDS_STATE_INTERACT:
-					recog->sds_flag = 1;
-					recog->status     = AIENGINE_STATUS_SEM;
 					if (recog->output){
 						ai_tts(recog->output,false);
 					}
+					recog->sds_flag = 1;
+					recog->next_status     = AIENGINE_STATUS_SEM;
 					break;
 				default:
 					break;
@@ -319,8 +319,8 @@ int ai_server_fun(vr_info *recog)
 
 	//	----------------------------------------    movie
 		case RECOG_DOMAIN_MOVIE:
-			recog->status     = AIENGINE_STATUS_AEC;
-		#if SUPPORT_ELIFE
+			recog->next_status     = AIENGINE_STATUS_AEC;
+			#if SUPPORT_ELIFE
 				ai_elife_movie_free();
 				if (recog->operation){
 					ai_elife.cmd = strdup(recog->operation);
@@ -343,16 +343,16 @@ int ai_server_fun(vr_info *recog)
 					ai_elife.movie.area= strdup(recog->movie.area);
 				}
 				ai_elife_movie();
-		#endif
+			#endif
 		break;
 	//	----------------------------------------    command
 		case RECOG_DOMAIN_COMMAND:
-			recog->status     = AIENGINE_STATUS_AEC;
+			recog->next_status     = AIENGINE_STATUS_AEC;
 		break;
 		default:
 			PERROR("Unknown domain!\n");
 			recog->error_type = AI_ERROR_INVALID_DOMAIN;
-			recog->status    =AIENGINE_STATUS_ERROR;
+			recog->next_status    =AIENGINE_STATUS_ERROR;
 			break;
 	}	//*/
 
@@ -402,17 +402,17 @@ exit_command:
 			if (recog->volume){
 				if(strcmp(recog->volume, "+") == 0){
 					#if AI_CONTROL_MOZART
-					mozart_prompt_tone_key_sync("volume_up", false);
+					mozart_prompt_tone_key_sync("volume_up",false);
 					#endif
 				}
 				else if(strcmp(recog->volume, "-") == 0){
 					#if AI_CONTROL_MOZART
-					mozart_prompt_tone_key_sync("volume_down", false);
+					mozart_prompt_tone_key_sync("volume_down",false);
 					#endif
 				}
 				else if(strcmp(recog->volume, "max") == 0){
 					#if AI_CONTROL_MOZART
-					mozart_prompt_tone_key_sync("volume_max", false);
+					mozart_prompt_tone_key_sync("volume_max",false);
 					#endif
 					free(recog->volume);
 					recog->volume = NULL;
@@ -420,7 +420,7 @@ exit_command:
 				}	//*/
 				else if(strcmp(recog->volume, "min") == 0){
 					#if AI_CONTROL_MOZART
-					mozart_prompt_tone_key_sync("volume_min", false);
+					mozart_prompt_tone_key_sync("volume_min",false);
 					#endif
 					free(recog->volume);
 					recog->volume = NULL;
@@ -439,43 +439,43 @@ exit_command:
 #if AI_CONTROL_MOZART
 DEBUG("PASS\n");
 		case SDS_COMMAND_MUSIC_PAUSE:
-			mozart_prompt_tone_key_sync("pause", false);
+			mozart_prompt_tone_key_sync("pause",false);
 		//	ai_flag.is_play_music = false;
 		//	if (mozart_module_is_playing()==1){
 				ai_aitalk_send(aitalk_send_pause(NULL));
 		//	}
 			break;
 		case SDS_COMMAND_MUSIC_RESUME:
-			mozart_prompt_tone_key_sync("resume", false);
+			mozart_prompt_tone_key_sync("resume",false);
 		//	ai_flag.is_play_music = true;
 			ai_aitalk_send(aitalk_send_resume(NULL));
 			break;
 		case SDS_COMMAND_MUSIC_STOP:
 		//	ai_flag.is_play_music = false;
-			mozart_prompt_tone_key_sync("stop", false);
+			mozart_prompt_tone_key_sync("stop",false);
 			ai_aitalk_send(aitalk_send_stop_music(NULL));
 			break;
 		case SDS_COMMAND_MUSIC_PLAY:
 			if ((recog->music.url == NULL)&&(recog->output== NULL)){
 		//		ai_flag.is_play_music = true;
-				mozart_prompt_tone_key_sync("resume", false);
+				mozart_prompt_tone_key_sync("resume",false);
 			//	ai_aitalk_send(aitalk_send_play_music(NULL));
 				ai_play_music_order(0);
 			}
 			break;
 		case SDS_COMMAND_MUSIC_PREVIOUS:
-			mozart_prompt_tone_key_sync("previous", false);
+			mozart_prompt_tone_key_sync("previous",false);
 			//ai_aitalk_send(aitalk_send_previous_music(NULL));
 			ai_play_music_order(-1);
 			break;
 		case SDS_COMMAND_MUSIC_NEXT:
-			mozart_prompt_tone_key_sync("next", false);
+			mozart_prompt_tone_key_sync("next",false);
 			ai_aitalk_send(aitalk_send_next_music(NULL));
 			ai_play_music_order(1);
 			break;
 		case SDS_COMMAND_EXIT:
 			DEBUG("PASS\n");
-			mozart_prompt_tone_key_sync("exit", false);
+			mozart_prompt_tone_key_sync("exit",false);
 			break;
 		#if SUPPORT_ELIFE
 		case SDS_COMMAND_ELIFE:
@@ -501,9 +501,14 @@ DEBUG("PASS\n");
 exit_error:
 //-------------------------------------------------------	释放分配的内存
 	if (error<0){
-		recog->status    = AIENGINE_STATUS_ERROR;
+		recog->next_status    = AIENGINE_STATUS_ERROR;
 	}
-//	ai_slot_recog_free(recog);
+	if (recog->key_record_stop == false){
+		recog->status = recog->next_status    ;
+	}
+	else {
+		recog->status = AIENGINE_STATUS_AEC;
+	}
    	return error;
 }
 

@@ -172,7 +172,9 @@ typedef struct weather_info_t {
 
 typedef struct vr_info {
 	int status;
+	int next_status;
 	int status_last;
+	bool key_record_stop;
 //	int intent;
 	int domain;
 //	int tts_enable;

@@ -399,6 +399,9 @@ exit_error:
 int ai_status_aecing(void){
 	ai_to_mozart();
 	ai_recog_free();
+	#if AI_CONTROL_MOZART	  // remove tone when wakeup
+		mozart_key_ignore_set(false);
+	#endif
 	if (ai_aec(ew) == 0){
 		if(ai_flag.is_running){
 			#if AI_CONTROL_MOZART	  // remove tone when wakeup
@@ -500,70 +503,70 @@ int ai_status_error(void){
 	}
 	switch (recog.error_type){
 	case  AI_ERROR_SEM_FAIL_1:
-		recog.status = AIENGINE_STATUS_SEM;
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_sem_fail_1", false);
+		mozart_prompt_tone_key_sync("error_sem_fail_1",false);
 		#endif
+		recog.status = AIENGINE_STATUS_SEM;
 		break;
 	case AI_ERROR_SEM_FAIL_2:
-		recog.status = AIENGINE_STATUS_SEM;
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_sem_fail_2", false);
+		mozart_prompt_tone_key_sync("error_sem_fail_2",false);
 		#endif
+		recog.status = AIENGINE_STATUS_SEM;
 		break;
 	case AI_ERROR_SEM_FAIL_3:
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_sem_fail_3", false);
+		mozart_prompt_tone_key_sync("error_sem_fail_3",false);
 		#endif
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_ATUHORITY:
-		recog.status = AIENGINE_STATUS_AEC;
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_authority", false);
+		mozart_prompt_tone_key_sync("error_authority",false);
 		#endif
+		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_INVALID_DOMAIN:
-		recog.status = AIENGINE_STATUS_AEC;
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_invalid_domain", false);
+		mozart_prompt_tone_key_sync("error_invalid_domain",false);
 		#endif
+		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_SYSTEM:
-		recog.status = AIENGINE_STATUS_EXIT;
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_system", false);
+		mozart_prompt_tone_key_sync("error_system".false);
 		#endif
+		recog.status = AIENGINE_STATUS_EXIT;
 		break;
 	case  AI_ERROR_NO_VOICE:
-		recog.status = AIENGINE_STATUS_AEC;
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_no_voice", false);
+		mozart_prompt_tone_key_sync("error_no_voice",false);
 		#endif
+		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_SERVER_BUSY:
-		recog.status = AIENGINE_STATUS_AEC;
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_server_busy", false);
+		mozart_prompt_tone_key_sync("error_server_busy",false);
 		#endif
+		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_NET_SLOW:
 		recog.status = AIENGINE_STATUS_AEC;
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_net_slow", false);
+		mozart_prompt_tone_key_sync("error_net_slow",false);
 		#endif
 		break;
 	case  AI_ERROR_NET_FAIL:
-		recog.status = AIENGINE_STATUS_AEC;
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_net_fail", false);
+		mozart_prompt_tone_key_sync("error_net_fail",false);
 		#endif
+		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	default:
-		recog.status = AIENGINE_STATUS_AEC;
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_net_slow", false);
+		mozart_prompt_tone_key_sync("error_net_slow",false);
 		#endif
+		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	}
 	ai_to_mozart();
@@ -805,7 +808,7 @@ int ai_tts(char *data,int enable_stop){
 	}
 	else{
 		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("ai_cloud_sync", false);
+		mozart_prompt_tone_key_sync("ai_cloud_sync",false);
 		#else
 		system("mplayer /tmp/cloud_sync_record.mp3");
 		#endif
@@ -824,23 +827,48 @@ int ai_tts(char *data,int enable_stop){
 }
 
 int ai_key_record(void){
+	int count = 0;
 	DEBUG("mozart_key_wakeup start...\n");
 	if ((ai_flag.is_running)&&(ai_flag.is_init)){
+		recog.key_record_stop = true;
 		switch(recog.status){
 			case AIENGINE_STATUS_AEC:
 				ai_aec_stop();
+				while(recog.status == AIENGINE_STATUS_AEC){
+					usleep(1000); // wake 0.5s to deal
+					count ++;
+					if (count > 2000){
+						break;
+					}
+				}
 				break;
 			case AIENGINE_STATUS_SEM:
+				ai_cloud_sem_stop();
+				while((recog.status == AIENGINE_STATUS_SEM)){
+					usleep(1000); // wake 0.5s to deal
+					count ++;
+					if (count > 2000){
+						break;
+					}
+				}
+				//mozart_key_ignore_set(false);
+				break;
 			case AIENGINE_STATUS_PROCESS:
 				ai_cloud_sem_stop();
 				mozart_stop_tone();
-				recog.status = AIENGINE_STATUS_AEC;
-				mozart_key_ignore_set(false);
+				while((recog.status == AIENGINE_STATUS_PROCESS)){
+					usleep(1000); // wake 0.5s to deal
+					count ++;
+					if (count > 2000){
+						break;
+					}
+				}
+				//mozart_key_ignore_set(false);
 				break;
 			default:
 				break;	//*/
 		}
-		usleep(500*1000); // wake 0.5s to deal
+		recog.key_record_stop = true;
 	}
 	return 0;
 }

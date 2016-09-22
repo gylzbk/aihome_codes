@@ -1290,7 +1290,7 @@ int mozart_vr_speech_interface_callback(vr_info *recog)
 		case AIENGINE_STATUS_SEM: {
 			is_aitalk_asr = true;
 			mozart_smartui_asr_start();
-			mozart_prompt_tone_key_sync("welcome", false);
+			mozart_prompt_tone_key_sync("welcome",false);
 		}
 		break;
 

@@ -176,7 +176,7 @@ music_info *ai_music_list_play_order(int order){
 			}
 		}
 		else{
-		//	mozart_prompt_tone_key_sync("error_net_fail", true);
+		//	__mozart_prompt_tone_key_sync("error_net_fail");
 			return NULL;
 		}
 	}
@@ -211,7 +211,7 @@ int ai_play_music_order(int order){
 	aitalk_play_music = false;
 /*	if (play_error_tone == false){
 		play_error_tone = true;
-		mozart_prompt_tone_key_sync("error_net_fail", false);
+		__mozart_prompt_tone_key_sync("error_net_fail");
 	}	//*/
 
 	return -1;
