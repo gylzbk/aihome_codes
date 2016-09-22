@@ -469,7 +469,7 @@ DEBUG("PASS\n");
 			ai_play_music_order(-1);
 			break;
 		case SDS_COMMAND_MUSIC_NEXT:
-		//	mozart_prompt_tone_key_sync("next", false);
+			mozart_prompt_tone_key_sync("next", false);
 			ai_aitalk_send(aitalk_send_next_music(NULL));
 			ai_play_music_order(1);
 			break;
