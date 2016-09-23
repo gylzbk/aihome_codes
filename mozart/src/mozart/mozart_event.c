@@ -315,7 +315,7 @@ static void mozart_event_key(mozart_event event)
 	#if (SUPPORT_VR == VR_SPEECH)
 		if(code  == KEY_RECORD){		//-------------- stop sam
 			//mozart_aitalk_sem_stop();
-			ai_key_record();
+			//ai_key_record();
 			return;
 		}
 	#endif
