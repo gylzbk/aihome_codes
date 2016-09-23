@@ -92,16 +92,21 @@ static int net_module_suspend(struct mozart_module_struct *current)
 
 static int net_module_stop(struct mozart_module_struct *current)
 {
+	printf("+++ net_module_stop -----1-\n");
 	wifi_info_t infor = get_wifi_mode();
 
-	module_mutex_lock(&net_mode_lock);
+	printf("+++ net_module_stop -----2-\n");
+	mozart_module_net_lock();
 
+	printf("+++ net_module_stop -----3-\n");
 	pr_debug("net_mode is %s, infor.wifi_mode = %d\n\n",
 		 net_mode_str[global_net_mode], infor.wifi_mode);
 
-	if (global_net_mode == NET_MODE_CFG_START)
+	printf("+++ net_module_stop -----4-\n");
+	if ((global_net_mode == NET_MODE_CFG_START)||(global_net_mode == NET_MODE_SW_NETCFG))
 		stop_net_config();
 
+	printf("+++ net_module_stop -----5-\n");
 	if (((global_net_mode == NET_MODE_BOOT_STA || global_net_mode == NET_MODE_CFG_STA ||
 	      global_net_mode == NET_MODE_SW_STA) && infor.wifi_mode != STA) ||
 	    global_net_mode == NET_MODE_INVALID || global_net_mode == NET_MODE_SW_NETCFG ||
@@ -110,7 +115,8 @@ static int net_module_stop(struct mozart_module_struct *current)
 			global_net_mode = NET_MODE_SW_STA_ALLTIME;
 	}
 
-	module_mutex_unlock(&net_mode_lock);
+	printf("+++ net_module_stop -----6-\n");
+	mozart_module_net_unlock();
 
 	return 0;
 }
@@ -197,7 +203,7 @@ static void __net_config_func(void)
 		return ;
 	} else {
 		global_net_mode = NET_MODE_SW_NETCFG;
-		module_mutex_unlock(&net_mode_lock);
+		mozart_module_net_unlock();
 
 		ret = net_module.start(&net_module, module_cmd_stop, false);
 		if (ret) {
@@ -205,7 +211,7 @@ static void __net_config_func(void)
 			return ;
 		}
 
-		module_mutex_lock(&net_mode_lock);
+		mozart_module_net_lock();
 		if (global_net_mode != NET_MODE_SW_NETCFG)
 			return ;
 
@@ -213,14 +219,14 @@ static void __net_config_func(void)
 		mozart_smartui_net_start();
 
 		switch_net_config();
-		module_mutex_unlock(&net_mode_lock);
+		mozart_module_net_unlock();
 
 		mozart_module_mutex_lock();
 		if (__mozart_module_is_start(&net_module))
 			mozart_prompt_tone_key_sync("atalk_wifi_config_7", true);
 		mozart_module_mutex_unlock();
 
-		module_mutex_lock(&net_mode_lock);
+		mozart_module_net_lock();
 		return ;
 	}
 }
@@ -318,12 +324,12 @@ static int __network_configure_error_handler(char *s)
 {
 	global_net_mode = NET_MODE_SW_STA;
 	mozart_smartui_net_fail(s);
-	module_mutex_unlock(&net_mode_lock);
+	mozart_module_net_unlock();
 
 	/* Can stop tone */
 	mozart_prompt_tone_key_sync("atalk_wifi_config_fail_9", false);
 
-	module_mutex_lock(&net_mode_lock);
+	mozart_module_net_lock();
 	if (global_net_mode != NET_MODE_SW_STA)
 		return -1;
 	mozart_smartui_boot_build_display("尝试恢复网络连接");
@@ -338,16 +344,16 @@ static inline void network_configure_handler(event_info_t network_event, struct 
 	pr_debug("-----------> network_configure_handler\n");
 	if (network_content_is_configure_status(&network_event, AIRKISS_STARTING)) {
 		/* net config start */
-		module_mutex_lock(&net_mode_lock);
+		mozart_module_net_lock();
 		if (global_net_mode == NET_MODE_SW_NETCFG) {
 			global_net_mode = NET_MODE_CFG_START;
 		} else {
 		//	stop_net_config();
 			pr_err("netcfg start, net_mode is %s ?\n", net_mode_str[global_net_mode]);
-			module_mutex_unlock(&net_mode_lock);
+			mozart_module_net_unlock();
 			return ;
 		}
-		module_mutex_unlock(&net_mode_lock);
+		mozart_module_net_unlock();
 
 		mozart_module_mutex_lock();
 		if (__mozart_net_is_start()) {
@@ -382,20 +388,20 @@ static inline void network_configure_handler(event_info_t network_event, struct 
 
 	} else if (network_content_is_configure_status(&network_event, AIRKISS_SUCCESS)) {
 		/* net config success */
-		module_mutex_lock(&net_mode_lock);
+		mozart_module_net_lock();
 		if (global_net_mode == NET_MODE_CFG_START) {
 			global_net_mode = NET_MODE_CFG_STA;
 		} else {
 			pr_err("netcfg success, net_mode is %s ?\n", net_mode_str[global_net_mode]);
-			module_mutex_unlock(&net_mode_lock);
+			mozart_module_net_unlock();
 			return ;
 		}
-		module_mutex_unlock(&net_mode_lock);
+		mozart_module_net_unlock();
 		mozart_smartui_net_receive_success();
 	} else if ((network_content_is_configure_status(&network_event, AIRKISS_FAILED)) ||
 		   network_content_is_configure_status(&network_event, AIRKISS_CANCEL)) {
 		/* net config fail/cancel */
-		module_mutex_lock(&net_mode_lock);
+		mozart_module_net_lock();
 		if (global_net_mode == NET_MODE_CFG_START ||
 		    global_net_mode == NET_MODE_CFG_CANCEL) {
 			struct json_object *tmp = NULL;
@@ -411,17 +417,17 @@ static inline void network_configure_handler(event_info_t network_event, struct 
 			}
 
 			if (__network_configure_error_handler(s)) {
-				module_mutex_unlock(&net_mode_lock);
+				mozart_module_net_unlock();
 				return ;
 			}
 
 			network_switch_sta_mode(30);
 		} else {
 			pr_err("netcfg fail, net_mode is %s ?\n", net_mode_str[global_net_mode]);
-			module_mutex_unlock(&net_mode_lock);
+			mozart_module_net_unlock();
 			return ;
 		}
-		module_mutex_unlock(&net_mode_lock);
+		mozart_module_net_unlock();
 	}
 }
 
@@ -433,26 +439,26 @@ static inline void network_sta_failed_handler(char *reason)
 	if (reason == NULL)
 		return ;
 
-	module_mutex_lock(&net_mode_lock);
+	mozart_module_net_lock();
 	if (global_net_mode == NET_MODE_BOOT_STA) {
 		if (network_sta_error_handler(reason, true)) {
-			module_mutex_unlock(&net_mode_lock);
+			mozart_module_net_unlock();
 			/* Can stop tone */
 			mozart_prompt_tone_key_sync("atalk_offline_2", false);
 
-			module_mutex_lock(&net_mode_lock);
+			mozart_module_net_lock();
 			if (global_net_mode == NET_MODE_BOOT_STA)
 				__net_config_func();
 		}
 
-		module_mutex_unlock(&net_mode_lock);
+		mozart_module_net_unlock();
 		return ;
 	} else if (global_net_mode == NET_MODE_CFG_STA) {
 		char *s = network_sta_error_str(reason);
 
 		__network_configure_error_handler(s);
 
-		module_mutex_unlock(&net_mode_lock);
+		mozart_module_net_unlock();
 		return ;
 	} else if (global_net_mode == NET_MODE_SW_STA) {
 		pr_debug("switch sta fail\n");
@@ -461,7 +467,7 @@ static inline void network_sta_failed_handler(char *reason)
 			if (network_switch_sta_mode(5 * 60))
 				global_net_mode = NET_MODE_SW_STA_ALLTIME;
 		} else {
-			module_mutex_unlock(&net_mode_lock);
+			mozart_module_net_unlock();
 			return ;
 		}
 	} else if (global_net_mode == NET_MODE_SW_STA_ALLTIME) {
@@ -473,7 +479,7 @@ static inline void network_sta_failed_handler(char *reason)
 			  network_is_str(reason, sta_error_str[CONNECT_TIMEOUT_ALLTIME])))
 			network_switch_sta_mode(5 * 60);
 
-		module_mutex_unlock(&net_mode_lock);
+		mozart_module_net_unlock();
 		return ;
 	} else if (global_net_mode == NET_MODE_STA) {
 		pr_debug("wifi disconnect\n");
@@ -482,11 +488,11 @@ static inline void network_sta_failed_handler(char *reason)
 			global_net_mode = NET_MODE_SW_STA_ALLTIME;
 	} else {
 		pr_err("sta fail, net_mode is %s ?\n", net_mode_str[global_net_mode]);
-		module_mutex_unlock(&net_mode_lock);
+		mozart_module_net_unlock();
 		return ;
 	}
 	stopall(APP_DEPEND_NET_ALL);
-	module_mutex_unlock(&net_mode_lock);
+	mozart_module_net_unlock();
 
 	mozart_module_mutex_lock();
 
@@ -515,14 +521,14 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 	enum atalk_network_state network_state;
 
 	if (network_is_str(network_event.content, wifi_mode_str[STA])) {
-		module_mutex_lock(&net_mode_lock);
+		mozart_module_net_lock();
 		wrong_key = false;
 		if (global_net_mode == NET_MODE_STA) {
 #if 0
 			if (__mozart_module_is_attach()) {
 				if (net_module.start(&net_module, module_cmd_stop, false)) {
 					pr_err("connect fail!\n");
-					module_mutex_unlock(&net_mode_lock);
+					mozart_module_net_unlock();
 					return ;
 				}
 				mozart_smartui_boot_build_display("网络断开,已重连");
@@ -530,14 +536,14 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 			}
 			stopall(APP_DEPEND_NET_ALL);
 			startall(APP_DEPEND_NET_ALL);
-			module_mutex_unlock(&net_mode_lock);
+			mozart_module_net_unlock();
 
 			mozart_module_mutex_lock();
 			__mozart_atalk_network_trigger(network_config, network_online, false);
 			__mozart_atalk_network_trigger(network_online, network_config, false);
 			mozart_module_mutex_unlock();
 #else
-			module_mutex_unlock(&net_mode_lock);
+			mozart_module_net_unlock();
 #endif
 			printf("\n\n-NET_MODE_STA--1111111111111-----------\n\n");
 			return ;
@@ -587,11 +593,11 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 
 			printf("\n\n---------net--66666666666666-----------\n\n");
 			pr_err("sta mode, net_mode is %s ?\n", net_mode_str[global_net_mode]);
-			module_mutex_unlock(&net_mode_lock);
+			mozart_module_net_unlock();
 			return ;
 		}
 		startall(APP_DEPEND_NET_ALL);
-		module_mutex_unlock(&net_mode_lock);
+		mozart_module_net_unlock();
 
 		mozart_module_mutex_lock();
 
@@ -613,7 +619,7 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 
 		mozart_module_mutex_unlock();
 	} else {
-		module_mutex_lock(&net_mode_lock);
+		mozart_module_net_lock();
 		if (global_net_mode == NET_MODE_STA ||
 		    network_is_str(network_event.content, wifi_mode_str[STA_WAIT])) {
 			pr_err("WIFI_MODE: %s\n", network_event.content);
@@ -621,7 +627,7 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 				global_net_mode = NET_MODE_SW_STA_ALLTIME;
 
 			stopall(APP_DEPEND_NET_ALL);
-			module_mutex_unlock(&net_mode_lock);
+			mozart_module_net_unlock();
 
 			mozart_module_mutex_lock();
 
@@ -640,7 +646,7 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 
 			mozart_module_mutex_unlock();
 		} else {
-			module_mutex_unlock(&net_mode_lock);
+			mozart_module_net_unlock();
 		}
 	}
 }
@@ -690,9 +696,9 @@ static int network_callback(const char *p)
 static void *net_config_func(void *args)
 {
 	pthread_detach(pthread_self());
-	module_mutex_lock(&net_mode_lock);
+	mozart_module_net_lock();
 	__net_config_func();
-	module_mutex_unlock(&net_mode_lock);
+	mozart_module_net_unlock();
 
 	return NULL;
 }
