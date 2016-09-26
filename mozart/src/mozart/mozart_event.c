@@ -375,9 +375,6 @@ static void mozart_event_key(mozart_event event)
 				create_key_long_press_pthread(&facotry_reset_key_info);
 			#endif
 			break;
-		case KEY_F8:
-			facotry_reset_handler(true);
-			break;
 		case KEY_HELP:
 			#if(SUPPORT_BOARD == BOARD_WB38)
 			#else
