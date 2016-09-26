@@ -358,11 +358,11 @@ static int mozart_smartui_build_bt_hs_view(void)
 {
 	struct view_struct view = {
 		.left = 0,
-		.top = 190,
-		.right = 240,
-		.bottom = 220,
+		.top = 160,
+		.right = 176,
+		.bottom = 160 + 16,
 		.layer = top_layer,
-		.align = center_align,
+		.align = center_align,	
 		.bottom_view = &bt_hs_background_imageview->v,
 	};
 
@@ -370,13 +370,14 @@ static int mozart_smartui_build_bt_hs_view(void)
 		bt_hs_prompt_textview = smartui_textview(&view);
 		if (bt_hs_prompt_textview == NULL)
 			pr_err("build bt_hs_prompt_textview fail!\n");
+		smartui_textview_font_set(bt_hs_prompt_textview, HZK16);
 	}
 
 	if (bt_hs_imageview == NULL) {
-		view.left = 70;
-		view.top = 80;
-		view.right = 170;
-		view.bottom = 180;
+		view.left = 53;
+		view.top = 55;
+		view.right = 53 + 70;
+		view.bottom = 55 + 70;
 		view.layer = top_layer;
 		view.align = left_align;
 		bt_hs_imageview = smartui_imageview(&view);
@@ -1355,6 +1356,8 @@ void mozart_smartui_bt_hs(void)
 
 	usleep(500 * 1000);
 	mozart_smartui_build_bt_hs_view();
+
+	printf("----mozart_smartui_bt_hs---------\n\n\n");
 
 	smartui_imageview_display(bt_hs_background_imageview,  SMARTUI_PATH"bt.bmp");
 	smartui_imageview_display(bt_hs_imageview, SMARTUI_PATH"bt_hs.bmp");
