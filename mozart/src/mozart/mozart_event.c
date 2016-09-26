@@ -365,6 +365,9 @@ static void mozart_event_key(mozart_event event)
 		case KEY_F12:
 			create_key_long_press_pthread(&facotry_reset_key_info);
 			break;
+		case KEY_F8:
+			facotry_reset_handler(true);
+			break;
 		case KEY_HELP:
 			create_key_long_press_pthread(&help_key_info);
 			break;
