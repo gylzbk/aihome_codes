@@ -15,15 +15,16 @@
 //#define MUSIC_SERVER		    "d.api.aispeech.com/data/music?"
 
 #define SONG_LIST_MAX 10
-#define SONG_GET_ERROR_MAX 3
+#define SONG_GET_ERROR_MAX 5
 
 typedef enum song_recommend_type_e{
 	SONG_RECOMMEND_TYPE_AUTO,
 	SONG_RECOMMEND_TYPE_ARTIST
 }song_recommend_type_e;
 typedef struct ai_song_recommend_t {
-	bool  is_update_success;
-	bool  is_update_getting;
+	bool  is_success;
+	bool  is_getting;
+	bool  is_wait_callback;
 //	int  error_count;
 	int  song_number;
 	int  geted_number;
@@ -32,7 +33,7 @@ typedef struct ai_song_recommend_t {
 	song_recommend_type_e type;					//	type
 }ai_song_recommend_t;
 
-extern ai_song_recommend_t ai_song_update_list;
+extern ai_song_recommend_t ai_song_list;
 
 extern void ai_song_recommend_init(void);
 extern int ai_song_recommend_update(char *text);
