@@ -84,10 +84,10 @@ int music_list_delete(music_info *info)
 		printf("[%s %s %d]error: head delete\n", __FILE__, __func__, __LINE__);
 	}
 	_list_delete(&info->list);
-	//free(info->title);
-	//free(info->artist);
-	//free(info->url);
-	//free(info);
+	free(info->title);
+	free(info->artist);
+	free(info->url);
+	free(info);
 
 error:
 	return retvalue;
