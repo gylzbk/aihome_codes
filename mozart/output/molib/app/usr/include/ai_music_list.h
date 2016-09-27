@@ -11,6 +11,7 @@
 #include "vr-speech_interface.h"
 #include "ai_slot.h"
 
+#if 0
 
 #define MUSIC_LIST_MAX 10
 #define MUSIC_LIST_SAVE_URL 0
@@ -26,3 +27,4 @@ extern music_info *ai_music_list_play_order(int order);
 extern int ai_music_list_init(void);
 extern int ai_music_list_free(void);
 extern int ai_music_list_add_music(music_info *music);
+#endif

@@ -14,7 +14,7 @@
 #include <netinet/in.h>
 #include <linux/soundcard.h>
 #include <stdbool.h>
-#include "ai_music_list.h"
+#include "music_list.h"
 #include "aiengine_app.h"
 #include "ai_server.h"
 #include "ai_error.h"
@@ -22,6 +22,7 @@
 #include "ai_elife_doss.h"
 
 #include "vr-speech_interface.h"
+music_obj *g_m;
 
 unsigned long get_file_size(const char *path)
 {
@@ -148,7 +149,6 @@ int ai_server_fun(vr_info *recog)
 				if((recog->search_artist)
 					&&(recog->search_title == NULL)){
 					DEBUG("-------------Only search artist!...\n");
-					ai_music_list_free();
 					ai_song_recommend_artist(recog->search_artist);
 				//	#if AI_CONTROL_MOZART
 				//		ai_aitalk_send(aitalk_send_play_music(NULL));
@@ -173,7 +173,9 @@ int ai_server_fun(vr_info *recog)
 			}
 			if (recog->music.url){
 				if (recog->domain == RECOG_DOMAIN_MUSIC){
-					ai_music_list_add_music(&recog->music);
+					printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
+					music_list_insert(g_m, &recog->music);
+					printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
 				}
 			#if AI_CONTROL_MOZART
 				music_info music;
@@ -512,9 +514,12 @@ exit_error:
    	return error;
 }
 
-int ai_server_init(void){
+int ai_server_init(void)
+{
 //	ai_curlInit();
-	ai_music_list_init();
+	printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
+	music_list_alloc(&g_m, 20);
+
 	ai_song_recommend_init();
 //	ai_song_recommend_auto();
 	#if  SUPPORT_ELIFE
@@ -532,7 +537,7 @@ int ai_server_init(void){
 }
 
 int ai_server_exit(void){
-	ai_music_list_free();
+	music_list_destroy(g_m);
 	ai_song_recommend_free_all();
 	#if  SUPPORT_ELIFE
 	ai_elife_free();

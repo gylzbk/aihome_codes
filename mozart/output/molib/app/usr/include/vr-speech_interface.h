@@ -3,7 +3,7 @@
 
 //#define SPEECH_CLOUD_TTS
 #include <stdbool.h>
-
+#include "music_list.h"
 typedef enum aiengine_status{
 	AIENGINE_STATUS_INIT = 0,				//
 //	AIENGINE_STATUS_IDEL,					//
@@ -146,12 +146,13 @@ typedef enum sds_command_type_e{
 }sds_command_type_e;	//*/
 
 
-
+#if 0
 typedef struct music_info_t {
 	char *title;
 	char *artist;
 	char *url;
 }music_info;
+#endif
 
 typedef struct movie_info_t {
 	char *name;

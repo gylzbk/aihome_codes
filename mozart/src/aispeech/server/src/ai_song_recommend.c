@@ -452,6 +452,7 @@ void *ai_song_recommend_auto_thr(void *args)
 }
 #endif
 
+extern music_obj *g_m;
 int ai_song_recommend_auto(void){
 	music_info *music = NULL;
 	ai_song_recommend_push();
@@ -461,8 +462,10 @@ int ai_song_recommend_auto(void){
 		aitalk_play_music = true;
 		music = &ai_song_update_list.song[0];
 		if (music){
-			if (music->url != NULL){
-				ai_music_list_add_music(music);
+			if (music->url != NULL) {
+				printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
+				music_list_insert(g_m, music);
+				printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
 			}
 			else{
 				return 0;
