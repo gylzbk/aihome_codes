@@ -26,6 +26,8 @@
 #include "cloud_param.h"
 #include "aiengine.h"
 #include "aiengine_app.h"
+#include "music_list.h"
+music_obj *g_m;
 
 
 #include "cJSON.h"
@@ -432,7 +434,10 @@ void ai_song_recommend_artist(char *artist){
 		music = &ai_song_list.song[0];
 		if (music){
 			if (music->url != NULL){
-				ai_music_list_add_music(music);
+				music_info *info;
+				music_info_alloc(&info, music->title,
+						music->artist, music->url);
+				music_list_insert(g_m, info);
 			}
 			else{
 				return;
