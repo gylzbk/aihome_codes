@@ -639,9 +639,7 @@ int ai_set_enable(bool enable){
 			DEBUG("=========================== stop aiengine ...\n");
 			ai_flag.is_running = false;
 			if (ai_flag.is_init){
-				ai_aec_stop();
-				ai_cloud_sem_stop();
-				ai_tts_stop();
+				ai_aiengine_exit();
 			}
 		}
 	}
