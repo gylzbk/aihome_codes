@@ -93,6 +93,36 @@ error:
 	return retvalue;
 }
 
+int music_list_insert_head(music_obj *obj, music_info *info)
+{
+	int retvalue = 0;
+	if ((info == NULL) || (obj == NULL)) {
+		printf("error:[%s %s %d]\n", __FILE__, __func__, __LINE__);
+		retvalue = -1;
+		goto end;
+	}
+
+	obj->cur_music = info;
+
+	if (NULL == info->url) {
+		printf("error:[%s %s %d]\n", __FILE__, __func__, __LINE__);
+		retvalue = -1;
+		goto end;
+	}
+
+	if (obj->cur_num > obj->max) {
+		printf("error:[%s %s %d]\n", __FILE__, __func__, __LINE__);
+		music_info *tmp = list_entry(obj->head.list.next, music_info, list);
+		music_list_delete(tmp);
+		obj->cur_num--;
+	}
+
+	_list_insert_spec(&obj->head.list, &info->list);
+	obj->cur_num++;
+end:
+	return retvalue;
+}
+
 int music_list_insert(music_obj *obj, music_info *info)
 {
 	printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);

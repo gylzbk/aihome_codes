@@ -45,9 +45,11 @@ music_info *ai_music_list_play_order(int order)
 	case -1:
 		music = music_prev_get(g_m);
 		/*XXX: maybe tone tip*/
-		if (music == NULL)
+		if (music == NULL) {
+			music = ai_song_recommend_push();
+			music_list_insert_head(g_m, music);
 			printf("[%s %s %d] no previous song\n", __FILE__, __func__, __LINE__);
-
+		}
 		break;
 	default:
 		music = NULL;
