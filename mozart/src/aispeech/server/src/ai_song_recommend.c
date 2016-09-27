@@ -488,7 +488,11 @@ int ai_song_recommend_auto(void){
 		if (music){
 			if (music->url != NULL) {
 				printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
+				music_info *info;
+				music_info_alloc(&info, music->title,
+						music->artist, music->url);
 				music_list_insert(g_m, music);
+
 				printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
 			}
 			else{

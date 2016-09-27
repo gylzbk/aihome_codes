@@ -174,7 +174,10 @@ int ai_server_fun(vr_info *recog)
 			if (recog->music.url){
 				if (recog->domain == RECOG_DOMAIN_MUSIC){
 					printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
-					music_list_insert(g_m, &recog->music);
+					music_info *info;
+					music_info_alloc(&info, recog->music.title,
+							recog->music.artist, recog->music.url);
+					music_list_insert(g_m, info);
 					printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
 				}
 			#if AI_CONTROL_MOZART

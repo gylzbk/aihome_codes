@@ -84,10 +84,10 @@ int music_list_delete(music_info *info)
 		printf("[%s %s %d]error: head delete\n", __FILE__, __func__, __LINE__);
 	}
 	_list_delete(&info->list);
-	//free(info->title);
-	//free(info->artist);
-	//free(info->url);
-	//free(info);
+	free(info->title);
+	free(info->artist);
+	free(info->url);
+	free(info);
 
 error:
 	return retvalue;
@@ -154,23 +154,25 @@ int music_info_alloc(music_info **info, char *title, char *artist, char *url)
 	if (*info == NULL) {
 		printf("error:[%s %s %d]\n", __FILE__, __func__, __LINE__);
 	}
+	if (title != NULL)
+		(*info)->title = strdup(title);
 
-	(*info)->title = strdup(title);
-	if ((*info)->title == NULL)
-		printf("error:[%s %s %d]\n", __FILE__, __func__, __LINE__);
+	if (artist != NULL)
+		(*info)->artist = strdup(artist);
 
-	(*info)->artist = strdup(artist);
-	if ((*info)->artist == NULL)
-		printf("error:[%s %s %d]\n", __FILE__, __func__, __LINE__);
+	if (url != NULL)
+		(*info)->url = strdup(url);
 
-	(*info)->url = strdup(url);
-	if ((*info)->url == NULL)
-		printf("error:[%s %s %d]\n", __FILE__, __func__, __LINE__);
 	return 0;
 }
 
 int music_list_destroy(music_obj *obj)
 {
+	if (obj == NULL) {
+		printf("[%s %s %d] error\n", __FILE__, __func__, __LINE__);
+		return 0;
+	}
+
 	printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
 	LIST *tmp = obj->head.list.next;
 	music_info *m;
