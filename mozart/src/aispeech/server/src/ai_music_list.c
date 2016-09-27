@@ -50,6 +50,7 @@ music_info *ai_music_list_play_order(int order)
 
 		break;
 	default:
+		music = NULL;
 		printf("[%s %s %d] order error\n", __FILE__, __func__, __LINE__);
 		break;
 	}
@@ -64,7 +65,8 @@ music_info *ai_music_list_play_order(int order)
 	return music;
 }
 
-int ai_play_music_order(int order){
+int ai_play_music_order(int order)
+{
 	printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
 	music_info *music = NULL;
 	music = ai_music_list_play_order(order);
