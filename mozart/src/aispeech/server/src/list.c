@@ -21,7 +21,7 @@ void _list_insert(LIST * head, LIST * node)
 void _list_insert_spec(LIST * head, LIST * node)
 {
 	if (is_list_last(head)) {
-		list_insert(head, node);
+		_list_insert(head, node);
 		return;
 	}
 
@@ -50,5 +50,5 @@ void _list_insert_behind(LIST * head, LIST * node)
 		list = list->next;
 	}
 
-	list_insert(list, node);
+	_list_insert(list, node);
 }
