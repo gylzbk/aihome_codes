@@ -140,6 +140,8 @@ static void create_combo_pthread(int key, int value)
 #endif
 
 extern int mozart_ini_setkey(char *ini_file, char *section, char *key, char *value);
+
+#if(SUPPORT_BOARD == BOARD_DS1825)
 /*******************************************************************************
  * long press
  *******************************************************************************/
@@ -196,6 +198,7 @@ static struct key_long_press_struct playpause_key_info = {
 	.timeout_second = 3,
 	.handler = playpause_handler,
 };
+
 
 static struct key_long_press_struct help_key_info = {
 	.name = "help_key",
@@ -278,7 +281,7 @@ static void key_long_press_cancel(struct key_long_press_struct *info)
 
 	pthread_mutex_unlock(&info->lock);
 }
-
+#endif
 /*******************************************************************************
  * event handler
  *******************************************************************************/
