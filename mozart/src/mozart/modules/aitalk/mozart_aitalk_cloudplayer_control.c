@@ -207,7 +207,7 @@ static int send_play_done(const char *url, int error_no)
 	#else
 	//----------- conture playing
 	if (ai_is_play_music()== true){
-		ai_play_music_order(1);;
+		ai_play_music_order(1);
 	}
 	else{
 		aitalk_is_playing = false;
@@ -370,22 +370,38 @@ static int play_handler(json_object *cmd)
 
 static int stop_handler(json_object *cmd)
 {
+	mozart_prompt_tone_key_sync("stop",false);
 	mozart_aitalk_cloudplayer_do_stop();
-
 	return 0;
 }
 
 static int pause_handler(json_object *cmd)
 {
-	mozart_aitalk_cloudplayer_do_pause();
+	bool is_tone = false;
+	json_object *params = NULL;
+	json_object *tone_j = NULL;
+	char *tone_s = NULL;
+	if (json_object_object_get_ex(cmd, "params", &params)){
+		if (json_object_object_get_ex(params, "tone", &tone_j)){
+			tone_s =(char *)json_object_get_string(tone_j);
+			if (!strcmp(tone_s, "true")) {
+				is_tone = true;
+			}
+		}
+	}
+	if (is_tone){
+		pr_debug("tone: pause !...\n");
+		mozart_prompt_tone_key_sync("pause",false);
+	}
 
+	mozart_aitalk_cloudplayer_do_pause();
 	return 0;
 }
 
 static int resume_handler(json_object *cmd)
 {
+	mozart_prompt_tone_key_sync("resume",false);
 	mozart_aitalk_cloudplayer_do_resume();
-
 	return 0;
 }
 
@@ -396,12 +412,14 @@ static int pause_toggle_handler(json_object *cmd)
 	return 0;
 }
 
-static int set_volume_handler(json_object *cmd)
-{
-	const char *volume;
-	int vol = 0;
+static int set_volume_handler(json_object *cmd){
 	printf("%s...!\n",__func__);
-	json_object *params, *volume_j;//, *artist, *title, *vendor;
+	int vol = 0;
+	json_object *params = NULL;
+	json_object *volume_j = NULL;
+	json_object *tone_key_j = NULL;
+	const char *volume = NULL;
+	const char *tone_key = NULL;
 
 	if (!json_object_object_get_ex(cmd, "params", &params)){
 		pr_err("[%d]error!\n",__LINE__);
@@ -410,6 +428,18 @@ static int set_volume_handler(json_object *cmd)
 	if (!json_object_object_get_ex(params, "volume", &volume_j)){
 		pr_err("[%d]error!\n",__LINE__);
 		return -1;
+	}
+	if (json_object_object_get_ex(params, "tone_key", &tone_key_j)){
+		tone_key = json_object_get_string(tone_key_j);
+		if (!strcmp(tone_key, "volume_up")) {
+			mozart_prompt_tone_key_sync("volume_up",false);
+		} else if  (!strcmp(tone_key, "volume_down")){
+			mozart_prompt_tone_key_sync("volume_down",false);
+		} else if  (!strcmp(tone_key, "volume_max")){
+			mozart_prompt_tone_key_sync("volume_max",false);
+		} else if  (!strcmp(tone_key, "volume_min")){
+			mozart_prompt_tone_key_sync("volume_min",false);
+		}//*/
 	}
 
 	volume = json_object_get_string(volume_j);
@@ -446,7 +476,8 @@ static int set_volume_handler(json_object *cmd)
 static int play_music_handler(json_object *cmd)
 {
 	printf("%s...!\n",__func__);
-	ai_play_music_order(0);
+	mozart_prompt_tone_key_sync("resume",false);
+//	ai_play_music_order(0);
 	return 0;
 }
 
@@ -454,14 +485,48 @@ static int play_music_handler(json_object *cmd)
 static int previous_music_handler(json_object *cmd)
 {
 	printf("%s...!\n",__func__);
-	ai_play_music_order(-1);
+	mozart_prompt_tone_key_sync("previous",false);
+	mozart_aitalk_cloudplayer_do_previous_song();
 	return 0;
 }
 
 static int next_music_handler(json_object *cmd)
 {
 	printf("%s...!\n",__func__);
-	ai_play_music_order(1);
+	mozart_prompt_tone_key_sync("next",false);
+	mozart_aitalk_cloudplayer_do_next_song();
+	return 0;
+}
+
+static int exit_handler(json_object *cmd)
+{
+	printf("%s...!\n",__func__);
+	mozart_prompt_tone_key_sync("exit",false);
+	return 0;
+}
+
+static int error_handler(json_object *cmd)
+{
+	json_object *params = NULL;
+	json_object *tone_key_j = NULL;
+	const char *tone_key = NULL;
+	if (!json_object_object_get_ex(cmd, "params", &params))
+		return -1;
+	if (json_object_object_get_ex(params, "tone_key", &tone_key_j)){
+		tone_key = json_object_get_string(tone_key_j);
+		if((!strcmp(tone_key, "error_sem_fail_1"))
+		||  (!strcmp(tone_key, "error_sem_fail_2"))
+		||  (!strcmp(tone_key, "error_sem_fail_3"))
+		||  (!strcmp(tone_key, "error_authority"))
+		||  (!strcmp(tone_key, "error_invalid_domain"))
+		||  (!strcmp(tone_key, "error_system"))
+		||  (!strcmp(tone_key, "error_no_voice"))
+		||  (!strcmp(tone_key, "error_server_busy"))
+		||  (!strcmp(tone_key, "error_net_slow"))
+		||  (!strcmp(tone_key, "error_net_fail"))){
+			mozart_prompt_tone_key_sync((char *)tone_key,false);
+		}//*/
+	}
 	return 0;
 }
 
@@ -760,6 +825,14 @@ static struct aitalk_method methods[] = {
 	{
 		.name = "next_music",
 		.handler = next_music_handler,
+	},
+	{
+		.name = "exit",
+		.handler = exit_handler,
+	},
+	{
+		.name = "error",
+		.handler = error_handler,
 	},
 	{
 		.name = "previous_music",

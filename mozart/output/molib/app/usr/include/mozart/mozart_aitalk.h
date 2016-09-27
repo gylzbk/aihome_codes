@@ -38,6 +38,9 @@ extern int mozart_aitalk_cloudplayer_start(bool in_lock);
 extern int mozart_aitalk_cloudplayer_do_play(void);
 extern int mozart_aitalk_cloudplayer_do_resume(void);
 extern int mozart_aitalk_cloudplayer_do_pause(void);
+extern int mozart_aitalk_cloudplayer_do_previous_song(void);
+extern int mozart_aitalk_cloudplayer_do_next_song(void);
+
 extern int mozart_aitalk_cloudplayer_do_resume_pause(void);
 extern int mozart_aitalk_cloudplayer_do_stop(void);
 extern int mozart_aitalk_cloudplayer_startup(void);

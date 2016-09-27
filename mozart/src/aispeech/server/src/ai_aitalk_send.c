@@ -91,13 +91,30 @@ char *aitalk_send_play_url(const music_info *music){
 	return send_obj("play",params);
 }
 
-char *aitalk_send_pause(const char *url){
-	return send_obj("pause",NULL);
+char *aitalk_send_pause(bool tone){
+	char *tone_s;
+	if (tone)
+		tone_s = "true";
+	else
+		tone_s = "false";
+	json_object *params;
+	params = json_object_new_object();
+	json_object_object_add(params, "tone", json_object_new_string(tone_s));
+	return send_obj("pause",params);
 }
 
-char *aitalk_send_resume(const char *url){
-	return send_obj("resume",NULL);
+char *aitalk_send_resume(bool tone){
+	char *tone_s;
+	if (tone)
+		tone_s = "true";
+	else
+		tone_s = "false";
+	json_object *params;
+	params = json_object_new_object();
+	json_object_object_add(params, "tone", json_object_new_string(tone_s));
+	return send_obj("resume",params);
 }
+
 char *aitalk_send_stop_music(const char *url){
 	return send_obj("stop_music",NULL);
 }
@@ -114,11 +131,22 @@ char *aitalk_send_next_music(const char *url){
 	return send_obj("next_music",NULL);
 }
 
-char *aitalk_send_set_volume(const char *cmd){
+char *aitalk_send_exit(const char *url){
+	return send_obj("exit",NULL);
+}
+
+char *aitalk_send_error(const char *error_key){
+	json_object *params;
+	params = json_object_new_object();
+	json_object_object_add(params, "tone_key", json_object_new_string(error_key));
+	return send_obj("error",params);
+}
+
+char *aitalk_send_set_volume(const char *cmd, const char *tone_key){
 	json_object *params;
 	params = json_object_new_object();
 	json_object_object_add(params, "volume", json_object_new_string(cmd));
-//	pr_debug("%s params = %s\n", __func__,json_object_to_json_string(params));
+	json_object_object_add(params, "tone_key", json_object_new_string(tone_key));
 	return send_obj("set_volume",params);
 }
 

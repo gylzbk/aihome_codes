@@ -405,7 +405,9 @@ int ai_status_aecing(void){
 	if (ai_aec(ew) == 0){
 		if(ai_flag.is_running){
 			if(ai_song_list.is_getting == true){
-				mozart_prompt_tone_key_sync("error_server_busy",false);
+				aitalk_send_error("error_server_busy");
+			//	mozart_prompt_tone_key_sync("error_server_busy",false);
+				recog.status = AIENGINE_STATUS_AEC;
 			}
 			else{
 				#if AI_CONTROL_MOZART	  // remove tone when wakeup
@@ -434,11 +436,11 @@ int ai_status_seming(void){
 #if AI_CONTROL_MOZART
 	vol = mozart_volume_get();
 	if (vol == 0){
-		ai_aitalk_send(aitalk_send_set_volume("10"));	//*/
+		ai_aitalk_send(aitalk_send_set_volume("10",""));	//*/
 		usleep(100000);
 	}
 	if (mozart_module_is_playing()==1){
-		ai_aitalk_send(aitalk_send_pause(NULL));
+		ai_aitalk_send(aitalk_send_pause(false));
 	}
 	//ai_tone_time_end();
 #endif
@@ -508,69 +510,47 @@ int ai_status_error(void){
 	}
 	switch (recog.error_type){
 	case  AI_ERROR_SEM_FAIL_1:
-		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_sem_fail_1",false);
-		#endif
+		ai_aitalk_send(aitalk_send_error("error_sem_fail_1"));
 		recog.status = AIENGINE_STATUS_SEM;
 		break;
 	case AI_ERROR_SEM_FAIL_2:
-		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_sem_fail_2",false);
-		#endif
+		ai_aitalk_send(aitalk_send_error("error_sem_fail_2"));
 		recog.status = AIENGINE_STATUS_SEM;
 		break;
 	case AI_ERROR_SEM_FAIL_3:
-		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_sem_fail_3",false);
-		#endif
+		ai_aitalk_send(aitalk_send_error("error_sem_fail_3"));
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_ATUHORITY:
-		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_authority",false);
-		#endif
+		ai_aitalk_send(aitalk_send_error("error_authority"));
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_INVALID_DOMAIN:
-		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_invalid_domain",false);
-		#endif
+		ai_aitalk_send(aitalk_send_error("error_invalid_domain"));
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_SYSTEM:
-		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_system",false);
-		#endif
+		ai_aitalk_send(aitalk_send_error("error_system"));
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_NO_VOICE:
-		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_no_voice",false);
-		#endif
+		ai_aitalk_send(aitalk_send_error("error_no_voice"));
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_SERVER_BUSY:
-		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_server_busy",false);
-		#endif
+		ai_aitalk_send(aitalk_send_error("error_server_busy"));
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_NET_SLOW:
+		ai_aitalk_send(aitalk_send_error("error_net_slow"));
 		recog.status = AIENGINE_STATUS_AEC;
-		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_net_slow",false);
-		#endif
 		break;
 	case  AI_ERROR_NET_FAIL:
-		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_net_fail",false);
-		#endif
+		ai_aitalk_send(aitalk_send_error("error_net_fail"));
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	default:
-		#if AI_CONTROL_MOZART
-		mozart_prompt_tone_key_sync("error_net_slow",false);
-		#endif
+		ai_aitalk_send(aitalk_send_error("error_net_slow"));
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	}

@@ -181,14 +181,14 @@ static int aitalk_cloudplayer_module_stop(struct mozart_module_struct *self)
 
 static void aitalk_cloudplayer_module_volume_change(struct mozart_module_struct *self)
 {
-	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
+	pr_debug("\n=========== %d %s \n\n",__LINE__,__func__);
 	int vol = mozart_volume_get();
 	aitalk_cloudplayer_volume_change(vol);
 }
 
 static void aitalk_cloudplayer_module_resume_pause(struct mozart_module_struct *self)
 {
-	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
+	pr_debug("\n=========== %d %s \n\n",__LINE__,__func__);
 	mozart_aitalk_cloudplayer_do_resume_pause();
 }
 /*
@@ -207,33 +207,31 @@ static void aitalk_cloudplayer_module_asr_wakeup(struct mozart_module_struct *se
 
 static void aitalk_cloudplayer_module_previous_song(struct mozart_module_struct *self)
 {
-	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
+	pr_debug("\n=========== %d %s \n\n",__LINE__,__func__);
 	ai_play_music_order(-1);
-	usleep(500000);
 }
 
 static void aitalk_cloudplayer_module_next_song(struct mozart_module_struct *self)
 {
-	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
+	pr_debug("\n=========== %d %s \n\n",__LINE__,__func__);
 	ai_play_music_order(1);
-	usleep(500000);
 }
 
 static void aitalk_cloudplayer_module_next_channel(struct mozart_module_struct *self)
 {
-	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
+	pr_debug("\n=========== %d %s \n\n",__LINE__,__func__);
 	aitalk_next_channel();
 }
 
 static void aitalk_cloudplayer_module_favorite(struct mozart_module_struct *self)
 {
-	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
+	pr_debug("\n=========== %d %s \n\n",__LINE__,__func__);
 	aitalk_love_audio();
 }
 
 static void aitalk_cloudplayer_module_next_module(struct mozart_module_struct *self)
 {
-	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
+	pr_debug("\n=========== %d %s \n\n",__LINE__,__func__);
 	mozart_bt_avk_start(false);
 }
 
@@ -241,7 +239,7 @@ static void aitalk_cloudplayer_module_next_module(struct mozart_module_struct *s
 extern bool aitalk_is_playing;
 static bool aitalk_cloudplayer_module_is_playing(struct mozart_module_struct *self)
 {
-	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
+	pr_debug("\n=========== %d %s \n\n",__LINE__,__func__);
 	return aitalk_is_playing;
 }
 
@@ -487,6 +485,20 @@ int mozart_aitalk_cloudplayer_do_resume(void)
 	return ret;
 }
 
+
+int mozart_aitalk_cloudplayer_do_next_song(void)
+{
+	mozart_module_next_song();
+	return 0;
+}
+
+int mozart_aitalk_cloudplayer_do_previous_song(void)
+{
+	mozart_module_previous_song();
+	return 0;
+}
+
+
 int mozart_aitalk_cloudplayer_do_pause(void)
 {
 	int ret;
@@ -537,6 +549,7 @@ int mozart_aitalk_cloudplayer_do_stop(void)
 
 	return ret;
 }
+
 
 int mozart_aitalk_cloudplayer_startup(void)
 {

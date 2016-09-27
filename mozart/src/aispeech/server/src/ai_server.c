@@ -14,7 +14,6 @@
 #include <netinet/in.h>
 #include <linux/soundcard.h>
 #include <stdbool.h>
-#include "ai_music_list.h"
 #include "aiengine_app.h"
 #include "ai_server.h"
 #include "ai_error.h"
@@ -148,7 +147,6 @@ int ai_server_fun(vr_info *recog)
 				if((recog->search_artist)
 					&&(recog->search_title == NULL)){
 					DEBUG("-------------Only search artist!...\n");
-					ai_music_list_free();
 					ai_song_recommend_artist(recog->search_artist);
 				//	#if AI_CONTROL_MOZART
 				//		ai_aitalk_send(aitalk_send_play_music(NULL));
@@ -173,13 +171,13 @@ int ai_server_fun(vr_info *recog)
 			}
 			if (recog->music.url){
 				if (recog->domain == RECOG_DOMAIN_MUSIC){
-					ai_music_list_add_music(&recog->music);
 				}
 			#if AI_CONTROL_MOZART
 				music_info music;
 				music.url = recog->music.url;
 				music.artist = recog->music.artist;
 				music.title = recog->music.title;
+				ai_music_list_add_music(music);
 				ai_aitalk_send(aitalk_send_play_url(&music));
 			#endif
 				recog->next_status     = AIENGINE_STATUS_AEC;
@@ -400,28 +398,21 @@ exit_command:
 		switch(command){
 		case SDS_COMMAND_VOLUME:
 			if (recog->volume){
+				char *tone_key;
 				if(strcmp(recog->volume, "+") == 0){
-					#if AI_CONTROL_MOZART
-					mozart_prompt_tone_key_sync("volume_up",false);
-					#endif
+					tone_key = "volume_up";
 				}
 				else if(strcmp(recog->volume, "-") == 0){
-					#if AI_CONTROL_MOZART
-					mozart_prompt_tone_key_sync("volume_down",false);
-					#endif
+					tone_key = "volume_down";
 				}
 				else if(strcmp(recog->volume, "max") == 0){
-					#if AI_CONTROL_MOZART
-					mozart_prompt_tone_key_sync("volume_max",false);
-					#endif
+					tone_key = "volume_max";
 					free(recog->volume);
 					recog->volume = NULL;
 					recog->volume = strdup("100");
 				}	//*/
 				else if(strcmp(recog->volume, "min") == 0){
-					#if AI_CONTROL_MOZART
-					mozart_prompt_tone_key_sync("volume_min",false);
-					#endif
+					tone_key = "volume_min";
 					free(recog->volume);
 					recog->volume = NULL;
 					recog->volume = strdup("0");
@@ -430,52 +421,50 @@ exit_command:
 					strcpy(str,"为您设置音量为");
 					strcat (str,recog->volume);
 					ai_tts(str,false);
+					tone_key = "";
 				}
 				#if AI_CONTROL_MOZART
-				ai_aitalk_send(aitalk_send_set_volume(recog->volume));
+				ai_aitalk_send(aitalk_send_set_volume(recog->volume,tone_key));
 				#endif
 			}
 			break;
 #if AI_CONTROL_MOZART
 DEBUG("PASS\n");
 		case SDS_COMMAND_MUSIC_PAUSE:
-			mozart_prompt_tone_key_sync("pause",false);
+		//	mozart_prompt_tone_key_sync("pause",false);
 		//	ai_flag.is_play_music = false;
 		//	if (mozart_module_is_playing()==1){
-				ai_aitalk_send(aitalk_send_pause(NULL));
+			ai_aitalk_send(aitalk_send_pause(true));
 		//	}
 			break;
 		case SDS_COMMAND_MUSIC_RESUME:
-			mozart_prompt_tone_key_sync("resume",false);
+		//	mozart_prompt_tone_key_sync("resume",false);
 		//	ai_flag.is_play_music = true;
-			ai_aitalk_send(aitalk_send_resume(NULL));
+			ai_aitalk_send(aitalk_send_resume(true));
 			break;
 		case SDS_COMMAND_MUSIC_STOP:
 		//	ai_flag.is_play_music = false;
-			mozart_prompt_tone_key_sync("stop",false);
+		//	mozart_prompt_tone_key_sync("stop",false);
 			ai_aitalk_send(aitalk_send_stop_music(NULL));
 			break;
 		case SDS_COMMAND_MUSIC_PLAY:
 			if ((recog->music.url == NULL)&&(recog->output== NULL)){
 		//		ai_flag.is_play_music = true;
-				mozart_prompt_tone_key_sync("resume",false);
-			//	ai_aitalk_send(aitalk_send_play_music(NULL));
-				ai_play_music_order(0);
+				ai_aitalk_send(aitalk_send_resume(true));
 			}
 			break;
 		case SDS_COMMAND_MUSIC_PREVIOUS:
-			mozart_prompt_tone_key_sync("previous",false);
-			//ai_aitalk_send(aitalk_send_previous_music(NULL));
-			ai_play_music_order(-1);
+			ai_aitalk_send(aitalk_send_previous_music(NULL));
+		//	mozart_prompt_tone_key_sync("previous",false);
+		//	ai_play_music_order(-1);
 			break;
 		case SDS_COMMAND_MUSIC_NEXT:
-			mozart_prompt_tone_key_sync("next",false);
 			ai_aitalk_send(aitalk_send_next_music(NULL));
-			ai_play_music_order(1);
 			break;
 		case SDS_COMMAND_EXIT:
-			DEBUG("PASS\n");
-			mozart_prompt_tone_key_sync("exit",false);
+		//	DEBUG("PASS\n");
+			ai_aitalk_send(aitalk_send_exit(NULL));
+		//	mozart_prompt_tone_key_sync("exit",false);
 			break;
 		#if SUPPORT_ELIFE
 		case SDS_COMMAND_ELIFE:
@@ -512,7 +501,8 @@ exit_error:
    	return error;
 }
 
-int ai_server_init(void){
+int ai_server_init(void)
+{
 //	ai_curlInit();
 	ai_music_list_init();
 	ai_song_recommend_init();
