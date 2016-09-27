@@ -21,11 +21,11 @@ cd ${MOZART_PATH}
 make clean
 make distclean
 make ds1825_aispeech_v1.0_ap6212a_cramfs_atalk_config
-make libaiserver-rebuild -j4
-make libaispeech-rebuild -j4
-make mozart-rebuild -j4
+#make libaiserver-rebuild -j4
+#make libaispeech-rebuild -j4
+#make mozart-rebuild -j4
 make -j4
-./rebuild.sh
+#./rebuild.sh
 
 cp output/target/appfs.cramfs   ${local}/update
 cp output/target/updater.cramfs ${local}/update

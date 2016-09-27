@@ -140,6 +140,8 @@ static void create_combo_pthread(int key, int value)
 #endif
 
 extern int mozart_ini_setkey(char *ini_file, char *section, char *key, char *value);
+
+#if(SUPPORT_BOARD == BOARD_DS1825)
 /*******************************************************************************
  * long press
  *******************************************************************************/
@@ -197,6 +199,7 @@ static struct key_long_press_struct playpause_key_info = {
 	.handler = playpause_handler,
 };
 
+
 static struct key_long_press_struct help_key_info = {
 	.name = "help_key",
 	.lock = PTHREAD_MUTEX_INITIALIZER,
@@ -251,6 +254,7 @@ static void create_key_long_press_pthread(struct key_long_press_struct *info)
 	pthread_mutex_lock(&info->lock);
 	pr_debug("%s's state = %d\n", info->name, info->state);
 	if (info->state != KEY_LONG_PRESS_INVALID) {
+		info->state = KEY_LONG_PRESS_INVALID;
 		pthread_mutex_unlock(&info->lock);
 		return ;
 	}
@@ -277,7 +281,7 @@ static void key_long_press_cancel(struct key_long_press_struct *info)
 
 	pthread_mutex_unlock(&info->lock);
 }
-
+#endif
 /*******************************************************************************
  * event handler
  *******************************************************************************/
@@ -315,7 +319,7 @@ static void mozart_event_key(mozart_event event)
 	#if (SUPPORT_VR == VR_SPEECH)
 		if(code  == KEY_RECORD){		//-------------- stop sam
 			//mozart_aitalk_sem_stop();
-			ai_key_record();
+			//ai_key_record();
 			return;
 		}
 	#endif
@@ -342,7 +346,11 @@ static void mozart_event_key(mozart_event event)
 			mozart_module_next_song();
 			break;
 		case KEY_PLAYPAUSE:
-			create_key_long_press_pthread(&playpause_key_info);
+			#if(SUPPORT_BOARD == BOARD_WB38)
+				mozart_module_resume_pause();
+			#else
+				create_key_long_press_pthread(&playpause_key_info);
+			#endif
 			break;
 		case KEY_VOLUMEUP:
 			mozart_module_volume_up();
@@ -363,10 +371,18 @@ static void mozart_event_key(mozart_event event)
 			mozart_module_mutex_unlock();
 			break;
 		case KEY_F12:
-			create_key_long_press_pthread(&facotry_reset_key_info);
+			#if(SUPPORT_BOARD == BOARD_WB38)
+				mozart_stop_tone();
+				mozart_module_factory_reset();
+			#else
+				create_key_long_press_pthread(&facotry_reset_key_info);
+			#endif
 			break;
 		case KEY_HELP:
-			create_key_long_press_pthread(&help_key_info);
+			#if(SUPPORT_BOARD == BOARD_WB38)
+			#else
+				create_key_long_press_pthread(&help_key_info);
+			#endif
 			break;
 
 		default:
@@ -375,13 +391,22 @@ static void mozart_event_key(mozart_event event)
 	} else {
 		switch (code) {
 		case KEY_F12:
-			key_long_press_cancel(&facotry_reset_key_info);
+			#if(SUPPORT_BOARD == BOARD_WB38)
+			#else
+				key_long_press_cancel(&facotry_reset_key_info);
+			#endif
 			break;
 		case KEY_PLAYPAUSE:
-			key_long_press_cancel(&playpause_key_info);
+			#if(SUPPORT_BOARD == BOARD_WB38)
+			#else
+				key_long_press_cancel(&playpause_key_info);
+			#endif
 			break;
 		case KEY_HELP:
-			key_long_press_cancel(&help_key_info);
+			#if(SUPPORT_BOARD == BOARD_WB38)
+			#else
+				key_long_press_cancel(&help_key_info);
+			#endif
 			break;
 		case KEY_RECORD:
 			/* mozart_module_asr_cancel(); */
