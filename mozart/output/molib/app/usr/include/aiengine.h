@@ -26,17 +26,22 @@ extern "C" {
 
 extern struct   timeval t_debug;
 
+//#define __DEBUG_TIME__
 #define __DEBUG__
 #ifdef __DEBUG__
-extern struct   timeval t_debug;
+#ifdef __DEBUG_TIME__
 #define DEBUG(format, ...) {gettimeofday(&t_debug, NULL); printf("[%ld.%ld][%s : %s : %d] ",t_debug.tv_sec,t_debug.tv_usec,__FILE__,__func__,__LINE__); printf(format, ##__VA_ARGS__);}
 #define FDEBUG(format, ...) fprintf(format, ##__VA_ARGS__)
+#else
+#define DEBUG(format, ...) {printf("[%s : %s : %d] ",__FILE__,__func__,__LINE__); printf(format, ##__VA_ARGS__);}
+#define FDEBUG(format, ...) fprintf(format, ##__VA_ARGS__)
+#endif
 #else
 #define DEBUG(format, ...)
 #define FDEBUG(format, ...)
 #endif
 
-#define __ERROR_ZLOG__
+//#define __ERROR_ZLOG__
 #ifdef __ERROR_ZLOG__
 #include "ai_zlog.h"
 #define PERROR(format, ...) {gettimeofday(&t_debug, NULL); printf("[%ld.%ld][%s : %s : %d] ",t_debug.tv_sec,t_debug.tv_usec,__FILE__,__func__,__LINE__); printf(format, ##__VA_ARGS__);\

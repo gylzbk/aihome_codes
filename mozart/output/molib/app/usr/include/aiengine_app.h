@@ -24,11 +24,10 @@
 
 #include "vr-speech_interface.h"
 
-extern int aec_wakeup_flag ;
 extern int asr_mode_cfg;
 extern int fd_dsp_rd;
 
-enum AEC_STATUS
+enum AEC_STATUS_TYEP
 {
     AEC_IDEL = 0,
 	AEC_START,
@@ -36,21 +35,29 @@ enum AEC_STATUS
     AEC_WAKEUP_TID2_EXIT,
     AEC_WAKEUP_TID1_EXIT,
     AEC_END,
-};
+}AEC_STATUS_TYEP;
 
-enum SEM_RESULE
+typedef enum SEM_STATUS_TYPE
 {
-    SEM_SUCCESS = 0,
+    SEM_STATUS_IDEL = 0,
+	SEM_STATUS_START,
+    SEM_STATUS_SUCCESS,
+    SEM_STATUS_FAIL,
+    SEM_STATUS_END
+}SEM_STATUS_TYPE;
+
+typedef enum SEM_RESULE_TYPE
+{
+    SEM_SUCCESS,
     SEM_FAIL,
     SEM_NET_LOW,
     SEM_EXIT,
-};
+}SEM_RESULE_TYPE;
 
 extern struct mic_record *record_info;
 extern unsigned long record_len;
 extern void *record_buf;
 extern vr_info recog;
-
 
 typedef struct ai_status_s{
 	bool is_init;
@@ -69,6 +76,23 @@ typedef struct ai_status_s{
 }ai_status_s;
 
 extern ai_status_s ai_flag;
+
+typedef struct ai_sem_flag_t{
+	bool error;
+	bool speak_end;
+	enum SEM_STATUS_TYPE state;
+	enum SEM_RESULE_TYPE result;
+	bool set_end;
+}ai_sem_flag_t;
+extern  struct ai_sem_flag_t ai_sem_flag;
+
+typedef struct ai_aec_flag_t{
+	bool error;
+	enum AEC_STATUS_TYEP state;
+	enum SEM_RESULE_TYPE result;
+	bool set_end;
+}ai_aec_flag_t;
+extern  ai_aec_flag_t ai_aec_flag;
 
 struct aiengine * aiengine_new(const char *cfg);
 int aiengine_delete(struct aiengine *engine);
