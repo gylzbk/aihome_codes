@@ -404,10 +404,15 @@ int ai_status_aecing(void){
 	#endif
 	if (ai_aec(ew) == 0){
 		if(ai_flag.is_running){
-			#if AI_CONTROL_MOZART	  // remove tone when wakeup
-				mozart_key_ignore_set(true);
-			#endif
-			recog.status = AIENGINE_STATUS_SEM;
+			if(ai_song_list.is_getting == true){
+				mozart_prompt_tone_key_sync("error_server_busy",false);
+			}
+			else{
+				#if AI_CONTROL_MOZART	  // remove tone when wakeup
+					mozart_key_ignore_set(true);
+				#endif
+				recog.status = AIENGINE_STATUS_SEM;
+			}
 		}
 		return 0;
 	}
@@ -536,7 +541,7 @@ int ai_status_error(void){
 		#if AI_CONTROL_MOZART
 		mozart_prompt_tone_key_sync("error_system",false);
 		#endif
-		recog.status = AIENGINE_STATUS_EXIT;
+		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_NO_VOICE:
 		#if AI_CONTROL_MOZART
@@ -835,9 +840,9 @@ int ai_key_record(void){
 			case AIENGINE_STATUS_AEC:
 				ai_aec_stop();
 				while(recog.status == AIENGINE_STATUS_AEC){
-					usleep(1000); // wake 0.5s to deal
+					usleep(1000); // wake 15s to deal
 					count ++;
-					if (count > 2000){
+					if (count > 15000){
 						break;
 					}
 				}
@@ -845,9 +850,9 @@ int ai_key_record(void){
 			case AIENGINE_STATUS_SEM:
 				ai_cloud_sem_stop();
 				while((recog.status == AIENGINE_STATUS_SEM)){
-					usleep(1000); // wake 0.5s to deal
+					usleep(1000); // wake 15s to deal
 					count ++;
-					if (count > 2000){
+					if (count > 15000){
 						break;
 					}
 				}
@@ -857,9 +862,9 @@ int ai_key_record(void){
 				ai_cloud_sem_stop();
 				mozart_stop_tone();
 				while((recog.status == AIENGINE_STATUS_PROCESS)){
-					usleep(1000); // wake 0.5s to deal
+					usleep(1000); // wake 15s to deal
 					count ++;
-					if (count > 2000){
+					if (count > 15000){
 						break;
 					}
 				}

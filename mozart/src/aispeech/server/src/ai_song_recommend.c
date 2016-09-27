@@ -59,11 +59,8 @@ static const char *song_recommand_param =
 }";
 
 
-//char  *curl_ack = NULL;
-//char  *get_new_song = NULL;
-ai_song_recommend_t ai_song_update_list;
-static bool is_callback_end = true;
-static bool is_getting_song_recommend  = false;
+ai_song_recommend_t ai_song_list;
+
 extern struct aiengine *agn;
 //char  *ai_song_recommend_sem_param;
 /***************************************/
@@ -72,16 +69,16 @@ extern struct aiengine *agn;
 void ai_song_recommend_init(void){
 	int i;
 	for (i=0;i<SONG_LIST_MAX;i++){
-		ai_song_update_list.song[i].url= NULL;
-		ai_song_update_list.song[i].artist = NULL;
-		ai_song_update_list.song[i].title = NULL;
+		ai_song_list.song[i].url= NULL;
+		ai_song_list.song[i].artist = NULL;
+		ai_song_list.song[i].title = NULL;
 	}
-	ai_song_update_list.type = SONG_RECOMMEND_TYPE_AUTO;
-	ai_song_update_list.search_artist = NULL;
-	ai_song_update_list.is_update_success = false;
-	ai_song_update_list.is_update_getting = false;
-	ai_song_update_list.song_number = 0;
-	ai_song_update_list.geted_number = 0;
+	ai_song_list.type = SONG_RECOMMEND_TYPE_AUTO;
+	ai_song_list.search_artist = NULL;
+	ai_song_list.is_success = false;
+	ai_song_list.is_getting = false;
+	ai_song_list.song_number = 0;
+	ai_song_list.geted_number = 0;
 
 }
 
@@ -89,48 +86,55 @@ void ai_song_recommend_init(void){
 int  ai_song_recommend_stoping(void){
 	int timeout = 0;
 
-    while(is_callback_end == false)
+    while(ai_song_list.is_wait_callback)
     {
         usleep(1000);
 		timeout ++;
-		if (timeout > 10000){	//	timeout    10 s
-			PERROR("ERROR: tts time out!\n");
+		if (timeout > 5000){	//	timeout    10 s
+			PERROR("ERROR: ai_song_recommend_stoping time out!\n");
 			return -1;
 		}
     }
 	return 0;
 }
 
+void  ai_song_recommend_stop(void){
+	if (ai_song_list.is_wait_callback){
+		DEBUG("ai song recommend stoping... !\n");
+		aiengine_cancel(agn);
+		ai_song_list.is_wait_callback = false;
+	}
+	ai_song_list.is_getting = false;
+}
+
 /***************************************/
 // Free
-/***************************************/
-void ai_song_recommend_free(void){
+/***********************************/
+void	ai_song_recommend_free(void){
 	int i;
 	for (i=0;i<SONG_LIST_MAX;i++){
-		free(ai_song_update_list.song[i].url);
-		ai_song_update_list.song[i].url = NULL;
-		free(ai_song_update_list.song[i].artist);
-		ai_song_update_list.song[i].artist= NULL;
-		free(ai_song_update_list.song[i].title);
-		ai_song_update_list.song[i].title= NULL;
+		free(ai_song_list.song[i].url);
+		ai_song_list.song[i].url = NULL;
+		free(ai_song_list.song[i].artist);
+		ai_song_list.song[i].artist= NULL;
+		free(ai_song_list.song[i].title);
+		ai_song_list.song[i].title= NULL;
 	}
-	ai_song_update_list.geted_number = 0;
-	ai_song_update_list.song_number = 0;
-	ai_song_update_list.is_update_success = false;
-	is_getting_song_recommend = false;
-	is_callback_end = true;
+	ai_song_list.geted_number = 0;
+	ai_song_list.song_number = 0;
+	ai_song_list.is_success = false;
 }
 
 void ai_song_recommend_free_all(void){
+	ai_song_recommend_stop();
 	ai_song_recommend_free();
-	ai_song_update_list.type = SONG_RECOMMEND_TYPE_AUTO;
-	free(ai_song_update_list.search_artist);
-	ai_song_update_list.search_artist = NULL;
-	ai_song_recommend_stoping();
-	ai_song_update_list.is_update_success = false;
-	ai_song_update_list.is_update_getting = false;
-	ai_song_update_list.song_number = 0;
-	ai_song_update_list.geted_number = 0;
+	ai_song_list.type = SONG_RECOMMEND_TYPE_AUTO;
+	free(ai_song_list.search_artist);
+	ai_song_list.search_artist = NULL;
+	ai_song_list.is_success = false;
+	ai_song_list.is_getting = false;
+	ai_song_list.song_number = 0;
+	ai_song_list.geted_number = 0;
 }
 
 int ai_song_recommend_get_from_param(cJSON *param){
@@ -173,8 +177,8 @@ int ai_song_recommend_get_from_param(cJSON *param){
 		                if (song_num > SONG_LIST_MAX){
 			                song_num = SONG_LIST_MAX;
 		                }
-		                ai_song_update_list.song_number = 0;
-		                ai_song_update_list.geted_number = 0;
+		                ai_song_list.song_number = 0;
+		                ai_song_list.geted_number = 0;
 	                    if (song_num>0){
 		                    for(i=0;i<song_num;i++){
 	                        dbdata_i = cJSON_GetArrayItem(dbdata, i);
@@ -183,24 +187,24 @@ int ai_song_recommend_get_from_param(cJSON *param){
 	                            url = cJSON_GetObjectItem(dbdata_i, "url");
 	                            if(url){
 	                                if (url->valuestring){
-				                        free(ai_song_update_list.song[ai_song_update_list.song_number].url);
-				                        ai_song_update_list.song[ai_song_update_list.song_number].url = NULL;
-				                        free(ai_song_update_list.song[ai_song_update_list.song_number].artist);
-				                        ai_song_update_list.song[ai_song_update_list.song_number].artist = NULL;
-				                        free(ai_song_update_list.song[ai_song_update_list.song_number].title);
-				                        ai_song_update_list.song[ai_song_update_list.song_number].title = NULL;
+				                        free(ai_song_list.song[ai_song_list.song_number].url);
+				                        ai_song_list.song[ai_song_list.song_number].url = NULL;
+				                        free(ai_song_list.song[ai_song_list.song_number].artist);
+				                        ai_song_list.song[ai_song_list.song_number].artist = NULL;
+				                        free(ai_song_list.song[ai_song_list.song_number].title);
+				                        ai_song_list.song[ai_song_list.song_number].title = NULL;
 
-				                        ai_song_update_list.song[ai_song_update_list.song_number].url = strdup(url->valuestring);
+				                        ai_song_list.song[ai_song_list.song_number].url = strdup(url->valuestring);
 	                                    title = cJSON_GetObjectItem(dbdata_i, "title");
 	                                    if (title){
 	                                        if (title->valuestring){
-				                                ai_song_update_list.song[ai_song_update_list.song_number].title = strdup(title->valuestring);
+				                                ai_song_list.song[ai_song_list.song_number].title = strdup(title->valuestring);
 	                                        }
 	                                    }
 	                                    artist = cJSON_GetObjectItem(dbdata_i, "artist");
 	                                    if(artist){
 	                                        if (artist->valuestring){
-				                                ai_song_update_list.song[ai_song_update_list.song_number].artist = strdup(artist->valuestring);
+				                                ai_song_list.song[ai_song_list.song_number].artist = strdup(artist->valuestring);
 	                                        }
 	                                    }
 	                                }
@@ -209,11 +213,11 @@ int ai_song_recommend_get_from_param(cJSON *param){
 	                  //              ret = -1;
 	                  //              goto exit_error;
 	                            }
-			        //     	    DEBUG("artist= %s\n",ai_song_update_list.song[i].artist);
-			      //             DEBUG("title= %s\n",ai_song_update_list.song[i].title);
-			      //              DEBUG("url= %s\n",ai_song_update_list.song[i].url);
-				                ai_song_update_list.song_number ++;
-								ai_song_update_list.is_update_success = true;
+			        //     	    DEBUG("artist= %s\n",ai_song_list.song[i].artist);
+			      //             DEBUG("title= %s\n",ai_song_list.song[i].title);
+			      //              DEBUG("url= %s\n",ai_song_list.song[i].url);
+				                ai_song_list.song_number ++;
+								ai_song_list.is_success = true;
 				               	}else{
 		                            DEBUG("i_data error!\n")
 		                       	}
@@ -224,7 +228,7 @@ int ai_song_recommend_get_from_param(cJSON *param){
 			}/*end if(strcmp(domain->valuestring, "music") == 0)*/
 		}/*eand if (domain->valuestring)*/
 	}/*end if(domain)*/
-	DEBUG("get music number =  %d\n",   ai_song_update_list.song_number);
+	DEBUG("get music success      = %d , num = %d\n",ai_song_list.is_success,ai_song_list.song_number);
 exit_error:
 
  /*   if (param != NULL){
@@ -256,7 +260,6 @@ int ai_song_recommand_semantic_callback(void *usrdata, const char *id, int type,
 //    DEBUG("result: \n%s\n", cJSON_Print(result));
     if (result)
     {
-		is_callback_end = true;
 		param = cJSON_GetObjectItem(result, "sds");
 	    if (param){
 	        if(ai_song_recommend_get_from_param(param) == -1){
@@ -265,6 +268,7 @@ int ai_song_recommand_semantic_callback(void *usrdata, const char *id, int type,
 		        goto exit_error;
 	        }
 	    }
+		ai_song_list.is_wait_callback = false;
     }//*/
 
 exit_error:
@@ -313,21 +317,22 @@ int ai_song_recommend_update(char *text){
     }
     _param = cJSON_PrintUnformatted(param_js);
 
-	is_callback_end = false;
+	ai_song_list.is_wait_callback = true;
     if(aiengine_start(agn,_param, uuid, ai_song_recommand_semantic_callback, NULL) != 0)
     {
-        PERROR("ERROR: aiengine_start failed!\n");
+        PERROR("ERROR: ai_song_recommend_update failed!\n");
 		aiengine_cancel(agn);
 		error = -1;
         goto exit_error;
     }
 	if (ai_song_recommend_stoping()){
 		aiengine_cancel(agn);
+		PERROR("ERROR: ai_song_recommend_update timeout!\n");
 		error = -1;
         goto exit_error;
 	}
 exit_error:
-	is_callback_end = true;
+	ai_song_list.is_wait_callback = false;
 	free(_param);
     if(param_js)
     {
@@ -344,22 +349,22 @@ music_info *ai_song_recommend_push(void){
 //	music_info *song = NULL;
 	int count = 0;
 	//	get the list end    or not success
-	if (ai_song_update_list.is_update_getting == true){
+	if (ai_song_list.is_getting == true){
 		PERROR("Error: Getting recommend song !... \n",count);
 		return NULL;
 	}
 
-	ai_song_update_list.is_update_getting = true;
-	if((ai_song_update_list.is_update_success == false)		//
-		||(ai_song_update_list.geted_number >= ai_song_update_list.song_number)){
+	ai_song_list.is_getting = true;
+	if((ai_song_list.is_success == false)		//
+		||(ai_song_list.geted_number >= ai_song_list.song_number)){
 		for (count = 1;count<SONG_GET_ERROR_MAX;count++){
-			ai_song_update_list.is_update_success = false;
-			ai_song_update_list.geted_number = 0;
-			ai_song_update_list.song_number =0;
+			ai_song_list.is_success = false;
+			ai_song_list.geted_number = 0;
+			ai_song_list.song_number =0;
 			DEBUG("Get recommend song server time= %d!... \n",count);
 			//------------------------------- SONG_RECOMMEND_TYPE_AUTO
-			if((ai_song_update_list.type == SONG_RECOMMEND_TYPE_AUTO)
-			 ||(ai_song_update_list.search_artist == NULL)){
+			if((ai_song_list.type == SONG_RECOMMEND_TYPE_AUTO)
+			 ||(ai_song_list.search_artist == NULL)){
 			 	DEBUG("SONG_RECOMMEND_TYPE_AUTO... \n");
 				if(ai_song_recommend_update("我要听歌") == 0){
 					break;
@@ -368,31 +373,36 @@ music_info *ai_song_recommend_push(void){
 			else{
 			//----------------------------- SONG_RECOMMEND_TYPE_ARTIST
 			 	DEBUG("SONG_RECOMMEND_TYPE_ARTIST... \n");
-				if(ai_song_recommend_update(ai_song_update_list.search_artist) == 0){
+				if(ai_song_recommend_update(ai_song_list.search_artist) == 0){
 					break;
 				}
 			}
+			if (ai_song_list.is_getting == false){
+				DEBUG("Stop get recommend song !... \n");
+				goto exit_error;
+			}
 		}
 	}
-	if(ai_song_update_list.is_update_success == false){
+	if(ai_song_list.is_success == false){
 		PERROR("Error: Get recommend song false!... \n");
 		goto exit_error;
 	}
 
-	if (ai_song_update_list.geted_number >= ai_song_update_list.song_number){
-		ai_song_update_list.geted_number =0;
-		ai_song_update_list.song_number = 0;
+	if (ai_song_list.geted_number >= ai_song_list.song_number){
+		ai_song_list.geted_number =0;
+		ai_song_list.song_number = 0;
 		count = 0;
-	//	count = ai_song_update_list.song_number-1;
+	//	count = ai_song_list.song_number-1;
 	}else{
-//	song = ai_song_update_list.url[ai_song_update_list.geted_number];
-		count = ai_song_update_list.geted_number;
+//	song = ai_song_list.url[ai_song_list.geted_number];
+		count = ai_song_list.geted_number;
 	}
-	ai_song_update_list.geted_number++;
-	ai_song_update_list.is_update_getting = false;
-	DEBUG("Get url = %d, %s... \n",count,ai_song_update_list.song[count]);
-	return &ai_song_update_list.song[count];
+	ai_song_list.geted_number++;
+	ai_song_list.is_getting = false;
+	DEBUG("Get url = %d, %s... \n",count,ai_song_list.song[count]);
+	return &ai_song_list.song[count];
 exit_error:
+	ai_song_list.is_getting = false;
 	return NULL;
 }
 
@@ -401,24 +411,35 @@ exit_error:
 // Update new song from server
 /***************************************/
 void ai_song_recommend_artist(char *artist){
+	music_info *music = NULL;
 	DEBUG("Get artist songs\n");
 	if(artist == NULL){
 		PERROR("artist = NULL! \n");
 		return;
 	}
 
-	free(ai_song_update_list.search_artist);
-	ai_song_update_list.search_artist = NULL;
-	ai_song_update_list.search_artist    = strdup(artist);
-	ai_song_update_list.type = SONG_RECOMMEND_TYPE_ARTIST;
-	ai_song_update_list.is_update_success = false;
+	free(ai_song_list.search_artist);
+	ai_song_list.search_artist = NULL;
+	ai_song_list.search_artist    = strdup(artist);
+	ai_song_list.type = SONG_RECOMMEND_TYPE_ARTIST;
+	ai_song_list.is_success = false;
 	ai_song_recommend_push();
 
-	if (ai_song_update_list.is_update_success == true){
+	if (ai_song_list.is_success == true){
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
-		ai_aitalk_send(aitalk_send_play_music(NULL));
+		music = &ai_song_list.song[0];
+		if (music){
+			if (music->url != NULL){
+				ai_music_list_add_music(music);
+			}
+			else{
+				return;
+			}
+		}
+		ai_aitalk_send(aitalk_send_play_url(music));
+		ai_song_list.geted_number++;
 		#endif
 	}
 }
@@ -431,7 +452,7 @@ void *ai_song_recommend_auto_thr(void *args)
 	while (is_getting_song_recommend    ){
 		sleep(1);
 		DEBUG("Get song recommend,waiting...\n");
-		if (ai_song_update_list.is_update_success == true){
+		if (ai_song_list.is_success == true){
 			is_getting_song_recommend = false;
 		}
 		count ++;
@@ -441,7 +462,7 @@ void *ai_song_recommend_auto_thr(void *args)
 		}
 	}
 
-	if (ai_song_update_list.is_update_success == true){
+	if (ai_song_list.is_success == true){
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
@@ -455,12 +476,15 @@ void *ai_song_recommend_auto_thr(void *args)
 extern music_obj *g_m;
 int ai_song_recommend_auto(void){
 	music_info *music = NULL;
+	free(ai_song_list.search_artist);
+	ai_song_list.search_artist = NULL;
+	ai_song_list.type = SONG_RECOMMEND_TYPE_AUTO;
 	ai_song_recommend_push();
-	if (ai_song_update_list.is_update_success == true){
+	if (ai_song_list.is_success == true){
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
-		music = &ai_song_update_list.song[0];
+		music = &ai_song_list.song[0];
 		if (music){
 			if (music->url != NULL) {
 				printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
@@ -472,7 +496,7 @@ int ai_song_recommend_auto(void){
 			}
 		}
 		ai_aitalk_send(aitalk_send_play_url(music));
-		ai_song_update_list.geted_number++;
+		ai_song_list.geted_number++;
 		#endif
 	}
 	return 0;

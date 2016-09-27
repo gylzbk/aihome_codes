@@ -27,11 +27,6 @@ int fd_dsp_rp = -1;
 int fd_dsp_rd = -1;
 extern int fdr;
 extern int fdp;
-extern int error_flag ;
-extern int is_dmic_running;
-extern int is_loopback_running;
-extern int is_aec_read_running;
-extern bool aec_end_flag;
 
 int pipe_init(void)
 {
@@ -265,15 +260,14 @@ int sound_aec_disable(void)
 
 void *dmic_read(void *args)
 {
-	pthread_detach(pthread_self());
-	is_dmic_running = true;
+//	is_dmic_running = true;
 	int status = 0;
 	char bufdmic[AEC_SIZE] = {0};
-	DEBUG("----------------------------------------------------> Start dmic_read\n");
-	while (AEC_END!= aec_wakeup_flag) {
+	DEBUG("-------------------> Start dmic_read\n");
+	while (AEC_WAKEUP_TID1_EXIT!=ai_aec_flag.state) {
 		status = read(fd_dsp_rd, bufdmic, AEC_SIZE);
 		if (status != AEC_SIZE) {
-			error_flag = true;
+			ai_aec_flag.error = true;
 			goto result;
 		}
 
@@ -284,25 +278,23 @@ void *dmic_read(void *args)
 		status = write(fddmic[1], bufdmic, AEC_SIZE);
 		if (status != AEC_SIZE) {
 			if (status == -1) {
-				/* printf("write fddmic[1] is -1, don't worry as read end is closed\n"); */
 				goto result;
 			} else {
 				printf("write fddmic[1] error not AEC_SIZE\n");
-				error_flag = true;
+				ai_aec_flag.error = true;
 				goto result;
 			}
 		}
 	}
 result:
-	DEBUG("----------------------------------------------------> Stop dmic_read\n");
-	is_dmic_running = false;
-//	pthread_exit(&status);
+	DEBUG("------------------> Stop dmic_read\n");
+//	is_dmic_running = false;
+	pthread_exit(&status);
 }
 
 void *loopback_read(void *args)
 {
-	pthread_detach(pthread_self());
-	is_loopback_running = true;
+//	is_loopback_running = true;
 	int  status = 0;
 	char bufloop_tmp[AEC_SIZE * 6] = {0};
 	short bufloop[AEC_SIZE / 2] = {0};
@@ -313,20 +305,21 @@ void *loopback_read(void *args)
 	/* read 30 ms data */
 	status = read(fd_dsp_rp, bufloop_tmp, 30 * MS * 6);
 	if (status != 30 * MS * 6) {
-		error_flag = true;
+		ai_aec_flag.error = true;
 		goto result;
 	}
 	/* read 17 ms data */
 	status = read(fd_dsp_rp, bufloop_tmp, 17 * MS * 6);
 	if (status != 17 * MS * 6) {
-		error_flag = true;
+		ai_aec_flag.error = true;
 		goto result;
 	}
-	DEBUG("----------------------------------------------------> Start loopback_read\n");
-	while (AEC_END!= aec_wakeup_flag) {
+	DEBUG("--------------------> Start loopback_read\n");
+	while (AEC_WAKEUP_TID2_EXIT != ai_aec_flag.state) {
+
 		status = read(fd_dsp_rp, bufloop_tmp, AEC_SIZE * 6);
 		if (status != AEC_SIZE * 6) {
-			error_flag = true;
+			ai_aec_flag.error = true;
 			goto result;
 		}
 
@@ -350,71 +343,46 @@ void *loopback_read(void *args)
 		status = write(fdplay[1], bufloop, AEC_SIZE);
 		if (status != AEC_SIZE) {
 			if (status == -1) {
-				/* printf("write fdplay[1] is -1, don't worry as read end is closed\n"); */
 				goto result;
 			} else {
 				printf("write fdpla[1] err not AEC_SIZE\n");
 				perror("write");
-				error_flag = true;
+				ai_aec_flag.error = true;
 				goto result;
 			}
 		}
 	}
 result:
-	DEBUG("----------------------------------------------------> Stop loopback_read\n");
-
-	is_loopback_running = false;
-//	pthread_exit(&status);
+	DEBUG("-------------------> Stop loopback_read\n");
+//	is_loopback_running = false;
+	pthread_exit(&status);
 }
 
-
-void sound_wake_end(void){
-	int count = 0;
-	while(is_loopback_running || is_dmic_running){
-		count++;
-		if (count > 1000){
-			break;
-		}
-		usleep(10000);
-		aec_wakeup_flag = AEC_END;
-	}
-}
-
-#if 0
 void *aec_handle(void *args)
 {
-	pthread_detach(pthread_self());
 	int status = 0;
-	/*
-	   struct timeval {
-	   time_t      tv_sec;
-	   suseconds_t tv_usec;
-	   } tpend,tpstart; i
-	   float timeuse;
-	*/
-	is_aec_read_running = true;
+//	is_aec_read_running = true;
     echo_wakeup_t *ew = (echo_wakeup_t *)args;
 	char bufr[AEC_SIZE] = {0};
 	char bufp[AEC_SIZE] = {0};
-	DEBUG("----------------------------------------------------> Start aec_handle\n");
-	while (AEC_WAKEUP != aec_wakeup_flag && !error_flag && !aec_end_flag) {
+	DEBUG("-----------------------------> Start aec_handle\n");
+	while (AEC_WAKEUP != ai_aec_flag.state && !ai_aec_flag.error && !ai_aec_flag.set_end) {
 		status = read(fddmic[0], bufr, AEC_SIZE);
 		if (status != AEC_SIZE) {
 			if (status == 0) {
 				goto result;
 			} else {
-				error_flag = true;
+				ai_aec_flag.error = true;
 				goto result;
 			}
 		}
 		status = read(fdplay[0], bufp, AEC_SIZE);
 		if (status != AEC_SIZE) {
 			if (status == 0) {
-				/* printf("read fdplay[0] 0 bytes, as write end is closed\n"); */
 				goto result;
 			} else {
 				printf("read fdplay[0] err not AEC_SIZE\n");
-				error_flag = true;
+				ai_aec_flag.error = true;
 				goto result;
 			}
 		}
@@ -422,18 +390,11 @@ void *aec_handle(void *args)
 				write(fdr, bufr, AEC_SIZE);
 				write(fdp, bufp, AEC_SIZE);
 		#endif	//*/
-		/* gettimeofday(&tpstart,NULL); */
 		echo_wakeup_process(ew, bufr, bufp, AEC_SIZE);
-		/*
-		 * gettimeofday(&tpend,NULL);
-		 * timeuse=1000000 * (tpend.tv_sec - tpstart.tv_sec) + tpend.tv_usec - tpstart.tv_usec;
-		 * timeuse/=1000000;
-		 * printf("%f\n",timeuse);
-		 */
 	}
 
 result:
-	DEBUG("----------------------------------------------------> Stop aec_handle +++++++++\n");
-	is_aec_read_running = false;
+	DEBUG("----------------------> Stop aec_handle \n");
+//	is_aec_read_running = false;
+	pthread_exit(&status);
 }
-#endif
