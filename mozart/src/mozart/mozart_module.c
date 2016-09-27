@@ -417,12 +417,25 @@ void mozart_module_factory_reset(void)
 	__mozart_prompt_tone_key_sync("atalk_factory_reset_36");
 	mozart_smartui_shutdown();
 
+#define RESET_TEST
+
+#ifdef RESET_TEST
+	mozart_system("rm -rf /mnt/sdcard/music/*");
+	mozart_system("rm -rf /usr/bsa");
+	mozart_system("rm -rf /usr/network_manager.ini");
+	mozart_system("rm -rf /usr/render.ini");
+	mozart_system("rm -rf /usr/system.ini");
+	mozart_system("rm -rf /usr/wpa_supplicant.conf");
+	mozart_system("cp -a /usr/share/data/* /usr/data");
+	system("reboot");
+#else
 	printf("%s. Reset config file and empty sd card\n", __func__);
 	/* Reset config file */
 	mozart_system("rm -rf /mnt/sdcard/music/*");
 	mozart_system("rm -rf /usr/data/*");
 	mozart_system("cp -a /usr/share/data/* /usr/data");
 	system("reboot");
+#endif
 }
 
 void mozart_module_next_module(void)
