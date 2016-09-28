@@ -70,6 +70,9 @@ char *aitalk_send_play_url(const music_info *music){
 	char *artist = NULL;
 	char *title = NULL;
 	json_object *params;
+	if (music == NULL)
+		return;
+
 	if (music->url == NULL){
 		pr_err("Error : not url ...\n");
 		return NULL;
@@ -83,6 +86,7 @@ char *aitalk_send_play_url(const music_info *music){
 	if (artist == NULL){
 		artist = "";
 	}
+
 	params = json_object_new_object();
 	json_object_object_add(params, "url", json_object_new_string(music->url));
 	json_object_object_add(params, "title", json_object_new_string(title));
@@ -137,6 +141,9 @@ char *aitalk_send_exit(const char *url){
 
 char *aitalk_send_error(const char *error_key){
 	json_object *params;
+	if (error_key == NULL){
+		return NULL;
+	}
 	params = json_object_new_object();
 	json_object_object_add(params, "tone_key", json_object_new_string(error_key));
 	return send_obj("error",params);
@@ -144,6 +151,15 @@ char *aitalk_send_error(const char *error_key){
 
 char *aitalk_send_set_volume(const char *cmd, const char *tone_key){
 	json_object *params;
+
+	if (cmd == NULL){
+		return  NULL;
+	}
+
+	if (tone_key == NULL){
+		tone_key   = "";
+	}
+
 	params = json_object_new_object();
 	json_object_object_add(params, "volume", json_object_new_string(cmd));
 	json_object_object_add(params, "tone_key", json_object_new_string(tone_key));
