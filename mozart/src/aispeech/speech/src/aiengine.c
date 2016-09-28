@@ -400,12 +400,20 @@ int ai_status_aecing(void){
 	#if AI_CONTROL_MOZART	  // remove tone when wakeup
 		mozart_key_ignore_set(false);
 	#endif
-	if (aitalk_cloudplayer_is_playing()){
+	bool is_play = aitalk_cloudplayer_is_playing();
+	if (is_play){
+		DEBUG("aitalk   is playing..! %d \n", recog.is_control_play_music);
 		if(recog.is_control_play_music == false){
-			ai_aitalk_send(aitalk_send_next_music(false));	//*/
+			usleep(10000);
+			ai_aitalk_send(aitalk_send_resume(false));	//*/
+			usleep(10000);
 		}
 	}
+	else{
+		DEBUG("aitalk   is not playing..!\n");
+	}
 
+	recog.is_control_play_music = false;
 	ai_recog_free();
 	if (ai_aec(ew) == 0){
 		if(ai_flag.is_running){

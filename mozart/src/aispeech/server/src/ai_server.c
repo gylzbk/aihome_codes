@@ -302,6 +302,7 @@ int ai_server_fun(vr_info *recog)
 				case SDS_STATE_OFFERNONE:
 					if (recog->output){
 						ai_tts(recog->output,true);
+						recog->is_control_play_music = true;
 					}
 					recog->next_status     = AIENGINE_STATUS_AEC;
 					break;
@@ -472,7 +473,7 @@ DEBUG("PASS\n");
 			break;
 		case SDS_COMMAND_EXIT:
 		//	DEBUG("PASS\n");
-			recog->is_control_play_music = true;
+			recog->is_control_play_music = false;
 			ai_aitalk_send(aitalk_send_exit(NULL));
 		//	mozart_prompt_tone_key_sync("exit",false);
 			break;
