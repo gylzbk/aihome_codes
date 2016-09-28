@@ -514,7 +514,7 @@ exit_error:
 int ai_server_init(void)
 {
 //	ai_curlInit();
-	ai_music_list_init();
+	//ai_music_list_init();
 	ai_song_recommend_init();
 //	ai_song_recommend_auto();
 	#if  SUPPORT_ELIFE
@@ -532,7 +532,7 @@ int ai_server_init(void)
 }
 
 int ai_server_exit(void){
-	ai_music_list_free();
+	//ai_music_list_free();
 	ai_song_recommend_free_all();
 	#if  SUPPORT_ELIFE
 	ai_elife_free();

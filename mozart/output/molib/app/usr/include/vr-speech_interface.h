@@ -1,6 +1,6 @@
 #ifndef __SPEECH_INTERFACE_H_
 #define __SPEECH_INTERFACE_H_
-
+#include "music_list.h"
 //#define SPEECH_CLOUD_TTS
 #include <stdbool.h>
 
@@ -146,12 +146,13 @@ typedef enum sds_command_type_e{
 }sds_command_type_e;	//*/
 
 
-
+#if 0
 typedef struct music_info_t {
 	char *title;
 	char *artist;
 	char *url;
 }music_info;
+#endif
 
 typedef struct movie_info_t {
 	char *name;
