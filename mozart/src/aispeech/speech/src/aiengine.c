@@ -808,50 +808,56 @@ int ai_tts(char *data,int enable_stop){
 #endif
 	return 0;
 }
-
-int ai_key_record(void){
+int ai_key_record_wakeup(void){
 	int count = 0;
-	DEBUG("mozart_key_wakeup start...\n");
+	DEBUG("ai_key_record_wakeup start...\n");
+	if ((ai_flag.is_running)&&(ai_flag.is_init)){
+		if(recog.status == AIENGINE_STATUS_AEC){
+			ai_aec_stop();
+			while(recog.status == AIENGINE_STATUS_AEC){
+				usleep(1000); // wake 15s to deal
+				count ++;
+				if (count > 15000){
+					PERROR("Error: wakeup time out...\n");
+					break;
+				}
+			}
+		}
+	}
+}
+
+int ai_key_record_stop(void){
+	int count = 0;
+	DEBUG("ai_key_record_stop start...\n");
 	if ((ai_flag.is_running)&&(ai_flag.is_init)){
 		recog.key_record_stop = true;
 		switch(recog.status){
-			case AIENGINE_STATUS_AEC:
-				ai_aec_stop();
-				while(recog.status == AIENGINE_STATUS_AEC){
-					usleep(1000); // wake 15s to deal
-					count ++;
-					if (count > 15000){
-						break;
-					}
-				}
-				break;
 			case AIENGINE_STATUS_SEM:
 				ai_cloud_sem_stop();
 				while((recog.status == AIENGINE_STATUS_SEM)){
 					usleep(1000); // wake 15s to deal
 					count ++;
 					if (count > 15000){
+						PERROR("Error:stop     sem time out...\n");
 						break;
 					}
 				}
-				//mozart_key_ignore_set(false);
 				break;
 			case AIENGINE_STATUS_PROCESS:
-				ai_cloud_sem_stop();
 				mozart_stop_tone();
 				while((recog.status == AIENGINE_STATUS_PROCESS)){
 					usleep(1000); // wake 15s to deal
 					count ++;
 					if (count > 15000){
+						PERROR("Error:stop      process time out...\n");
 						break;
 					}
 				}
-				//mozart_key_ignore_set(false);
 				break;
 			default:
 				break;	//*/
 		}
-		recog.key_record_stop = true;
+		recog.key_record_stop = false;
 	}
 	return 0;
 }

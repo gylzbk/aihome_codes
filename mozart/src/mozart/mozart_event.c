@@ -161,6 +161,14 @@ static void playpause_handler(bool long_press)
 		mozart_module_resume_pause();
 }
 
+static void record_handler(bool long_press)
+{
+	if (long_press)
+		ai_key_record_stop();
+	else
+		ai_key_record_wakeup();
+}
+
 static void help_handler(bool long_press)
 {
 	if (long_press)
@@ -199,6 +207,13 @@ static struct key_long_press_struct playpause_key_info = {
 	.handler = playpause_handler,
 };
 
+static struct key_long_press_struct record_key_info = {
+	.name = "record_key",
+	.lock = PTHREAD_MUTEX_INITIALIZER,
+	.cond = PTHREAD_COND_INITIALIZER,
+	.timeout_second = 2,
+	.handler = record_handler,
+};
 
 static struct key_long_press_struct help_key_info = {
 	.name = "help_key",
@@ -297,7 +312,7 @@ static void mozart_event_key(mozart_event event)
 
 	pr_debug("%s: %s\n", keycode_str[code], keyvalue_str[value]);
 
-	if (event.event.key.key.value == 1) {
+	if (value == 1) {
 		if(code  == KEY_POWER){	//-------------- wifi config
 			mozart_stop_tone();
 			mozart_key_ignore_set(false);
@@ -316,21 +331,27 @@ static void mozart_event_key(mozart_event event)
 		//	sleep(1);
 			return;
 		}
-	#if (SUPPORT_VR == VR_SPEECH)
-		if(code  == KEY_RECORD){		//-------------- stop sam
-			//mozart_aitalk_sem_stop();
-			//ai_key_record();
-			return;
-		}
-	#endif
 	}
+
+	#if (SUPPORT_VR == VR_SPEECH)
+	if(code  == KEY_RECORD){		//-------------- record
+		if (value == 1){
+			create_key_long_press_pthread(&record_key_info);
+		}
+		else{
+			key_long_press_cancel(&record_key_info);
+		}
+		return;
+	}
+	#endif
+
 
 	if (mozart_key_ignore_get()){
 		pr_debug("Error: key ignore !\n");
 		return;
 	}
 
-	if (event.event.key.key.value == 1) {
+	if (value == 1) {
 		switch (code) {
 		case KEY_RECORD:
 			#if (SUPPORT_VR == VR_ATALK)
