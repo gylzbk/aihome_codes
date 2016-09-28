@@ -1350,9 +1350,11 @@ int mozart_vr_speech_interface_callback(vr_info *recog)
 	switch(recog->status){
 		case AIENGINE_STATUS_INIT:
 		case AIENGINE_STATUS_AEC: {
-			is_aitalk_asr = false;
 			mozart_key_ignore_set(false);
+			if (is_aitalk_asr){
+				is_aitalk_asr = false;
 				mozart_smartui_asr_over();
+			}
 				if(recog->domain == RECOG_DOMAIN_WEATHER) {
 #if SUPPORT_BOARD==BOARD_WB38
 					mozart_smartui_weather_start(recog->weather);
@@ -1408,7 +1410,7 @@ int aitalk_cloudplayer_startup(void)
 		}
 		aitalk_initialized = true;
 	}
-
+	is_aitalk_asr = false;
 	return 0;
 }
 
