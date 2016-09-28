@@ -386,6 +386,7 @@ music_info *ai_song_recommend_push(void){
 		}
 	}
 	if(ai_song_list.is_success == false){
+		ai_aitalk_send(aitalk_send_error("error_net_slow"));
 		PERROR("Error: Get recommend song false!... \n");
 		goto exit_error;
 	}

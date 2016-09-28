@@ -175,6 +175,7 @@ typedef struct vr_info {
 	int next_status;
 	int status_last;
 	bool key_record_stop;
+	bool is_control_play_music;
 //	int intent;
 	int domain;
 //	int tts_enable;

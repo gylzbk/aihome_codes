@@ -177,7 +177,8 @@ int ai_server_fun(vr_info *recog)
 				music.url = recog->music.url;
 				music.artist = recog->music.artist;
 				music.title = recog->music.title;
-				ai_music_list_add_music(music);
+				//ai_music_list_add_music(music);
+				recog->is_control_play_music = true;
 				ai_aitalk_send(aitalk_send_play_url(&music));
 			#endif
 				recog->next_status     = AIENGINE_STATUS_AEC;
@@ -282,6 +283,7 @@ int ai_server_fun(vr_info *recog)
 				music.url = recog->music.url;
 				music.artist = recog->music.artist;
 				music.title = recog->music.title;
+				recog->is_control_play_music = true;
 				ai_aitalk_send(aitalk_send_play_url(&music));
 			#endif
 				recog->next_status     = AIENGINE_STATUS_AEC;
@@ -434,35 +436,43 @@ DEBUG("PASS\n");
 		//	mozart_prompt_tone_key_sync("pause",false);
 		//	ai_flag.is_play_music = false;
 		//	if (mozart_module_is_playing()==1){
+			recog->is_control_play_music = true;
 			ai_aitalk_send(aitalk_send_pause(true));
 		//	}
 			break;
 		case SDS_COMMAND_MUSIC_RESUME:
 		//	mozart_prompt_tone_key_sync("resume",false);
 		//	ai_flag.is_play_music = true;
+
+			recog->is_control_play_music = true;
 			ai_aitalk_send(aitalk_send_resume(true));
 			break;
 		case SDS_COMMAND_MUSIC_STOP:
 		//	ai_flag.is_play_music = false;
 		//	mozart_prompt_tone_key_sync("stop",false);
+			recog->is_control_play_music = true;
 			ai_aitalk_send(aitalk_send_stop_music(NULL));
 			break;
 		case SDS_COMMAND_MUSIC_PLAY:
 			if ((recog->music.url == NULL)&&(recog->output== NULL)){
 		//		ai_flag.is_play_music = true;
+				recog->is_control_play_music = true;
 				ai_aitalk_send(aitalk_send_resume(true));
 			}
 			break;
 		case SDS_COMMAND_MUSIC_PREVIOUS:
+			recog->is_control_play_music = true;
 			ai_aitalk_send(aitalk_send_previous_music(NULL));
 		//	mozart_prompt_tone_key_sync("previous",false);
 		//	ai_play_music_order(-1);
 			break;
 		case SDS_COMMAND_MUSIC_NEXT:
-			ai_aitalk_send(aitalk_send_next_music(NULL));
+			recog->is_control_play_music = true;
+			ai_aitalk_send(aitalk_send_next_music(true));
 			break;
 		case SDS_COMMAND_EXIT:
 		//	DEBUG("PASS\n");
+			recog->is_control_play_music = true;
 			ai_aitalk_send(aitalk_send_exit(NULL));
 		//	mozart_prompt_tone_key_sync("exit",false);
 			break;

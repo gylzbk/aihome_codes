@@ -18,7 +18,7 @@
 #endif
 
 #if AI_CONTROL_MOZART_ATALK
-#include "mozart_module.h"
+#include "mozart_aitalk.h"
 #endif
 
 //#include "ai_aec_thr.h"
@@ -168,7 +168,6 @@ echo_wakeup_t *ew = NULL;
 
 ai_status_s ai_flag;
 
-bool aitalk_play_music = false;
 
 #ifdef SYN_TOO_LONG
 #include <sys/time.h>
@@ -398,14 +397,20 @@ exit_error:
 
 int ai_status_aecing(void){
 	ai_to_mozart();
-	ai_recog_free();
 	#if AI_CONTROL_MOZART	  // remove tone when wakeup
 		mozart_key_ignore_set(false);
 	#endif
+	if (aitalk_cloudplayer_is_playing()){
+		if(recog.is_control_play_music == false){
+			ai_aitalk_send(aitalk_send_next_music(false));	//*/
+		}
+	}
+
+	ai_recog_free();
 	if (ai_aec(ew) == 0){
 		if(ai_flag.is_running){
 			if(ai_song_list.is_getting == true){
-				aitalk_send_error("error_server_busy");
+				ai_aitalk_send(aitalk_send_error("error_server_busy"));
 			//	mozart_prompt_tone_key_sync("error_server_busy",false);
 				recog.status = AIENGINE_STATUS_AEC;
 			}
@@ -426,10 +431,6 @@ int ai_status_aecing(void){
 	}
 }
 
-
-bool ai_is_play_music(void){
-	return aitalk_play_music;
-}
 int ai_status_seming(void){
 	int ret = 0;
 	int vol = 0;
@@ -439,7 +440,7 @@ int ai_status_seming(void){
 		ai_aitalk_send(aitalk_send_set_volume("10",""));	//*/
 		usleep(100000);
 	}
-	if (mozart_module_is_playing()==1){
+	if (aitalk_cloudplayer_is_playing()){
 		ai_aitalk_send(aitalk_send_pause(false));
 	}
 	//ai_tone_time_end();
@@ -466,7 +467,7 @@ int ai_status_seming(void){
 		}
 	}
 	else{
-		recog.status = AIENGINE_STATUS_STOP;
+		recog.status = AIENGINE_STATUS_AEC;
 	}
 	return ret;
 }
@@ -697,8 +698,24 @@ int ai_aiengine_exit(void){
 //	is_aiengine_init = false;
 }
 
-#if 1
-int recog_status_last = 0;
+#define AI_TEST_THREAD 0
+#if AI_TEST_THREAD
+void *ai_test_run(void *arg){
+	int count =0;
+	DEBUG("Start ai_test_run !... \n");
+	sleep(20);
+	while(ai_flag.is_working){
+			ai_aiengine_start();
+			sleep(1);
+			ai_aiengine_stop();
+			sleep(1);
+			count ++;
+		//	if ((count %100) == 0){
+				DEBUG("count = %8d\n",count);
+		//	}
+	}
+}
+#endif
 
 void *ai_run(void *arg){
 	pthread_detach(pthread_self());
@@ -711,13 +728,13 @@ void *ai_run(void *arg){
 				DEBUG("=================== AIENGINE STATUS: %s\n", aiengineStatus[recog.status]);
 			}
 			switch(recog.status){
-				case AIENGINE_STATUS_INIT:
+			//	case AIENGINE_STATUS_INIT:
 			/*		if (ai_init() != 0){
 						error = -1;
 						PERROR("ERROR: aiengine init !\n");
 						goto exit_error;
 					}//*/
-					break;
+			//		break;
   				case AIENGINE_STATUS_AEC:
 					ai_status_aecing();
 					break;
@@ -730,13 +747,13 @@ void *ai_run(void *arg){
 				case AIENGINE_STATUS_ERROR:
 					ai_status_error();
 					break;
-				case AIENGINE_STATUS_STOP:
-					ai_aiengine_stop();
-					break;
-				case AIENGINE_STATUS_EXIT:
-					ai_flag.is_running = false;
-					ai_flag.is_working = false;
-					break;
+			//	case AIENGINE_STATUS_STOP:
+				//	ai_aiengine_stop();
+			//		break;
+			//	case AIENGINE_STATUS_EXIT:
+			//		ai_flag.is_running = false;
+			//		ai_flag.is_working = false;
+			//		break;
 				default:
 					recog.status = AIENGINE_STATUS_AEC;
 					break;	//*/
@@ -767,7 +784,6 @@ int ai_exit(void){
 	ai_log_add(LOG_DEBUG,"ai_asr_runing thread exit");//*/
 #endif
 }
-#endif
 
 int ai_tts(char *data,int enable_stop){
 #if 1
@@ -779,21 +795,17 @@ int ai_tts(char *data,int enable_stop){
 	ai_tts_time(data);
 #endif
 	if (enable_stop == true){
-		#if AI_CONTROL_MOZART
-		music_info music;
-		music.url ="/tmp/cloud_sync_record.mp3";
-		music.artist = NULL;
-		music.title = NULL;
-		ai_aitalk_send(aitalk_send_play_url(&music));
-		#else
-		system("mplayer /tmp/cloud_sync_record.mp3");
-		#endif
+	//	#if AI_CONTROL_MOZART
+		ai_aitalk_send(aitalk_send_play_tts("/tmp/cloud_sync_record.mp3"));
+	//	#else
+	//	system("mplayer /tmp/cloud_sync_record.mp3");
+	//	#endif
 	}
 	else{
 		#if AI_CONTROL_MOZART
 		mozart_prompt_tone_key_sync("ai_cloud_sync",false);
-		#else
-		system("mplayer /tmp/cloud_sync_record.mp3");
+	//	#else
+	//	system("mplayer /tmp/cloud_sync_record.mp3");
 		#endif
 	}
 #else
@@ -808,6 +820,7 @@ int ai_tts(char *data,int enable_stop){
 #endif
 	return 0;
 }
+
 int ai_key_record_wakeup(void){
 	int count = 0;
 	DEBUG("ai_key_record_wakeup start...\n");
@@ -817,8 +830,7 @@ int ai_key_record_wakeup(void){
 			while(recog.status == AIENGINE_STATUS_AEC){
 				usleep(1000); // wake 15s to deal
 				count ++;
-				if (count > 15000){
-					PERROR("Error: wakeup time out...\n");
+				if (count > 5000){
 					break;
 				}
 			}
@@ -837,19 +849,17 @@ int ai_key_record_stop(void){
 				while((recog.status == AIENGINE_STATUS_SEM)){
 					usleep(1000); // wake 15s to deal
 					count ++;
-					if (count > 15000){
-						PERROR("Error:stop     sem time out...\n");
+					if (count > 5000){
 						break;
 					}
 				}
 				break;
-		/*	case AIENGINE_STATUS_PROCESS:
+			case AIENGINE_STATUS_PROCESS:
 
 				while((recog.status == AIENGINE_STATUS_PROCESS)){
 					usleep(1000); // wake 15s to deal
 					count ++;
-					if (count > 15000){
-						PERROR("Error:stop      process time out...\n");
+					if (count > 5000){
 						break;
 					}
 				}	//8
@@ -895,6 +905,13 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 			PERROR("Can't create voice_recog_thread in : %s\n",strerror(errno));
 			goto exit_error;
 		}
+		#if AI_TEST_THREAD
+		pthread_t voice_test_thread;
+		if (pthread_create(&voice_test_thread, NULL, ai_test_run, NULL) != 0) {
+			PERROR("Can't create voice_test_thread in : %s\n",strerror(errno));
+			goto exit_error;
+		}
+		#endif
 	}
 	ai_speech_set_status(VR_SPEECH_INIT);
 exit_error:

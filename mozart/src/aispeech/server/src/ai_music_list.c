@@ -32,7 +32,6 @@ ai_music_list_t music_list;
 int music_num_old = 0;
 
 int music_num_new = 0;
-extern bool aitalk_play_music;
 int ai_music_list_get_number(void){
 	return music_list.music_num;
 }
@@ -208,7 +207,6 @@ int ai_play_music_order(int order){
 		return 0;
 	}
 
-	aitalk_play_music = false;
 /*	if (play_error_tone == false){
 		play_error_tone = true;
 		__mozart_prompt_tone_key_sync("error_net_fail");

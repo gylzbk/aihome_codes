@@ -43,7 +43,7 @@ const char *aiSlotCommand[SDS_COMMAND_MAX]
 int ai_slot_recog_free(vr_info *recog){
 	recog->state =	   SDS_STATE_NULL;
 	recog->domain = RECOG_DOMAIN_NULL;
-
+	recog->is_control_play_music = false;
 	free(recog->input);
 	recog->input = NULL;
 	free(recog->output);
