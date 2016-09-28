@@ -243,8 +243,8 @@ int ai_cloud_sem(struct aiengine *agn)
             break;
         }
 		if (++buf_count > 230){
-			ai_sem_flag.result = SEM_EXIT;
-			PERROR("Time out for record.\n");
+		//	ai_sem_flag.result = SEM_EXIT;
+		//	PERROR("Time out for record.\n");
 			break;
 		}
     }
@@ -266,7 +266,6 @@ int ai_cloud_sem(struct aiengine *agn)
         if(++loop>15000)		//	15000 * 1ms = 15s
         {
             PERROR("No result found, Time out\n");
-			aiengine_cancel(agn);
             ai_sem_flag.state = SEM_STATUS_FAIL;
 			ai_sem_flag.result = SEM_NET_LOW;
 			ai_sem_flag.error = true;

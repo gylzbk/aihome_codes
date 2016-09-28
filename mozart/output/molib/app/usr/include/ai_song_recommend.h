@@ -24,6 +24,7 @@ typedef enum song_recommend_type_e{
 typedef struct ai_song_recommend_t {
 	bool  is_success;
 	bool  is_getting;
+	bool  is_stop;
 	bool  is_wait_callback;
 //	int  error_count;
 	int  song_number;

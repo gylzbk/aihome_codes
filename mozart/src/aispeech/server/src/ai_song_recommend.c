@@ -94,6 +94,10 @@ int  ai_song_recommend_stoping(void){
 			PERROR("ERROR: ai_song_recommend_stoping time out!\n");
 			return -1;
 		}
+		if(ai_song_list.is_stop){
+			PERROR("Stop: ai_song_recommend_stoping !\n");
+			return -1;
+		}
     }
 	return 0;
 }
@@ -101,10 +105,8 @@ int  ai_song_recommend_stoping(void){
 void  ai_song_recommend_stop(void){
 	if (ai_song_list.is_wait_callback){
 		DEBUG("ai song recommend stoping... !\n");
-		aiengine_cancel(agn);
-		ai_song_list.is_wait_callback = false;
+		ai_song_list.is_stop = true;
 	}
-	ai_song_list.is_getting = false;
 }
 
 /***************************************/
@@ -316,7 +318,7 @@ int ai_song_recommend_update(char *text){
 		goto exit_error;
     }
     _param = cJSON_PrintUnformatted(param_js);
-
+	ai_song_list.is_stop = false;
 	ai_song_list.is_wait_callback = true;
     if(aiengine_start(agn,_param, uuid, ai_song_recommand_semantic_callback, NULL) != 0)
     {
