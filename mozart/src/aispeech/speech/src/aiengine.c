@@ -843,8 +843,8 @@ int ai_key_record_stop(void){
 					}
 				}
 				break;
-			case AIENGINE_STATUS_PROCESS:
-				mozart_stop_tone();
+		/*	case AIENGINE_STATUS_PROCESS:
+
 				while((recog.status == AIENGINE_STATUS_PROCESS)){
 					usleep(1000); // wake 15s to deal
 					count ++;
@@ -852,8 +852,8 @@ int ai_key_record_stop(void){
 						PERROR("Error:stop      process time out...\n");
 						break;
 					}
-				}
-				break;
+				}	//8
+				break;	//*/
 			default:
 				break;	//*/
 		}

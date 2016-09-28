@@ -163,10 +163,13 @@ static void playpause_handler(bool long_press)
 
 static void record_handler(bool long_press)
 {
-	if (long_press)
-		ai_key_record_stop();
-	else
+	if (long_press){
+	//	mozart_stop_tone_sync();
+	//	ai_key_record_stop();
+	}
+	else{
 		ai_key_record_wakeup();
+	}
 }
 
 static void help_handler(bool long_press)
