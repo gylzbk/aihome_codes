@@ -427,6 +427,8 @@ void ai_song_recommend_artist(char *artist){
 
 	if (ai_song_list.is_success == true){
 		DEBUG("Get song recommend successful, auto play music now.\n");
+		ai_aitalk_send(aitalk_send_next_music(false));
+		/*
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
 		music = &ai_song_list.song[0];
@@ -441,6 +443,7 @@ void ai_song_recommend_artist(char *artist){
 		ai_aitalk_send(aitalk_send_play_url(music));
 		ai_song_list.geted_number++;
 		#endif
+		//*/
 	}
 }
 #if 0
@@ -481,6 +484,8 @@ int ai_song_recommend_auto(void){
 	ai_song_recommend_push();
 	if (ai_song_list.is_success == true){
 		DEBUG("Get song recommend successful, auto play music now.\n");
+		ai_aitalk_send(aitalk_send_next_music(false));
+	/*
 		#if AI_CONTROL_MOZART
 		aitalk_play_music = true;
 		music = &ai_song_list.song[0];
@@ -494,7 +499,7 @@ int ai_song_recommend_auto(void){
 		}
 		ai_aitalk_send(aitalk_send_play_url(music));
 		ai_song_list.geted_number++;
-		#endif
+		#endif		//*/
 	}
 	return 0;
 }
