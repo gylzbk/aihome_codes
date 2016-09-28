@@ -82,10 +82,12 @@ struct aitalk_struct {
 
 static char *play_prompt = NULL;
 static char *current_url = NULL;
-bool aitalk_is_playing = false;
+bool is_aitalk_playing = false;
 
 static bool is_aitalk_run = false;
 bool is_aitalk_asr = false;
+
+bool is_play_tts = false;
 
 static bool aitalk_running = false;
 static bool aitalk_initialized = false;
@@ -154,11 +156,22 @@ static int send_obj(json_object *cmd, char *method, json_object *obj)
 
 typedef enum player_state {
 	player_play_state = 0,
+	player_play_tts_state = 0,
 	player_pause_state,
 	player_stop_state,
 }player_state;
 
-player_state ai_play_state;
+player_state aitalk_play_state;
+
+
+player_state aitalk_get_play_status(void){
+	return aitalk_play_state;
+}
+
+void aitalk_set_play_status(player_state status){
+	aitalk_play_state = status;
+}
+
 
 static int send_player_state_change(enum player_state state)
 {
@@ -174,7 +187,7 @@ static int send_player_state_change(enum player_state state)
 		return -1;
 	}
 	#else
-		ai_play_state = state;
+		aitalk_play_state = state;
 	#endif
 
 	return 0;
@@ -206,11 +219,17 @@ static int send_play_done(const char *url, int error_no)
 	}
 	#else
 	//----------- conture playing
-	if (ai_is_play_music()== true){
-		ai_play_music_order(1);
-	}
-	else{
-		aitalk_is_playing = false;
+	if (is_aitalk_playing){
+
+		if (is_play_tts){
+			pr_debug("--------aaa------ paly tts \n");
+		//	mozart_aitalk_cloudplayer_do_resume();
+			mozart_aitalk_cloudplayer_do_next_song();
+			is_play_tts = false;
+		} else {
+			pr_debug("---------bbb------ paly next \n");
+			mozart_aitalk_cloudplayer_do_next_song();
+		}
 	}
 	#endif
 	return 0;
@@ -258,6 +277,7 @@ int mozart_aitalk_start(void){
 	return 0;
 }
 
+#if 0
 int mozart_aitalk_sem_stop(void){
 	if(	__mozart_aitalk_cloudplayer_is_asr()){
 		ai_cloud_sem_stop();
@@ -266,6 +286,7 @@ int mozart_aitalk_sem_stop(void){
 	}
 	return 0;
 }
+#endif
 
 int mozart_aitalk_stop(void){
 //	mozart_aitalk_asr_over();
@@ -324,14 +345,15 @@ static int play_handler(json_object *cmd)
 		send_play_done(url, 0);
 		return 0;
 	}
-
+/*
 	pr_debug("play_prompt = %s\n",play_prompt);
 	char *title_s =(char *)json_object_get_string(title);
 	char *artist_s =  (char *)json_object_get_string(artist);
 
-	if((artist_s)||(artist_s)){
+	if((artist_s)||(title_s)){
 		mozart_smartui_atalk_play("AIspeech",title_s,artist_s,play_prompt);
 	}
+//*/
 
 	ret = mozart_aitalk_cloudplayer_do_play();
 	if (ret == 0) {
@@ -360,13 +382,69 @@ static int play_handler(json_object *cmd)
 		free(uuid);
 	}
 
-	aitalk_is_playing = true;
+	is_play_tts = false;
+	is_aitalk_playing = true;
 	mozart_smartui_atalk_play((char *)json_object_get_string(vendor),
 				  (char *)json_object_get_string(title),
 				  (char *)json_object_get_string(artist),
 				  play_prompt);
 	return 0;
 }
+
+
+static int play_tts_handler(json_object *cmd)
+{
+	pr_debug("------------------ paly tts \n");
+	int ret;
+	const char *url;
+	json_object *params, *url_j = NULL;
+
+	if (!json_object_object_get_ex(cmd, "params", &params)){
+		pr_err("[%d]error!\n",__LINE__);
+		return -1;
+	}
+	if (!json_object_object_get_ex(params, "url", &url_j)){
+		pr_err("[%d]error!\n",__LINE__);
+		return -1;
+	}
+
+	url = json_object_get_string(url_j);
+	printf("    url: %s\n", url);
+
+	if ((url == NULL) || (url[0] == '/' &&
+		access(url, R_OK))) {
+		printf("[%s %s %d]: error\n", __FILE__, __func__, __LINE__);
+		send_play_done(url, 0);
+		return 0;
+	}
+
+	if(url == NULL){
+		return -1;
+	}
+
+	ret = mozart_aitalk_cloudplayer_do_play();
+	if (ret == 0) {
+		pr_debug("cloudplayer module isn't run\n");
+	} else if (ret < 0) {
+		pr_debug("cloudplayer module isn't start\n");
+		send_player_state_change(player_stop_state);
+		return -1;
+	}
+
+	if (ret > 0) {
+		if (mozart_player_playurl(aitalk_player_handler, (char *)url))
+			printf("[Warning] %s: mozart_player_playurl fail\n", __func__);
+		send_player_state_change(player_play_state);
+		is_play_tts = true;
+	} else {
+	//	char *uuid = mozart_player_getuuid(aitalk_player_handler);
+	//	mozart_aitalk_cloudplayer_update_context(uuid, (char *)url);
+	//	send_player_state_change(player_pause_state);
+	//	free(uuid);
+	}
+	return 0;
+}
+
 
 static int stop_handler(json_object *cmd)
 {
@@ -400,7 +478,22 @@ static int pause_handler(json_object *cmd)
 
 static int resume_handler(json_object *cmd)
 {
-	mozart_prompt_tone_key_sync("resume",false);
+	bool is_tone = false;
+	json_object *params = NULL;
+	json_object *tone_j = NULL;
+	char *tone_s = NULL;
+	if (json_object_object_get_ex(cmd, "params", &params)){
+		if (json_object_object_get_ex(params, "tone", &tone_j)){
+			tone_s =(char *)json_object_get_string(tone_j);
+			if (!strcmp(tone_s, "true")) {
+				is_tone = true;
+			}
+		}
+	}
+	if (is_tone){
+		pr_debug("tone: resume !...\n");
+		mozart_prompt_tone_key_sync("resume",false);
+	}
 	mozart_aitalk_cloudplayer_do_resume();
 	return 0;
 }
@@ -472,14 +565,14 @@ static int set_volume_handler(json_object *cmd){
 #endif
 	return 0;
 }
-
+/*
 static int play_music_handler(json_object *cmd)
 {
 	printf("%s...!\n",__func__);
 	mozart_prompt_tone_key_sync("resume",false);
 //	ai_play_music_order(0);
 	return 0;
-}
+}//*/
 
 
 static int previous_music_handler(json_object *cmd)
@@ -492,8 +585,22 @@ static int previous_music_handler(json_object *cmd)
 
 static int next_music_handler(json_object *cmd)
 {
-	printf("%s...!\n",__func__);
-	mozart_prompt_tone_key_sync("next",false);
+	bool is_tone = false;
+	json_object *params = NULL;
+	json_object *tone_j = NULL;
+	char *tone_s = NULL;
+	if (json_object_object_get_ex(cmd, "params", &params)){
+		if (json_object_object_get_ex(params, "tone", &tone_j)){
+			tone_s =(char *)json_object_get_string(tone_j);
+			if (!strcmp(tone_s, "true")) {
+				is_tone = true;
+			}
+		}
+	}
+	if (is_tone){
+		pr_debug("tone: pause !...\n");
+		mozart_prompt_tone_key_sync("next",false);
+	}
 	mozart_aitalk_cloudplayer_do_next_song();
 	return 0;
 }
@@ -798,6 +905,11 @@ static struct aitalk_method methods[] = {
 		.is_valid = vendor_is_valid,
 	},
 	{
+		.name = "play_tts",
+		.handler = play_tts_handler,
+		.is_valid = vendor_is_valid,
+	},
+	{
 		.name = "stop",
 		.handler = stop_handler,
 	},
@@ -818,10 +930,10 @@ static struct aitalk_method methods[] = {
 		.handler = set_volume_handler,
 		.is_valid = module_is_attach,
 	},
-	{
+/*	{
 		.name = "play_music",
 		.handler = play_music_handler,
-	},
+	},	//*/
 	{
 		.name = "next_music",
 		.handler = next_music_handler,
@@ -884,11 +996,10 @@ static int aitalk_player_status_callback(player_snapshot_t *snapshot,
 			pr_debug("aitalk_wait_stop_state is WAIT_STOP\n");
 			aitalk_wait_stop_state = aitalk_wait_stop_stopped;
 		} else {
-
 			send_play_done(current_url, 0);
 		}
 		pthread_mutex_unlock(&aitalk_wait_stop_mutex);
-		aitalk_is_playing = false;
+		is_aitalk_playing = false;
 	}
 
 	return 0;
@@ -928,7 +1039,7 @@ int aitalk_cloudplayer_stop_player(void)
 
 	send_player_state_change(player_stop_state);
 
-	if (!aitalk_is_playing)
+	if (!is_aitalk_playing)
 		return 0;
 
 	pthread_mutex_lock(&aitalk_wait_stop_mutex);
@@ -947,7 +1058,7 @@ int aitalk_cloudplayer_stop_player(void)
 	if (aitalk_wait_stop_state != aitalk_wait_stop_stopped) {
 		pr_err("wait stopped timeout\n");
 		mozart_player_force_stop(aitalk_player_handler);
-		aitalk_is_playing = false;
+		is_aitalk_playing = false;
 	}
 
 	aitalk_wait_stop_state = aitalk_wait_stop_invalid;
@@ -1249,12 +1360,19 @@ int aitalk_cloudplayer_volume_set(int vol)
 
 int aitalk_cloudplayer_previous_music(void)
 {
+	ai_play_music_order(-1);
 	return send_button_event("previous", NULL, NULL);
 }
 
 int aitalk_cloudplayer_next_music(void)
 {
+	ai_play_music_order(1);
 	return send_button_event("next", NULL, NULL);
+}
+
+bool aitalk_cloudplayer_is_playing(void)
+{
+	return is_aitalk_playing;
 }
 
 int aitalk_next_channel(void)
@@ -1351,11 +1469,12 @@ int mozart_vr_speech_interface_callback(vr_info *recog)
 		case AIENGINE_STATUS_INIT:
 		case AIENGINE_STATUS_AEC: {
 			mozart_key_ignore_set(false);
-			if (is_aitalk_asr){
-				is_aitalk_asr = false;
+			if(is_aitalk_asr){
 				mozart_smartui_asr_over();
+				is_aitalk_asr = false;
 			}
-				if(recog->domain == RECOG_DOMAIN_WEATHER) {
+
+			if(recog->domain == RECOG_DOMAIN_WEATHER) {
 #if SUPPORT_BOARD==BOARD_WB38
 					mozart_smartui_weather_start(recog->weather);
 #endif

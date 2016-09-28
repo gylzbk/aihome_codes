@@ -65,6 +65,22 @@ exit_err:
 	return pjson;
 }
 
+
+char *aitalk_send_play_tts(const char *tts_url){
+
+	json_object *params;
+
+	if (tts_url == NULL){
+		pr_err("Error : not url ...\n");
+		return NULL;
+	}
+	params = json_object_new_object();
+	json_object_object_add(params, "url", json_object_new_string(tts_url));
+	return send_obj("play_tts",params);
+}
+
+
+
 char *aitalk_send_play_url(const music_info *music){
 
 	char *artist = NULL;
@@ -123,16 +139,26 @@ char *aitalk_send_stop_music(const char *url){
 	return send_obj("stop_music",NULL);
 }
 
+#if 0
 char *aitalk_send_play_music(const char *url){
 	return send_obj("play_music",NULL);
 }
+#endif
 
 char *aitalk_send_previous_music(const char *url){
 	return send_obj("previous_music",NULL);
 }
 
-char *aitalk_send_next_music(const char *url){
-	return send_obj("next_music",NULL);
+char *aitalk_send_next_music(bool tone){
+	char *tone_s;
+	if (tone)
+		tone_s = "true";
+	else
+		tone_s = "false";
+	json_object *params;
+	params = json_object_new_object();
+	json_object_object_add(params, "tone", json_object_new_string(tone_s));
+	return send_obj("next_music",params);
 }
 
 char *aitalk_send_exit(const char *url){

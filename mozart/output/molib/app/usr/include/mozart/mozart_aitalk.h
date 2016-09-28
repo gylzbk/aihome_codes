@@ -30,6 +30,7 @@ extern void aitalk_cloudplayer_monitor_cancel(void);
 extern void aitalk_cloudplayer_monitor_module_cancel(void);
 extern bool aitalk_cloudplayer_monitor_is_valid(void);
 extern bool aitalk_cloudplayer_monitor_is_module_cancel(void);
+extern bool   aitalk_cloudplayer_is_playing(void);
 /* asr */
 extern void mozart_aitalk_cloudplayer_update_context(char *uuid, char *url);
 extern bool __mozart_aitalk_cloudplayer_is_run(void);

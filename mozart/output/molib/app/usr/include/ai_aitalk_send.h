@@ -2,12 +2,13 @@
 #define __AITALK_SEND_H__
 
 extern char *aitalk_send_play_url(const music_info *music);
+extern char *aitalk_send_play_tts(const char *tts_url);
 extern char *aitalk_send_pause(bool tone);
 extern char *aitalk_send_resume(bool tone);
 extern char *aitalk_send_stop_music(const char *url);
 extern char *aitalk_send_play_music(const char *url);
 extern char *aitalk_send_previous_music(const char *url);
-extern char *aitalk_send_next_music(const char *url);
+extern char *aitalk_send_next_music(bool tone);
 extern char *aitalk_send_set_volume(const char *cmd, const char *tone_key);
 extern char *aitalk_send_waikup(const char *url);
 extern char *aitalk_send_exit(const char *url);

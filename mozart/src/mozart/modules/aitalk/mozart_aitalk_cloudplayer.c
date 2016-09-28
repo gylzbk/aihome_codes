@@ -136,7 +136,10 @@ static int aitalk_cloudplayer_module_start(struct mozart_module_struct *self)
 {
 	pr_debug("\n====================== %d %s \n\n",__LINE__,__func__);
 	self->player_state = player_state_idle;
-
+	mozart_smartui_atalk_play("AISPEECH",NULL,NULL,NULL);
+	mozart_smartui_atalk_toggle(false);
+	__mozart_prompt_tone_key_sync("atalk_hi_12");
+	aitalk_vendor_startup();
 	return 0;
 }
 
@@ -205,13 +208,13 @@ static void aitalk_cloudplayer_module_asr_wakeup(struct mozart_module_struct *se
 static void aitalk_cloudplayer_module_previous_song(struct mozart_module_struct *self)
 {
 	pr_debug("\n=========== %d %s \n\n",__LINE__,__func__);
-	ai_play_music_order(-1);
+	aitalk_cloudplayer_previous_music();
 }
 
 static void aitalk_cloudplayer_module_next_song(struct mozart_module_struct *self)
 {
 	pr_debug("\n=========== %d %s \n\n",__LINE__,__func__);
-	ai_play_music_order(1);
+	aitalk_cloudplayer_next_music();
 }
 
 static void aitalk_cloudplayer_module_next_channel(struct mozart_module_struct *self)
@@ -233,11 +236,11 @@ static void aitalk_cloudplayer_module_next_module(struct mozart_module_struct *s
 }
 
 
-extern bool aitalk_is_playing;
+extern bool is_aitalk_playing;
 static bool aitalk_cloudplayer_module_is_playing(struct mozart_module_struct *self)
 {
 	pr_debug("\n=========== %d %s \n\n",__LINE__,__func__);
-	return aitalk_is_playing;
+	return is_aitalk_playing;
 }
 
 static struct mozart_module_struct aitalk_cloudplayer_module = {
@@ -421,13 +424,14 @@ bool __mozart_aitalk_cloudplayer_is_start(void)
 	return __mozart_module_is_start(&aitalk_cloudplayer_module);
 }
 
-
+#if 0
 bool __mozart_aitalk_cloudplayer_is_asr(void){
 	if (__mozart_aitalk_cloudplayer_is_run())
 		return is_aitalk_asr;
 	else
 		return false;
 }
+#endif
 
 int mozart_aitalk_cloudplayer_start(bool in_lock)
 {
@@ -440,11 +444,6 @@ int mozart_aitalk_cloudplayer_start(bool in_lock)
 		pr_err("aitalk_cloudplayer_module isn't registered!\n");
 		return -1;
 	}
-
-	mozart_smartui_atalk_play("AISPEECH",NULL,NULL,NULL);
-	mozart_smartui_atalk_toggle(false);
-	__mozart_prompt_tone_key_sync("atalk_hi_12");
-	aitalk_vendor_startup();
 //	aitalk_vendor_startup();
 //	if (ret == 0)
 //		create_aitalk_cloudplayer_monitor_pthread();
