@@ -523,9 +523,11 @@ int mozart_aitalk_cloudplayer_do_resume_pause(void)
 
 	if (self->player_state == player_state_play){
 		ret = __aitalk_cloudplayer_do_pause(self);
+		is_aitalk_playing = false;
 	}
 	else if (self->player_state == player_state_pause){
 		ret = __aitalk_cloudplayer_do_resume(self);
+		is_aitalk_playing = true;
 	}
 
 	mozart_module_mutex_unlock();
