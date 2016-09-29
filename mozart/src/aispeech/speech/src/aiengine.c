@@ -637,10 +637,13 @@ int ai_set_enable(bool enable){
 	//	}else{
 			recog.status =AIENGINE_STATUS_AEC;
 			ai_flag.is_running = true;
-			if (ai_flag.is_init){
-				ai_server_restart();
-				ai_song_recommend_auto();
-			}
+			usleep(10000);
+			ai_aitalk_send(aitalk_send_next_music(false));	//*/
+			usleep(10000);
+		//	if (ai_flag.is_init){
+		//		ai_server_restart();
+		//		ai_song_recommend_auto();
+		//	}
 	//	}
 	}
 	else{
@@ -679,6 +682,7 @@ int ai_aiengine_delete(void){
 	}
 	}
 	ai_flag.is_init = false;
+	ai_server_exit();
 	return 0;
 }
 

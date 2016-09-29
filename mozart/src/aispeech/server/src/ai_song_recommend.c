@@ -352,7 +352,7 @@ music_info *ai_song_recommend_push(void){
 	int count = 0;
 	//	get the list end    or not success
 	if (ai_song_list.is_getting == true){
-		PERROR("Error: Getting recommend song !... \n",count);
+		PERROR("Error: Getting recommend song !... \n");
 		return NULL;
 	}
 
@@ -409,6 +409,40 @@ exit_error:
 	return NULL;
 }
 
+#if 1
+void *ai_song_recommend_update_thread(void *args)
+{
+	pthread_detach(pthread_self());
+	int count = 0;
+	while (ai_song_list.is_running){
+		if((ai_song_list.is_success == false)		//
+		||(ai_song_list.geted_number >= ai_song_list.song_number)){
+	//	for (count = 1;count<SONG_GET_ERROR_MAX;count++){
+			ai_song_list.is_success = false;
+			ai_song_list.geted_number = 0;
+			ai_song_list.song_number =0;
+			DEBUG("Get recommend song server time= %d!... \n",count);
+			//------------------------------- SONG_RECOMMEND_TYPE_AUTO
+			if((ai_song_list.type == SONG_RECOMMEND_TYPE_AUTO)
+			 ||(ai_song_list.search_artist == NULL)){
+			 	DEBUG("SONG_RECOMMEND_TYPE_AUTO... \n");
+				if(ai_song_recommend_update("我要听歌") == 0){
+					break;
+				}
+			}
+			else{
+			//----------------------------- SONG_RECOMMEND_TYPE_ARTIST
+			 	DEBUG("SONG_RECOMMEND_TYPE_ARTIST... \n");
+				if(ai_song_recommend_update(ai_song_list.search_artist) == 0){
+					break;
+				}
+			}
+		}
+	//}
+	}
+}
+#endif
+
 
 /***************************************/
 // Update new song from server
@@ -431,53 +465,8 @@ void ai_song_recommend_artist(char *artist){
 	if (ai_song_list.is_success == true){
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		ai_aitalk_send(aitalk_send_next_music(false));
-		/*
-		#if AI_CONTROL_MOZART
-		aitalk_play_music = true;
-		music = &ai_song_list.song[0];
-		if (music){
-			if (music->url != NULL){
-				ai_music_list_add_music(music);
-			}
-			else{
-				return;
-			}
-		}
-		ai_aitalk_send(aitalk_send_play_url(music));
-		ai_song_list.geted_number++;
-		#endif
-		//*/
 	}
 }
-#if 0
-void *ai_song_recommend_auto_thr(void *args)
-{
-	int status= 0;
-	int count = 0;
-	is_getting_song_recommend = true;
-	while (is_getting_song_recommend    ){
-		sleep(1);
-		DEBUG("Get song recommend,waiting...\n");
-		if (ai_song_list.is_success == true){
-			is_getting_song_recommend = false;
-		}
-		count ++;
-		if (count > 20){
-			is_getting_song_recommend = false;
-			PERROR("Error: get song recommend timeout!...\n");
-		}
-	}
-
-	if (ai_song_list.is_success == true){
-		DEBUG("Get song recommend successful, auto play music now.\n");
-		#if AI_CONTROL_MOZART
-		aitalk_play_music = true;
-		ai_aitalk_send(aitalk_send_play_music(NULL));
-		#endif
-	}
-	pthread_exit(&status);
-}
-#endif
 
 int ai_song_recommend_auto(void){
 	music_info *music = NULL;
@@ -488,21 +477,6 @@ int ai_song_recommend_auto(void){
 	if (ai_song_list.is_success == true){
 		DEBUG("Get song recommend successful, auto play music now.\n");
 		ai_aitalk_send(aitalk_send_next_music(false));
-	/*
-		#if AI_CONTROL_MOZART
-		aitalk_play_music = true;
-		music = &ai_song_list.song[0];
-		if (music){
-			if (music->url != NULL){
-				ai_music_list_add_music(music);
-			}
-			else{
-				return 0;
-			}
-		}
-		ai_aitalk_send(aitalk_send_play_url(music));
-		ai_song_list.geted_number++;
-		#endif		//*/
 	}
 	return 0;
 }
