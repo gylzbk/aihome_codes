@@ -3,7 +3,7 @@ CXX= mipsel-linux-g++
 STRIP = mipsel-linux-strip
 
 CFLAGS := -fPIC -Werror -O2 
-CFLAGS += -I$(MOLIB_DIR)/include -I$(MOLIB_DIR)/include/curl -I$(MOLIB_DIR)/usr/include -I$(MOLIB_DIR)/usr/include/curl
+CFLAGS += -I$(MOLIB_DIR)/include -I$(MOLIB_DIR)/include/curl -I$(MOLIB_DIR)/usr/include -I$(MOLIB_DIR)/usr/include/curl -I/opt/aispeech/doss/doss_codes/mozart/src/aispeech/server/src
 CFLAGS += -I$(MOLIB_UPDATER_DIR)/usr/include -I$(MOLIB_UPDATER_DIR)/usr/include/alsa 
 LDFLAGS = -shared -lpthread -lm -lcurl -L$(MOLIB_DIR)/usr/lib -L./libs -lzlog -lcloud_param -lelife_doss 
 
@@ -20,7 +20,7 @@ INSTALL    = install
 #SRCS := $(wildcard ./src/*.c)
 SRCS := ./src/ai_error.c  ./src/ai_music_list.c ./src/ai_server.c  ./src/ai_slot.c ./src/ai_song_recommend.c  
 SRCS += ./src/ai_zlog.c
-SRCS += ./src/ai_aitalk_send.c
+SRCS += ./src/ai_aitalk_send.c ./src/list.c ./src/music_list.c
 
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 TARGET=libaiserver.so

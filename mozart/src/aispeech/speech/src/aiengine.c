@@ -13,6 +13,7 @@
 #include "aiengine_app.h"
 #include "ai_slot.h"
 
+music_obj *g_m;
 #if AI_CONTROL_MOZART
 #include "mozart_key.h"
 #endif
@@ -616,6 +617,8 @@ int ai_init(void){
 		goto exit_error;
 	}
 	ai_flag.is_init = true;
+	music_list_alloc(&g_m, 20);
+
 	ai_server_init();
 exit_error:
 	if (err){
@@ -676,6 +679,8 @@ int ai_aiengine_delete(void){
 		echo_wakeup_delete(ew);
 		ew = NULL;
 	}
+	music_list_destroy(&g_m);
+
 	if (agn){
 		aiengine_delete(agn);
 		agn = NULL;
@@ -905,6 +910,7 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 		ai_speech_set_status(VR_SPEECH_NULL);
 	}	//*/
 	if(ai_flag.is_init != true){
+
 		if(ai_init()== -1){
 			PERROR("AI init error!...\n");
 			goto exit_error;
