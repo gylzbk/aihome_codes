@@ -22,7 +22,6 @@
 #include "music_list.h"
 
 extern music_obj *g_m;
-extern bool aitalk_play_music;
 
 music_info *ai_music_list_play_order(int order)
 {
@@ -90,6 +89,5 @@ int ai_play_music_order(int order)
 		return 0;
 	}
 
-	aitalk_play_music = false;
 	return -1;
 }

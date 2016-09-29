@@ -31,7 +31,6 @@
 #include "cJSON.h"
 //#include "vr-speech_interface.h"
 extern void ai_get_song_recommend(void);
-extern bool aitalk_play_music;
 
 static const char *song_recommand_param =
 "\
