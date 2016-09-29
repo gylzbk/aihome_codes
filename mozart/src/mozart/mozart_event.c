@@ -403,6 +403,9 @@ static void mozart_event_key(mozart_event event)
 		case KEY_F3:
 			mozart_module_next_channel();
 			break;
+		case KEY_F2:
+			mozart_module_disconnect_handler();
+			break;
 		case KEY_F10:
 			mozart_module_mutex_lock();
 			if (__mozart_module_is_online())
