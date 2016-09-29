@@ -337,7 +337,7 @@ static int play_handler(json_object *cmd)
 	//	return -1;
 
 	url = json_object_get_string(url_j);
-	printf("    url: %s\n", url);
+	printf("  url: %s\n", url);
 
 	if ((url == NULL) || (url[0] == '/' &&
 		access(url, R_OK))) {
@@ -375,6 +375,7 @@ static int play_handler(json_object *cmd)
 		if (mozart_player_playurl(aitalk_player_handler, (char *)url))
 			printf("[Warning] %s: mozart_player_playurl fail\n", __func__);
 		send_player_state_change(player_play_state);
+		is_aitalk_playing = true;
 	} else {
 		char *uuid = mozart_player_getuuid(aitalk_player_handler);
 		mozart_aitalk_cloudplayer_update_context(uuid, (char *)url);
@@ -383,7 +384,6 @@ static int play_handler(json_object *cmd)
 	}
 
 	is_play_tts = false;
-	is_aitalk_playing = true;
 	mozart_smartui_atalk_play((char *)json_object_get_string(vendor),
 				  (char *)json_object_get_string(title),
 				  (char *)json_object_get_string(artist),
@@ -469,9 +469,9 @@ static int pause_handler(json_object *cmd)
 	}
 	if (is_tone){
 		pr_debug("tone: pause !...\n");
+		is_aitalk_playing = false;
 		mozart_prompt_tone_key_sync("pause",false);
 	}
-
 	mozart_aitalk_cloudplayer_do_pause();
 	return 0;
 }
@@ -999,7 +999,7 @@ static int aitalk_player_status_callback(player_snapshot_t *snapshot,
 			send_play_done(current_url, 0);
 		}
 		pthread_mutex_unlock(&aitalk_wait_stop_mutex);
-		is_aitalk_playing = false;
+	//	is_aitalk_playing = false;
 	}
 
 	return 0;
@@ -1058,13 +1058,13 @@ int aitalk_cloudplayer_stop_player(void)
 	if (aitalk_wait_stop_state != aitalk_wait_stop_stopped) {
 		pr_err("wait stopped timeout\n");
 		mozart_player_force_stop(aitalk_player_handler);
-		is_aitalk_playing = false;
 	}
 
 	aitalk_wait_stop_state = aitalk_wait_stop_invalid;
 
 	pthread_mutex_unlock(&aitalk_wait_stop_mutex);
 
+	is_aitalk_playing = false;
 	return 0;
 }
 
