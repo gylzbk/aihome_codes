@@ -641,7 +641,7 @@ int ai_set_enable(bool enable){
 			recog.status =AIENGINE_STATUS_AEC;
 			ai_flag.is_running = true;
 			usleep(10000);
-			ai_aitalk_send(aitalk_send_next_music(false));	//*/
+			ai_aitalk_send(aitalk_send_current_music(false));	//*/
 			usleep(10000);
 		//	if (ai_flag.is_init){
 		//		ai_server_restart();

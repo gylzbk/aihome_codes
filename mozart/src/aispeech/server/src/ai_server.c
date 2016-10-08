@@ -452,7 +452,7 @@ DEBUG("PASS\n");
 		//	ai_flag.is_play_music = false;
 		//	mozart_prompt_tone_key_sync("stop",false);
 			recog->is_control_play_music = true;
-			ai_aitalk_send(aitalk_send_stop_music(NULL));
+			ai_aitalk_send(aitalk_send_stop_music(true));
 			break;
 		case SDS_COMMAND_MUSIC_PLAY:
 			if ((recog->music.url == NULL)&&(recog->output== NULL)){
@@ -463,7 +463,7 @@ DEBUG("PASS\n");
 			break;
 		case SDS_COMMAND_MUSIC_PREVIOUS:
 			recog->is_control_play_music = true;
-			ai_aitalk_send(aitalk_send_previous_music(NULL));
+			ai_aitalk_send(aitalk_send_previous_music(true));
 		//	mozart_prompt_tone_key_sync("previous",false);
 		//	ai_play_music_order(-1);
 			break;

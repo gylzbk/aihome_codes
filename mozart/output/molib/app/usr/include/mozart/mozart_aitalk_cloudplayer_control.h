@@ -20,6 +20,7 @@ extern int __aitalk_switch_mode(bool attach);
 extern int aitalk_cloudplayer_volume_change(int vol);
 extern int aitalk_cloudplayer_volume_set(int vol);
 extern int aitalk_cloudplayer_previous_music(void);
+extern int aitalk_cloudplayer_current_music(void);
 extern int aitalk_cloudplayer_next_music(void);
 extern int aitalk_next_channel(void);
 

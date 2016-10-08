@@ -506,7 +506,6 @@ static int pause_toggle_handler(json_object *cmd)
 }
 
 static int set_volume_handler(json_object *cmd){
-	printf("%s...!\n",__func__);
 	int vol = 0;
 	json_object *params = NULL;
 	json_object *volume_j = NULL;
@@ -577,9 +576,29 @@ static int play_music_handler(json_object *cmd)
 
 static int previous_music_handler(json_object *cmd)
 {
-	printf("%s...!\n",__func__);
-	mozart_prompt_tone_key_sync("previous",false);
+	bool is_tone = false;
+	json_object *params = NULL;
+	json_object *tone_j = NULL;
+	char *tone_s = NULL;
+	if (json_object_object_get_ex(cmd, "params", &params)){
+		if (json_object_object_get_ex(params, "tone", &tone_j)){
+			tone_s =(char *)json_object_get_string(tone_j);
+			if (!strcmp(tone_s, "true")) {
+				is_tone = true;
+			}
+		}
+	}
+	if (is_tone){
+		pr_debug("tone: previous_music !...\n");
+		mozart_prompt_tone_key_sync("previous",false);
+	}
 	mozart_aitalk_cloudplayer_do_previous_song();
+	return 0;
+}
+
+static int current_music_handler(json_object *cmd)
+{
+	aitalk_cloudplayer_current_music();
 	return 0;
 }
 
@@ -598,7 +617,7 @@ static int next_music_handler(json_object *cmd)
 		}
 	}
 	if (is_tone){
-		pr_debug("tone: pause !...\n");
+		pr_debug("tone: next_music !...\n");
 		mozart_prompt_tone_key_sync("next",false);
 	}
 	mozart_aitalk_cloudplayer_do_next_song();
@@ -607,7 +626,6 @@ static int next_music_handler(json_object *cmd)
 
 static int exit_handler(json_object *cmd)
 {
-	printf("%s...!\n",__func__);
 	mozart_prompt_tone_key_sync("exit",false);
 	return 0;
 }
@@ -939,16 +957,20 @@ static struct aitalk_method methods[] = {
 		.handler = next_music_handler,
 	},
 	{
+		.name = "current_music",
+		.handler = current_music_handler,
+	},
+	{
+		.name = "previous_music",
+		.handler = previous_music_handler,
+	},
+	{
 		.name = "exit",
 		.handler = exit_handler,
 	},
 	{
 		.name = "error",
 		.handler = error_handler,
-	},
-	{
-		.name = "previous_music",
-		.handler = previous_music_handler,
 	},
 	{
 		.name = "play_voice_prompt",
@@ -1358,16 +1380,23 @@ int aitalk_cloudplayer_volume_set(int vol)
 	return 0;
 }
 
+int aitalk_cloudplayer_current_music(void)
+{
+	ai_play_music_order(0);
+	return 0;//send_button_event("current", NULL, NULL);
+}
+
+
 int aitalk_cloudplayer_previous_music(void)
 {
 	ai_play_music_order(-1);
-	return send_button_event("previous", NULL, NULL);
+	return 0;//send_button_event("previous", NULL, NULL);
 }
 
 int aitalk_cloudplayer_next_music(void)
 {
 	ai_play_music_order(1);
-	return send_button_event("next", NULL, NULL);
+	return 0;//send_button_event("next", NULL, NULL);
 }
 
 bool aitalk_cloudplayer_is_playing(void)
@@ -1377,12 +1406,12 @@ bool aitalk_cloudplayer_is_playing(void)
 
 int aitalk_next_channel(void)
 {
-	return send_button_event("next_channel", NULL, NULL);
+	return 0;//send_button_event("next_channel", NULL, NULL);
 }
 
 int aitalk_love_audio(void)
 {
-	return send_button_event("love_audio", "uri", current_url);
+	return 0;//send_button_event("love_audio", "uri", current_url);
 }
 
 void aitalk_vendor_startup(void)
