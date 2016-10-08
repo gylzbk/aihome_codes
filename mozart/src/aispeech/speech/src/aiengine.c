@@ -22,12 +22,9 @@ music_obj *g_m;
 #include "mozart_aitalk.h"
 #endif
 
-//#include "ai_aec_thr.h"
-//#include "ai_cloudsem_thr.h"
 #include "echo_wakeup.h"
 
 #include <semaphore.h>
-//char recog_buf[STR_BUFFER_SZ] = {0};
 static const char *version =
 "\n=============================\n"\
 "AIHOME: Aitalk for DS1825-pro\n"\
@@ -133,35 +130,7 @@ static const char *cfg =
 }";
 #endif
 
-
-vr_speech_status_type vr_speech_status = VR_SPEECH_NULL;
-
 vr_info recog;
-
-int asr_mode_cfg = AI_CLOUD;
-
-mozart_vr_speech_callback vr_speech_callback_pointer;
-
-
-bool is_aitalk_send_init = false;
-//sem_t sem_ai_startup;
-sem_t sem_ai_enable;
-sem_t sem_ai_send;
-
-int ai_aitalk_sem_init(void){
-    sem_init(&sem_ai_send, 0, 0);
-//	sem_init(&sem_ai_startup, 0, 1);
-	sem_init(&sem_ai_enable, 0, 1);
-	is_aitalk_send_init = true;
-	return 0;
-}
-
-int ai_aitalk_sem_destory(void){
-//	sem_destroy(&sem_ai_startup);
-	sem_destroy(&sem_ai_enable);
-	ai_aitalk_send_destroy();
-	return 0;
-}
 
 struct timeval t_debug;
 struct aiengine *agn = NULL;
@@ -327,7 +296,7 @@ int ai_recog_free(void){
 
 int ai_to_mozart(void)
 {
-	asr_mode_cfg = vr_speech_callback_pointer(&recog);
+	ai_flag.asr_mode_cfg = ai_flag.vr_callback_pointer(&recog);
 //	recog.status = recog.next_status;
 //exit_error:
 //	ai_recog_free();
@@ -891,11 +860,11 @@ int ai_key_record_stop(void){
 
 
 void ai_speech_set_status(vr_speech_status_type status){
-	vr_speech_status = status;
+	ai_flag.vr_status = status;
 }
 
 int ai_speech_get_status(){
-	return vr_speech_status;
+	return ai_flag.vr_status;
 }
 
 /*
@@ -916,7 +885,7 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 			goto exit_error;
 		}
 		DEBUG("vr speech     asr start!...\n");
-		vr_speech_callback_pointer = callback;
+		ai_flag.vr_callback_pointer = callback;
 		ai_flag.is_working = true;
 		pthread_t voice_recog_thread;
 		if (pthread_create(&voice_recog_thread, NULL, ai_run, NULL) != 0) {

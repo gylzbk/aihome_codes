@@ -258,7 +258,7 @@ int ai_song_recommand_semantic_callback(void *usrdata, const char *id, int type,
     }
 
     result = cJSON_GetObjectItem(out, "result");
-//    DEBUG("result: \n%s\n", cJSON_Print(result));
+    DEBUG("result: \n%s\n", cJSON_Print(result));
     if (result)
     {
 		param = cJSON_GetObjectItem(result, "sds");
@@ -277,7 +277,6 @@ exit_error:
     {
         cJSON_Delete(out);
     }
-
     return error;
 }
 
@@ -378,6 +377,9 @@ music_info *ai_song_recommend_push(void){
 					break;
 				}
 			}
+			if (ai_song_list.is_success){
+				break;
+			}
 			if (ai_song_list.is_getting == false){
 				DEBUG("Stop get recommend song !... \n");
 				goto exit_error;
@@ -408,7 +410,7 @@ exit_error:
 	return NULL;
 }
 
-#if 1
+#if 0
 void *ai_song_recommend_update_thread(void *args)
 {
 	pthread_detach(pthread_self());

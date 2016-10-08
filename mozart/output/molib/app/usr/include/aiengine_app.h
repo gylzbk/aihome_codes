@@ -60,6 +60,7 @@ extern void *record_buf;
 extern vr_info recog;
 
 typedef struct ai_status_s{
+	vr_speech_status_type vr_status;
 	bool is_init;
 	bool aec_enable;
 	bool is_running;
@@ -68,11 +69,12 @@ typedef struct ai_status_s{
 	bool quit_finish;
 	int mode_cfg;
 	bool is_play_music;
-	int vr_status;
+	int asr_mode_cfg;
 //	echo_wakeup_t *ew;
 //	struct aiengine *agn;
 //	pthread_mutex_t mutex_lock;
-//	mozart_vr_speech_callback vr_callback_pointer;
+	vr_info recog;
+	mozart_vr_speech_callback vr_callback_pointer;
 }ai_status_s;
 
 extern ai_status_s ai_flag;

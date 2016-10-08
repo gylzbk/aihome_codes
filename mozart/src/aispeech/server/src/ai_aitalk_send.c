@@ -27,9 +27,19 @@
 
 
 static char *pjson = NULL;
-char *aitalk_pipe_buf = NULL;
-extern  bool is_aitalk_send_init;
-extern sem_t sem_ai_send;
+static char *aitalk_pipe_buf = NULL;
+static sem_t sem_ai_send;
+bool is_aitalk_send_init = false;
+//sem_t sem_ai_startup;
+
+int ai_aitalk_sem_init(void){
+    sem_init(&sem_ai_send, 0, 0);
+//	sem_init(&sem_ai_startup, 0, 1);
+	is_aitalk_send_init = true;
+	return 0;
+}
+
+
 
 char *send_obj(char *method,json_object *obj)
 {

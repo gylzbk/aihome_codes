@@ -97,8 +97,9 @@ static void sig_handler(int signo)
 	free(global_app_name);
 	global_app_name = NULL;
 
-	ai_aitalk_sem_destory();
+//	ai_aitalk_sem_destory();
 
+	ai_aitalk_send_destroy();
 	exit(-1);
 }
 
