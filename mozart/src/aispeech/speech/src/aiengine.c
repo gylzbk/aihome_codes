@@ -130,13 +130,14 @@ static const char *cfg =
 }";
 #endif
 
+ai_status_s ai_flag;
 vr_info recog;
+pthread_mutex_t ai_lock = PTHREAD_MUTEX_INITIALIZER;
 
 struct timeval t_debug;
 struct aiengine *agn = NULL;
 echo_wakeup_t *ew = NULL;
 
-ai_status_s ai_flag;
 
 
 #ifdef SYN_TOO_LONG

@@ -33,27 +33,9 @@ static const char *semantic_text_param =
 }";
 
 static bool is_wait_callback = false;
-static bool is_stop = false;
+static bool is_working = false;
+
 extern struct aiengine *agn;
-
-int  _wait_end(void){
-	int timeout = 0;
-
-    while(is_wait_callback)
-    {
-        usleep(1000);
-		timeout ++;
-		if (timeout > 5000){	//	timeout    5 s
-			PERROR("ERROR:   time out!\n");
-			return -1;
-		}
-		if(is_stop){
-			PERROR("stoping !\n");
-			return -1;
-		}
-    }
-	return 0;
-}
 
 int _semantic_text_callback(void *usrdata, const char *id, int type,
                                         const void *message, int size)
@@ -101,10 +83,34 @@ exit_error:
 }
 
 
+int  _wait_end(void){
+	int timeout = 0;
+
+    while(is_wait_callback)
+    {
+        usleep(1000);
+		timeout ++;
+		if (timeout > 5000){	//	timeout    5 s
+			PERROR("ERROR:   time out!\n");
+			return -1;
+		}
+    }
+	return 0;
+}
+
 void ai_cloud_sem_text_stop(void){
-	if (is_wait_callback){
+	int timeout = 0;
+	if (is_working){
+		is_wait_callback = false;
 		DEBUG("ai_cloud_sem_text_stop stoping... !\n");
-		is_stop = true;
+		while(is_working){
+		  	usleep(1000);
+			timeout ++;
+			if (timeout > 5000){	//	timeout    5 s
+				PERROR("ERROR:   time out!\n");
+				return;
+			}
+		}
 	}
 }
 
@@ -119,6 +125,7 @@ int ai_cloud_sem_text(char *text){
     cJSON *request_js = NULL;
     cJSON *syn_js = NULL;
 
+	ai_mutex_lock();
 	if (text == NULL){
 		error = -1;
 		goto exit_error;
@@ -142,7 +149,7 @@ int ai_cloud_sem_text(char *text){
 		goto exit_error;
     }
     _param = cJSON_PrintUnformatted(param_js);
-	is_stop = false;
+	is_working = true;
 	is_wait_callback = true;
     if(aiengine_start(agn,_param, uuid, _semantic_text_callback, NULL) != 0)
     {
@@ -158,12 +165,14 @@ int ai_cloud_sem_text(char *text){
         goto exit_error;
 	}
 exit_error:
-	is_wait_callback = false;
 	free(_param);
     if(param_js)
     {
         cJSON_Delete(param_js);
     }
+	is_wait_callback = false;
+	is_working = false;
+	ai_mutex_unlock();
     return error;
 }
 

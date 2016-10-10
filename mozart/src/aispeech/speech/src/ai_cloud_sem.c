@@ -175,6 +175,7 @@ int ai_cloud_sem(struct aiengine *agn)
     int loop = 0;
     int ret = 0;
 	int buf_count = 0;
+	ai_mutex_lock();
 	ai_sem_flag.state = SEM_STATUS_START;
 	ai_sem_flag.error = false;
 	ai_sem_flag.set_end = false;
@@ -279,7 +280,6 @@ int ai_cloud_sem(struct aiengine *agn)
 	else if(ai_sem_flag.state == SEM_STATUS_FAIL) {
 		aiengine_cancel(agn);
 	}
-
 SOUND_DEV_DISABLE:
     sound_aec_disable();
 
@@ -295,6 +295,7 @@ OUT:
 	new_semantic_param = NULL;
 	ai_sem_flag.set_end = false;
 	ai_sem_flag.state = SEM_STATUS_IDEL;
+	ai_mutex_unlock();
     return ai_sem_flag.result;
 }
 

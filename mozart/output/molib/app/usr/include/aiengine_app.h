@@ -22,10 +22,30 @@
 
 #define AI_CONTROL_MOZART_ATALK 1
 
-#include "vr-speech_interface.h"
-
 extern int asr_mode_cfg;
 extern int fd_dsp_rd;
+
+
+extern pthread_mutex_t ai_lock;
+#define ai_mutex_lock(lock)				\
+	do {								\
+		int i = 0;			\
+		DEBUG("++++++++++++++++++++++++++++++++ ai lock\n");\
+		while (pthread_mutex_trylock(&ai_lock)) {			\
+			if (i++ >= 100) {				\
+				PERROR("####dead lock####\n");	\
+				i = 0;	\
+			}			\
+			usleep(100 * 1000);				\
+		}							\
+	} while (0)
+
+#define ai_mutex_unlock(lock) 	\
+	do {								\
+		DEBUG("--------------------------------- ai unlock\n");\
+		pthread_mutex_unlock(&ai_lock);\
+	} while (0)
+
 
 enum AEC_STATUS_TYEP
 {
