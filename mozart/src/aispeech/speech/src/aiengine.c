@@ -609,6 +609,7 @@ int ai_set_enable(bool enable){
 	//	}else{
 			recog.status =AIENGINE_STATUS_AEC;
 			ai_flag.is_running = true;
+			ai_song_list_set_enable(true);
 			usleep(10000);
 			ai_aitalk_send(aitalk_send_current_music(false));	//*/
 			usleep(10000);
@@ -625,6 +626,7 @@ int ai_set_enable(bool enable){
 			if (ai_flag.is_init){
 				ai_aiengine_exit();
 			}
+			ai_song_list_set_enable(false);
 		}
 	}
 	return 0;
@@ -668,7 +670,7 @@ int ai_aiengine_exit(void){
 	ai_cloud_sem_stop();
 	ai_tts_stop();
 	ai_cloud_sem_free();
-
+	ai_cloud_sem_text_stop();
 	ai_recog_free();
 	free(recog.env);
 	recog.env = NULL;
@@ -884,6 +886,9 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 			PERROR("AI init error!...\n");
 			goto exit_error;
 		}
+
+		ai_song_list_init();
+
 		DEBUG("vr speech     asr start!...\n");
 		ai_flag.vr_callback_pointer = callback;
 		ai_flag.is_working = true;

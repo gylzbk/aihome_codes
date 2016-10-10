@@ -147,10 +147,8 @@ int ai_server_fun(vr_info *recog)
 				if((recog->search_artist)
 					&&(recog->search_title == NULL)){
 					DEBUG("-------------Only search artist!...\n");
-					ai_song_recommend_artist(recog->search_artist);
-				//	#if AI_CONTROL_MOZART
-				//		ai_aitalk_send(aitalk_send_play_music(NULL));
-				//	#endif
+					ai_song_list_renew_artist(recog->search_artist);
+					ai_aitalk_send(aitalk_send_next_music(false));
 					recog->next_status     = AIENGINE_STATUS_AEC;
 					goto	exit_error;
 					break;
@@ -180,6 +178,7 @@ int ai_server_fun(vr_info *recog)
 				//ai_music_list_add_music(music);
 				recog->is_control_play_music = true;
 				ai_aitalk_send(aitalk_send_play_url(&music));
+				ai_song_list_renew_auto();
 			#endif
 				recog->next_status     = AIENGINE_STATUS_AEC;
 				break;
@@ -516,7 +515,7 @@ int ai_server_init(void)
 {
 //	ai_curlInit();
 	//ai_music_list_init();
-	ai_song_recommend_init();
+//	ai_song_recommend_init();
 //	ai_song_recommend_auto();
 	#if  SUPPORT_ELIFE
 	ai_elife_init();
@@ -534,7 +533,7 @@ int ai_server_init(void)
 
 int ai_server_exit(void){
 	//ai_music_list_free();
-	ai_song_recommend_free_all();
+//	ai_song_recommend_free_all();
 	#if  SUPPORT_ELIFE
 	ai_elife_free();
 	#endif

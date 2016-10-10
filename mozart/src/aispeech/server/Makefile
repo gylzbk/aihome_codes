@@ -18,9 +18,9 @@ INSTALL    = install
 
 
 #SRCS := $(wildcard ./src/*.c)
-SRCS := ./src/ai_error.c  ./src/ai_music_list.c ./src/ai_server.c  ./src/ai_slot.c ./src/ai_song_recommend.c  
+SRCS := ./src/ai_error.c  ./src/ai_music_list.c ./src/ai_server.c  ./src/ai_slot.c ./src/ai_song_list.c
 SRCS += ./src/ai_zlog.c
-SRCS += ./src/ai_aitalk_send.c ./src/list.c ./src/music_list.c
+SRCS += ./src/ai_aitalk_send.c ./src/list.c ./src/music_list.c 
 
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 TARGET=libaiserver.so
