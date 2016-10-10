@@ -126,8 +126,10 @@ extern int   ai_cloud_sem_stoping(void);
 extern void ai_cloud_sem_stop(void);
 extern void ai_cloud_sem_free(void);
 
+extern void ai_cloud_sem_text_stop(void);
+extern int ai_cloud_sem_text(char *text);
+
 extern void  ai_aec_stop(void);
-extern void ai_semParamInit(void);
 extern int ai_aiengine_start(void);
 extern int ai_aiengine_stop(void);
 extern int ai_aiengine_delete(void);
