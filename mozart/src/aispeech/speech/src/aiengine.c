@@ -368,11 +368,7 @@ exit_error:
 
 int ai_status_aecing(void){
 	ai_to_mozart();
-	#if AI_CONTROL_MOZART	  // remove tone when wakeup
-		mozart_key_ignore_set(false);
-	#endif
-	bool is_play = aitalk_cloudplayer_is_playing();
-	if (is_play){
+	if (aitalk_cloudplayer_is_playing()){
 		DEBUG("aitalk   is playing..! %d \n", recog.is_control_play_music);
 		if(recog.is_control_play_music == false){
 			usleep(10000);
@@ -381,9 +377,11 @@ int ai_status_aecing(void){
 		}
 	}
 	else{
-		DEBUG("aitalk   is not playing..!\n");
+		DEBUG("aitalk    is not playing..!\n");
 	}
-
+	#if AI_CONTROL_MOZART	  // remove tone when wakeup
+		mozart_key_ignore_set(false);
+	#endif
 	recog.is_control_play_music = false;
 	ai_recog_free();
 	if (ai_aec(ew) == 0){

@@ -114,7 +114,6 @@ void _renew_server(void){
 		DEBUG("start renew list... \n");
 		ai_song_list.is_set_renew = false;
 		ai_song_list.renew_delay_s = 0;
-		ai_song_list.is_success_send_music = false;
 		for(i=0; i<SONG_GET_ERROR_MAX; i++){
 			if((ai_song_list.type == SONG_TYPE_AUTO)
 			 ||(ai_song_list.artist == NULL)){
@@ -132,17 +131,21 @@ void _renew_server(void){
 			}
 		}
  	} else {
+ 		DEBUG("is_success = %d, renew_delay_s = %d , send_music = %d\n",
+			ai_song_list.is_success,ai_song_list.renew_delay_s,ai_song_list.is_send_music);
 		if (ai_song_list.is_success == false){
 			if(ai_song_list.renew_delay_s++ > 30){
 				ai_song_list.is_set_renew= true;
 			}
 		} else {
-			if (ai_song_list.is_success_send_music == false){
-				ai_song_list.is_success_send_music = true;
-				if (aitalk_cloudplayer_is_playing() == false){
-					usleep(10000);
-					ai_aitalk_send(aitalk_send_next_music(false));	//*/
-					usleep(10000);
+			if (ai_song_list.is_send_music == true){
+				if(recog.status == AIENGINE_STATUS_AEC){
+					if (aitalk_cloudplayer_is_playing() == false){
+						usleep(10000);
+						ai_song_list.is_send_music = false;
+						ai_aitalk_send(aitalk_send_next_music(false));	//*/
+						usleep(10000);
+					}
 				}
 			}
 		}
@@ -154,6 +157,7 @@ void *_run_thread(void *args)
 {
 	pthread_detach(pthread_self());
 	int count = 0;
+	ai_song_list.is_send_music = true;
 	while (ai_song_list.is_working){
 		while(ai_song_list.is_running){
 			_renew_server();
@@ -305,9 +309,10 @@ void ai_song_list_exit(void){
 int ai_song_list_set_enable(bool enable){
 	if (enable){
 		ai_song_list.is_running = true;
-		ai_song_list.is_success_send_music = false;
+		ai_song_list.is_send_music = true;
 	} else {
 		ai_song_list.is_running = false;
+		ai_song_list.is_send_music = false;
 		ai_cloud_sem_text_stop();
 	}
 }
@@ -355,9 +360,18 @@ music_info *ai_song_list_push(void){
 		timeout ++;
 		if (timeout > 10000){	//	10ms * 1000 = 10s
 			PERROR("Error: time out! \n");
+			usleep(10000);
+			ai_aitalk_send(aitalk_send_error("error_net_slow"));
+			if (aitalk_cloudplayer_is_playing()){
+				usleep(10000);
+				ai_aitalk_send(aitalk_send_stop_music(false));	//*/
+				ai_song_list.is_send_music = true;
+				usleep(10000);
+			}
 			goto exit_error;
 		}
 	}
+
 
 	if((ai_song_list.push_num >= ai_song_list.song_num)
 	 &&(ai_song_list.push_num >= SONG_LIST_MAX)){
@@ -365,7 +379,7 @@ music_info *ai_song_list_push(void){
 		goto exit_error;
 	}
 
-	ai_song_list.is_success_send_music = true;
+	ai_song_list.is_send_music = false;
 	return &ai_song_list.song[ai_song_list.push_num ++];
 exit_error:
 	return NULL;

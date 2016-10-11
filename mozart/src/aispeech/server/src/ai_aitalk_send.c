@@ -157,7 +157,7 @@ char *aitalk_send_stop_music(bool tone){
 	json_object *params;
 	params = json_object_new_object();
 	json_object_object_add(params, "tone", json_object_new_string(tone_s));
-	return send_obj("stop_music",params);
+	return send_obj("stop",params);
 }
 
 #if 0

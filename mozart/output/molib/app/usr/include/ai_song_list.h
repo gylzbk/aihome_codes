@@ -31,7 +31,7 @@ typedef struct ai_song_list_t {
 	bool  is_getting;
 	bool  is_success;
 	bool  set_send_music;
-	bool  is_success_send_music;
+	bool  is_send_music;
 	bool is_start_update;
 	bool  is_stop;
 	bool  is_wait_callback;

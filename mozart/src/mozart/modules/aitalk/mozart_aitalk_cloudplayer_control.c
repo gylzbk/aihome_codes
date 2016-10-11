@@ -448,13 +448,30 @@ static int play_tts_handler(json_object *cmd)
 
 static int stop_handler(json_object *cmd)
 {
-	mozart_prompt_tone_key_sync("stop",false);
+	pr_debug("stop_handler...\n");
+	bool is_tone = false;
+	json_object *params = NULL;
+	json_object *tone_j = NULL;
+	char *tone_s = NULL;
+	if (json_object_object_get_ex(cmd, "params", &params)){
+		if (json_object_object_get_ex(params, "tone", &tone_j)){
+			tone_s =(char *)json_object_get_string(tone_j);
+			if (!strcmp(tone_s, "true")) {
+				is_tone = true;
+			}
+		}
+	}
+	if (is_tone){
+		pr_debug("tone: stop !...\n");
+		mozart_prompt_tone_key_sync("stop",false);
+	}
 	mozart_aitalk_cloudplayer_do_stop();
 	return 0;
 }
 
 static int pause_handler(json_object *cmd)
 {
+	pr_debug("pause_handler...\n");
 	bool is_tone = false;
 	json_object *params = NULL;
 	json_object *tone_j = NULL;
@@ -478,6 +495,7 @@ static int pause_handler(json_object *cmd)
 
 static int resume_handler(json_object *cmd)
 {
+	pr_debug("resume_handler...\n");
 	bool is_tone = false;
 	json_object *params = NULL;
 	json_object *tone_j = NULL;
