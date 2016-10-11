@@ -131,8 +131,8 @@ void _renew_server(void){
 			}
 		}
  	} else {
- 		DEBUG("is_success = %d, renew_delay_s = %d , send_music = %d\n",
-			ai_song_list.is_success,ai_song_list.renew_delay_s,ai_song_list.is_send_music);
+ 	//	DEBUG("is_success = %d, renew_delay_s = %d , send_music = %d\n",
+	//		ai_song_list.is_success,ai_song_list.renew_delay_s,ai_song_list.is_send_music);
 		if (ai_song_list.is_success == false){
 			if(ai_song_list.renew_delay_s++ > 30){
 				ai_song_list.is_set_renew= true;
