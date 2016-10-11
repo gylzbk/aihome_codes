@@ -361,7 +361,7 @@ music_info *ai_song_list_push(void){
 		if (timeout > 10000){	//	10ms * 1000 = 10s
 			PERROR("Error: time out! \n");
 			usleep(10000);
-			ai_aitalk_send(aitalk_send_error("error_net_slow"));
+			ai_aitalk_send(aitalk_send_error("error_net_slow_wait"));
 			if (aitalk_cloudplayer_is_playing()){
 				usleep(10000);
 				ai_aitalk_send(aitalk_send_stop_music(false));	//*/

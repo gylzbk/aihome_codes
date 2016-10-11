@@ -665,7 +665,8 @@ static int error_handler(json_object *cmd)
 		||  (!strcmp(tone_key, "error_system"))
 		||  (!strcmp(tone_key, "error_no_voice"))
 		||  (!strcmp(tone_key, "error_server_busy"))
-		||  (!strcmp(tone_key, "error_net_slow"))
+		||  (!strcmp(tone_key, "error_net_slow_again"))
+		||  (!strcmp(tone_key, "error_net_slow_wait"))
 		||  (!strcmp(tone_key, "error_net_fail"))){
 			mozart_prompt_tone_key_sync((char *)tone_key,false);
 		}//*/

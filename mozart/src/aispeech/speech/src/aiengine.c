@@ -520,7 +520,7 @@ int ai_status_error(void){
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_NET_SLOW:
-		ai_aitalk_send(aitalk_send_error("error_net_slow"));
+		ai_aitalk_send(aitalk_send_error("error_net_slow_again"));
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_NET_FAIL:
