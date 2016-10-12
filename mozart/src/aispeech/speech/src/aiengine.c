@@ -636,9 +636,9 @@ int ai_init(void){
 	op_reg_low_output(o_obj, low_output_cb);
 	op_reg_high_output(o_obj, high_output_cb);
 	op_reg_low_input(o_obj, low_input_cb);
+	op_reg_cur_output(o_obj, cur_output_cb);
+
 	machine_open(o_obj);
-	/*XXX*/
-	music_list_print(g_m);
 
 	ai_server_init();
 exit_error:
