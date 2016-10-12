@@ -30,7 +30,9 @@ DIR_LIB_VR := $(DIR_CUR)/libs
 DIR_BIN_VR := $(DIR_CUR)/bin	
 DIR_SRC_VR := $(DIR_CUR)/src
 DIR_INCLUDE := $(DIR_CUR)/include
-SRCS := $(wildcard ./src/*.c)
+
+SRCS := ./src/ai_sound_dev.c ./src/ai_aec_local.c ./src/ai_cloud_sem.c ./src/ai_cloud_sem_text.c ./src/ai_cloud_syn.c 
+SRCS += ./src/aiengine.c
 RESOURCE = aihome
 CFLAGS += -I$(DIR_SRC_VR)
 

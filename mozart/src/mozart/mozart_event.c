@@ -337,15 +337,30 @@ static void mozart_event_key(mozart_event event)
 	}
 
 	#if (SUPPORT_VR == VR_SPEECH)
-	if(code  == KEY_RECORD){		//-------------- record
-		if (value == 1){
-			create_key_long_press_pthread(&record_key_info);
-		}
-		else{
-			key_long_press_cancel(&record_key_info);
-		}
-		return;
-	}
+		#if(SUPPORT_BOARD == BOARD_DS1825)
+			if(code  == KEY_RECORD){		//-------------- record
+				if (value == 1){	//	wakeup
+					create_key_long_press_pthread(&record_key_info);
+				}
+				else{				//	stop aec
+					key_long_press_cancel(&record_key_info);
+				}
+				return;
+			}
+		#elif (SUPPORT_BOARD == BOARD_WB38)
+			if(code  == KEY_RECORD){		//-------------- record
+				if (value == 1){	//	wakeup
+					ai_key_record_wakeup();
+				}
+				return;
+			}
+			if (code  == KEY_F4){
+				if (value == 1){//	stop aec
+					ai_key_record_stop();
+				}
+				return;
+			}
+		#endif
 	#endif
 
 
@@ -387,6 +402,9 @@ static void mozart_event_key(mozart_event event)
 			break;
 		case KEY_F3:
 			mozart_module_next_channel();
+			break;
+		case KEY_F2:
+			mozart_module_disconnect_handler();
 			break;
 		case KEY_F10:
 			mozart_module_mutex_lock();

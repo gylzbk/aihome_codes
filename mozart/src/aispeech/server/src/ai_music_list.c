@@ -18,7 +18,7 @@
 #include "ai_slot.h"
 #include "cJSON.h"
 
-#include "ai_song_recommend.h"
+#include "ai_song_list.h"
 #include "music_list.h"
 
 extern music_obj *g_m;
@@ -44,7 +44,8 @@ music_info *ai_music_list_play_order(int order)
 		/*XXX: maybe tone tip*/
 		if (music == NULL) {
 			printf("[%s %s %d] no next song\n", __FILE__, __func__, __LINE__);
-			music = ai_song_recommend_push();
+			music = ai_song_list_push();
+		//	music = ai_song_recommend_push();
 			if (music == NULL)
 				return NULL;
 			music_info *tmp;
@@ -56,11 +57,12 @@ music_info *ai_music_list_play_order(int order)
 		music = music_prev_get(g_m);
 		/*XXX: maybe tone tip*/
 		if (music == NULL) {
-			music = ai_song_recommend_push();
+		//	music = ai_song_recommend_push();
+			music = ai_song_list_push();
 			if (music == NULL)
 				return NULL;
 			music_info *tmp;
-			music_info_alloc(&tmp, music->title, music->artist, music->url);	
+			music_info_alloc(&tmp, music->title, music->artist, music->url);
 			music_list_insert_head(g_m, tmp);
 			printf("[%s %s %d] no previous song\n", __FILE__, __func__, __LINE__);
 		}
@@ -72,7 +74,8 @@ music_info *ai_music_list_play_order(int order)
 	}
 
 	if (music == NULL) {
-		music = ai_song_recommend_push();
+	//	music = ai_song_recommend_push();
+		music = ai_song_list_push();
 		if (music == NULL)
 			return NULL;
 		music_info *tmp;

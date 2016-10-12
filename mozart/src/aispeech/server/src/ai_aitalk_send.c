@@ -27,9 +27,19 @@
 
 
 static char *pjson = NULL;
-char *aitalk_pipe_buf = NULL;
-extern  bool is_aitalk_send_init;
-extern sem_t sem_ai_send;
+static char *aitalk_pipe_buf = NULL;
+static sem_t sem_ai_send;
+bool is_aitalk_send_init = false;
+//sem_t sem_ai_startup;
+
+int ai_aitalk_sem_init(void){
+    sem_init(&sem_ai_send, 0, 0);
+//	sem_init(&sem_ai_startup, 0, 1);
+	is_aitalk_send_init = true;
+	return 0;
+}
+
+
 
 char *send_obj(char *method,json_object *obj)
 {
@@ -137,9 +147,17 @@ char *aitalk_send_resume(bool tone){
 	return send_obj("resume",params);
 }
 
-char *aitalk_send_stop_music(const char *url){
+char *aitalk_send_stop_music(bool tone){
 	DEBUG("\n");
-	return send_obj("stop_music",NULL);
+	char *tone_s;
+	if (tone)
+		tone_s = "true";
+	else
+		tone_s = "false";
+	json_object *params;
+	params = json_object_new_object();
+	json_object_object_add(params, "tone", json_object_new_string(tone_s));
+	return send_obj("stop",params);
 }
 
 #if 0
@@ -148,9 +166,17 @@ char *aitalk_send_play_music(const char *url){
 }
 #endif
 
-char *aitalk_send_previous_music(const char *url){
+char *aitalk_send_previous_music(bool tone){
 	DEBUG("\n");
-	return send_obj("previous_music",NULL);
+	char *tone_s;
+	if (tone)
+		tone_s = "true";
+	else
+		tone_s = "false";
+	json_object *params;
+	params = json_object_new_object();
+	json_object_object_add(params, "tone", json_object_new_string(tone_s));
+	return send_obj("previous_music",params);
 }
 
 char *aitalk_send_next_music(bool tone){
@@ -164,6 +190,11 @@ char *aitalk_send_next_music(bool tone){
 	params = json_object_new_object();
 	json_object_object_add(params, "tone", json_object_new_string(tone_s));
 	return send_obj("next_music",params);
+}
+
+char *aitalk_send_current_music(bool tone){
+	DEBUG("\n");
+	return send_obj("current_music",NULL);
 }
 
 char *aitalk_send_exit(const char *url){
@@ -200,11 +231,12 @@ char *aitalk_send_set_volume(const char *cmd, const char *tone_key){
 	return send_obj("set_volume",params);
 }
 
-
+#if 0
 char *aitalk_send_waikup(const char *url){
 	DEBUG("\n");
 	return send_obj("wakeup",NULL);
 }
+#endif
 
 int ai_aitalk_send(char *data){
 	if (!data){

@@ -10,8 +10,9 @@
 #include   <sys/time.h>
 
 ///////////////////////////
-int g_tts_end_flag = 0;
-int is_tts_working;
+bool g_tts_end_flag = false;
+bool g_tts_stop_flag = false;
+bool is_tts_working = false;
 
 static const char *cloud_syn_param =
 "\
@@ -91,7 +92,7 @@ int _cloud_syn_callback(void *usrdata, const char *id, int type,
 
 int  ai_tts_stoping(void){
 	int timeout = 0;
-    while(g_tts_end_flag == 0)
+    while(g_tts_end_flag == false)
     {
         usleep(1000);
 		timeout ++;
@@ -107,6 +108,7 @@ int  ai_tts_stop(void){
 	DEBUG("=================> Stop tts!\n");
 	if (is_tts_working){
 		ai_tts_stoping();
+
 	}
 }
 
@@ -118,8 +120,9 @@ int ai_cloud_tts(struct aiengine *agn, char *SynTxt)
     cJSON *request_js = NULL;
     cJSON *syn_js = NULL;
 	int error = 0;
-	is_tts_working = 1;
-    g_tts_end_flag = 0;
+	ai_mutex_lock();
+	is_tts_working = true;
+    g_tts_end_flag = false;
 	if (SynTxt == NULL){
 		error = -1;
 		goto exit_error;
@@ -143,7 +146,6 @@ int ai_cloud_tts(struct aiengine *agn, char *SynTxt)
 		goto exit_error;
     }
 
-
     _param = cJSON_PrintUnformatted(param_js);
 
     DEBUG("=======tts syn=========\n");
@@ -163,8 +165,9 @@ int ai_cloud_tts(struct aiengine *agn, char *SynTxt)
     aiengine_start(agn, _param, uuid, _cloud_syn_callback, NULL);
     aiengine_stop(agn);
     /* waiting for the end of sync */
-	ai_tts_stoping();
-
+	if (ai_tts_stoping() == -1){
+		aiengine_cancel(agn);
+	}
 exit_error:
     free(_param);
 
@@ -172,6 +175,7 @@ exit_error:
     {
         cJSON_Delete(param_js);
     }
-	is_tts_working = 0;
+	is_tts_working = false;
+	ai_mutex_unlock();
 	return error;
 }

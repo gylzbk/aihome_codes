@@ -14,7 +14,7 @@
 #include "vr-speech_interface.h"
 #include "ai_slot.h"
 #include "aiengine.h"
-#include "ai_song_recommend.h"
+#include "ai_song_list.h"
 //#include "ai_music_list.h"
 //#include "ai_tts_msg.h"
 //#include "ai_player.h"

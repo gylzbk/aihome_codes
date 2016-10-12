@@ -25,12 +25,9 @@ struct op *o_obj;
 #include "mozart_aitalk.h"
 #endif
 
-//#include "ai_aec_thr.h"
-//#include "ai_cloudsem_thr.h"
 #include "echo_wakeup.h"
 
 #include <semaphore.h>
-//char recog_buf[STR_BUFFER_SZ] = {0};
 static const char *version =
 "\n=============================\n"\
 "AIHOME: Aitalk for DS1825-pro\n"\
@@ -136,41 +133,14 @@ static const char *cfg =
 }";
 #endif
 
-
-vr_speech_status_type vr_speech_status = VR_SPEECH_NULL;
-
+ai_status_s ai_flag;
 vr_info recog;
-
-int asr_mode_cfg = AI_CLOUD;
-
-mozart_vr_speech_callback vr_speech_callback_pointer;
-
-
-bool is_aitalk_send_init = false;
-//sem_t sem_ai_startup;
-sem_t sem_ai_enable;
-sem_t sem_ai_send;
-
-int ai_aitalk_sem_init(void){
-    sem_init(&sem_ai_send, 0, 0);
-//	sem_init(&sem_ai_startup, 0, 1);
-	sem_init(&sem_ai_enable, 0, 1);
-	is_aitalk_send_init = true;
-	return 0;
-}
-
-int ai_aitalk_sem_destory(void){
-//	sem_destroy(&sem_ai_startup);
-	sem_destroy(&sem_ai_enable);
-	ai_aitalk_send_destroy();
-	return 0;
-}
+pthread_mutex_t ai_lock = PTHREAD_MUTEX_INITIALIZER;
 
 struct timeval t_debug;
 struct aiengine *agn = NULL;
 echo_wakeup_t *ew = NULL;
 
-ai_status_s ai_flag;
 
 
 #ifdef SYN_TOO_LONG
@@ -330,7 +300,7 @@ int ai_recog_free(void){
 
 int ai_to_mozart(void)
 {
-	asr_mode_cfg = vr_speech_callback_pointer(&recog);
+	ai_flag.asr_mode_cfg = ai_flag.vr_callback_pointer(&recog);
 //	recog.status = recog.next_status;
 //exit_error:
 //	ai_recog_free();
@@ -401,11 +371,7 @@ exit_error:
 
 int ai_status_aecing(void){
 	ai_to_mozart();
-	#if AI_CONTROL_MOZART	  // remove tone when wakeup
-		mozart_key_ignore_set(false);
-	#endif
-	bool is_play = aitalk_cloudplayer_is_playing();
-	if (is_play){
+	if (aitalk_cloudplayer_is_playing()){
 		DEBUG("aitalk   is playing..! %d \n", recog.is_control_play_music);
 		if(recog.is_control_play_music == false){
 			usleep(10000);
@@ -414,9 +380,11 @@ int ai_status_aecing(void){
 		}
 	}
 	else{
-		DEBUG("aitalk   is not playing..!\n");
+		DEBUG("aitalk    is not playing..!\n");
 	}
-
+	#if AI_CONTROL_MOZART	  // remove tone when wakeup
+		mozart_key_ignore_set(false);
+	#endif
 	recog.is_control_play_music = false;
 	ai_recog_free();
 	if (ai_aec(ew) == 0){
@@ -555,7 +523,7 @@ int ai_status_error(void){
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_NET_SLOW:
-		ai_aitalk_send(aitalk_send_error("error_net_slow"));
+		ai_aitalk_send(aitalk_send_error("error_net_slow_again"));
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_NET_FAIL:
@@ -661,10 +629,14 @@ int ai_set_enable(bool enable){
 	//	}else{
 			recog.status =AIENGINE_STATUS_AEC;
 			ai_flag.is_running = true;
-			if (ai_flag.is_init){
-				ai_server_restart();
-				ai_song_recommend_auto();
-			}
+			ai_song_list_set_enable(true);
+			usleep(10000);
+			ai_aitalk_send(aitalk_send_current_music(false));	//*/
+			usleep(10000);
+		//	if (ai_flag.is_init){
+		//		ai_server_restart();
+		//		ai_song_recommend_auto();
+		//	}
 	//	}
 	}
 	else{
@@ -674,6 +646,7 @@ int ai_set_enable(bool enable){
 			if (ai_flag.is_init){
 				ai_aiengine_exit();
 			}
+			ai_song_list_set_enable(false);
 		}
 	}
 	return 0;
@@ -704,6 +677,7 @@ int ai_aiengine_delete(void){
 		}
 	}
 	ai_flag.is_init = false;
+	ai_server_exit();
 	return 0;
 }
 
@@ -715,7 +689,7 @@ int ai_aiengine_exit(void){
 	ai_cloud_sem_stop();
 	ai_tts_stop();
 	ai_cloud_sem_free();
-
+	ai_cloud_sem_text_stop();
 	ai_recog_free();
 	free(recog.env);
 	recog.env = NULL;
@@ -907,11 +881,11 @@ int ai_key_record_stop(void){
 
 
 void ai_speech_set_status(vr_speech_status_type status){
-	vr_speech_status = status;
+	ai_flag.vr_status = status;
 }
 
 int ai_speech_get_status(){
-	return vr_speech_status;
+	return ai_flag.vr_status;
 }
 
 /*
@@ -931,8 +905,11 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 			PERROR("AI init error!...\n");
 			goto exit_error;
 		}
+
+		ai_song_list_init();
+
 		DEBUG("vr speech     asr start!...\n");
-		vr_speech_callback_pointer = callback;
+		ai_flag.vr_callback_pointer = callback;
 		ai_flag.is_working = true;
 		pthread_t voice_recog_thread;
 		if (pthread_create(&voice_recog_thread, NULL, ai_run, NULL) != 0) {

@@ -22,10 +22,30 @@
 
 #define AI_CONTROL_MOZART_ATALK 1
 
-#include "vr-speech_interface.h"
-
 extern int asr_mode_cfg;
 extern int fd_dsp_rd;
+
+
+extern pthread_mutex_t ai_lock;
+#define ai_mutex_lock(lock)				\
+	do {								\
+		int i = 0;			\
+		DEBUG("++++++++++++++++++++++++++++++++ ai lock\n");\
+		while (pthread_mutex_trylock(&ai_lock)) {			\
+			if (i++ >= 100) {				\
+				PERROR("####dead lock####\n");	\
+				i = 0;	\
+			}			\
+			usleep(100 * 1000);				\
+		}							\
+	} while (0)
+
+#define ai_mutex_unlock(lock) 	\
+	do {								\
+		DEBUG("--------------------------------- ai unlock\n");\
+		pthread_mutex_unlock(&ai_lock);\
+	} while (0)
+
 
 enum AEC_STATUS_TYEP
 {
@@ -60,6 +80,7 @@ extern void *record_buf;
 extern vr_info recog;
 
 typedef struct ai_status_s{
+	vr_speech_status_type vr_status;
 	bool is_init;
 	bool aec_enable;
 	bool is_running;
@@ -68,11 +89,12 @@ typedef struct ai_status_s{
 	bool quit_finish;
 	int mode_cfg;
 	bool is_play_music;
-	int vr_status;
+	int asr_mode_cfg;
 //	echo_wakeup_t *ew;
 //	struct aiengine *agn;
 //	pthread_mutex_t mutex_lock;
-//	mozart_vr_speech_callback vr_callback_pointer;
+	vr_info recog;
+	mozart_vr_speech_callback vr_callback_pointer;
 }ai_status_s;
 
 extern ai_status_s ai_flag;
@@ -124,8 +146,10 @@ extern int   ai_cloud_sem_stoping(void);
 extern void ai_cloud_sem_stop(void);
 extern void ai_cloud_sem_free(void);
 
+extern void ai_cloud_sem_text_stop(void);
+extern int ai_cloud_sem_text(char *text);
+
 extern void  ai_aec_stop(void);
-extern void ai_semParamInit(void);
 extern int ai_aiengine_start(void);
 extern int ai_aiengine_stop(void);
 extern int ai_aiengine_delete(void);

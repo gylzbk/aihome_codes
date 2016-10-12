@@ -560,15 +560,23 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 				mozart_smartui_boot_build_display("正在连接网络服务");
 			#elif (SUPPORT_VR == VR_SPEECH)
 				mozart_smartui_boot_build_display("网络连接成功");
-				mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
-				__mozart_module_set_online();
 				mozart_smartui_net_success();
 				printf("\n\n- online AAA -----------\n\n");
+				mozart_module_net_unlock();
+
+				mozart_module_mutex_lock();
+				__mozart_module_set_online();
+				mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", true);
+				mozart_module_mutex_unlock();
+
+				mozart_module_net_lock();
 			//	mozart_aitalk_cloudplayer_start(true);
 			#endif
 		} else if (global_net_mode == NET_MODE_CFG_STA) {
 			printf("\n\n-NET_MODE_CFG_ST  --555555555555555 -----------\n\n");
 			global_net_mode = NET_MODE_STA;
+			mozart_module_net_unlock();
+
 			#if (SUPPORT_VR == VR_ATALK)
 				mozart_smartui_net_success();
 				mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
@@ -578,6 +586,8 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 				printf("\n\n- online BBBB -----------\n\n");
 			//	mozart_aitalk_cloudplayer_start(true);
 			#endif
+
+			mozart_module_net_lock();
 		} else if (global_net_mode == NET_MODE_SW_STA) {
 
 			printf("\n\n---------net--4444444444444-----------\n\n");
