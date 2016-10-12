@@ -12,8 +12,130 @@
 #include "aiengine.h"
 #include "aiengine_app.h"
 #include "ai_slot.h"
+#include "json_op.h"
+#include "fop.h"
 
 music_obj *g_m;
+struct op *o_obj;
+
+/*user callback*/
+int low_output_cb(int arg, char *s, int size)
+{
+	int retvalue = 1;
+	if (arg <= 0) {
+		print("error\n");
+		retvalue = -1;
+		goto end;
+	}
+
+	if (s == NULL) {
+		retvalue = -1;
+		goto end;
+	}
+	print("low output: write to file\n");
+	file_write(arg, s, size);
+end:
+	return retvalue;
+}
+
+/*user callback*/
+int high_output_cb(void *context, char *a, char *b, char *c)
+{
+	music_obj *m = (music_obj *)context;
+	int retvalue = 1;
+
+	if ((m == NULL) || (a == NULL) || (b == NULL) || (c == NULL)) {
+		print("error\n");
+		retvalue = -1;
+		goto end;
+	}
+
+	print("[%s] [%s] [%s]\n", a, b, c);
+	music_info *tmp;
+	music_info_alloc(&tmp, a, b, c);
+	music_list_insert(m, tmp);
+end:
+	return retvalue;
+}
+
+/*user callback*/
+int low_input_cb(int arg, char *s, int size)
+{
+
+	int retvalue = 1;
+
+	if (arg <= 0) {
+		print("error\n");
+		retvalue = -1;
+		goto end;
+	}
+
+	size = file_read(arg, s, size);
+	if (size == -1) {
+		retvalue = -1;
+		goto end;
+	}
+end:
+	return retvalue;
+}
+
+int machine_open(struct op *o)
+{
+	int retvalue = -1;
+
+	if (o == NULL) {
+		print("error\n");
+	}
+
+	retvalue = op_low_input(o);
+	if (retvalue == -1) {
+		goto end;
+	}
+
+	int i;
+	for (i = 0; i < 20; i++) {
+		op_high_output(o, i);
+	}
+end:
+	return retvalue;
+}
+
+int music_list_print(music_obj *m)
+{
+	if (m == NULL)
+		goto end;
+
+	/*for music list current point move to beginning*/
+	music_info *tmp;
+	while (1) {
+		tmp = music_prev_get(m);
+		if (tmp == NULL)
+			break;
+	}
+
+	tmp = music_cur_get(m);
+	if (tmp != NULL) {
+		print("[title:artist:url] [%s : %s : %s]\n",
+			tmp->title, tmp->artist, tmp->url);
+	} else {
+		print("no node\n");
+		goto end;
+	}
+	/*loop get next music list node*/
+	while (1) {
+		tmp = music_next_get(m);
+		if (tmp == NULL) {
+			break;
+		} else {
+			print("[title:artist:url] [%s : %s : %s]\n",
+				tmp->title, tmp->artist, tmp->url);
+
+		}
+	}
+end:
+	return 0;
+}
+
 #if AI_CONTROL_MOZART
 #include "mozart_key.h"
 #endif
@@ -92,7 +214,7 @@ static const char *agn_cfg =
         \"strip\": 1\
     },\
     \"cloud\": {\
-		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
+		\"server\": \"ws://112.80.39.95:8009\"\
     }\
 }";
 
@@ -608,6 +730,7 @@ int ai_init_data(void){
 }
 
 int ai_init(void){
+	int retvalue = 1;
 	int err = 0;
 	ai_init_data();
 	ai_flag.is_running = false;
@@ -617,7 +740,24 @@ int ai_init(void){
 		goto exit_error;
 	}
 	ai_flag.is_init = true;
+
+	/*musci list init*/
 	music_list_alloc(&g_m, 20);
+
+	/*file operate init*/
+	int fd = file_create("/usr/data/config");
+	if (fd == -1) {
+		print("error\n\n");
+		retvalue = -1;
+		exit(0);
+	}	
+	op_init(&o_obj, fd, g_m);
+	op_reg_low_output(o_obj, low_output_cb);
+	op_reg_high_output(o_obj, high_output_cb);
+	op_reg_low_input(o_obj, low_input_cb);
+	machine_open(o_obj);
+	/*XXX*/
+	music_list_print(g_m);
 
 	ai_server_init();
 exit_error:
@@ -672,16 +812,15 @@ int ai_aiengine_stop(void){
 
 int ai_aiengine_delete(void){
 	if (ai_flag.is_init){
-	if (ew){
-		echo_wakeup_delete(ew);
-		ew = NULL;
-	}
-	music_list_destroy(&g_m);
-
-	if (agn){
-		aiengine_delete(agn);
-		agn = NULL;
-	}
+		if (ew){
+			echo_wakeup_delete(ew);
+			ew = NULL;
+		}
+	
+		if (agn){
+			aiengine_delete(agn);
+			agn = NULL;
+		}
 	}
 	ai_flag.is_init = false;
 	return 0;

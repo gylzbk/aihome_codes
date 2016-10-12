@@ -25,6 +25,75 @@
 #include "mozart_net.h"
 #include "mozart_battery.h"
 #include "mozart_prompt_tone.h"
+#include "json_op.h"
+#include "fop.h"
+extern music_obj *g_m;
+extern struct op *o_obj;
+
+int node_get(struct op *o, music_obj *m)
+{
+	int retvalue = 1;
+	int i = 0;
+	music_info *tmp;
+	if ((o == NULL) || (m == NULL)) {
+		retvalue = -1;
+		print("error\n");
+		goto end;
+	}
+	/*for music list current point move to beginning*/
+	while (1) {
+		tmp = music_prev_get(m);
+		if (tmp == NULL)
+			break;
+	}
+
+	print("insert node:\n");
+	/*insert first music list node*/
+	tmp = music_cur_get(m);
+	if (tmp != NULL) {
+		print("[title:artist:url] [%s : %s : %s]\n",
+			tmp->title, tmp->artist, tmp->url);
+
+		/*wrap cjson format*/
+		op_high_input(i, o, tmp->title, tmp->artist, tmp->url);
+		i++;
+	} else {
+		print("no node\n");
+		goto end;
+	}
+	/*loop get next music list node*/
+	while (1) {
+		tmp = music_next_get(m);
+		if (tmp == NULL) {
+			break;
+		} else {
+			print("[title:artist:url] [%s : %s : %s]\n",
+				tmp->title, tmp->artist, tmp->url);
+
+			/*wrap cjson format*/
+			op_high_input(i, o, tmp->title, tmp->artist, tmp->url);
+			i++;
+		}
+	}
+end:
+	return retvalue;
+}
+
+int machine_close(struct op *o, music_obj *m)
+{
+	if ((o == NULL) || (m == NULL)) {
+		print("error\n");
+		return 0;
+	}
+	int retvalue = 1;
+	retvalue = node_get(o, m);
+	if (retvalue == -1) {
+		goto end;
+	}
+	op_low_output(o);
+end:
+	return retvalue;
+}
 
 #include "mozart_config.h"
 #if (SUPPORT_VR == VR_ATALK)
@@ -63,6 +132,22 @@ static void sig_handler(int signo)
 	int i = 0;
 
 	printf("\n\n[%s: %d] mozart crashed by signal %s.\n", __func__, __LINE__, signal_str[signo]);
+	print("machine close\n");
+	int fd = op_arg_get(o_obj);
+	if (fd <= 0) {
+		print("\nerror\n");
+		exit(0);
+	}
+	ftruncate(fd, 0);  
+    	lseek(fd, 0, SEEK_SET);
+
+	machine_close(o_obj, g_m);
+
+	/*memory recycle*/
+	op_delete(&o_obj);
+	music_list_destroy(&g_m);
+	close(fd);
+	
 
 	printf("Call Trace:\n");
 	size = backtrace(array, 10);
