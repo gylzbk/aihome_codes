@@ -287,6 +287,10 @@ void *dmic_read(void *args)
 		}
 	}
 result:
+	if (fddmic[1] >= 0) {
+		close(fddmic[1]);
+		fddmic[1] = -1;
+	}
 	DEBUG("------------------> Stop dmic_read\n");
 //	is_dmic_running = false;
 	pthread_exit(&status);
@@ -353,6 +357,10 @@ void *loopback_read(void *args)
 		}
 	}
 result:
+	if (fdplay[1] >= 0) {
+		close(fdplay[1]);
+		fdplay[1] = -1;
+	}
 	DEBUG("-------------------> Stop loopback_read\n");
 //	is_loopback_running = false;
 	pthread_exit(&status);
@@ -394,6 +402,14 @@ void *aec_handle(void *args)
 	}
 
 result:
+	if (fddmic[0] >= 0) {
+		close(fddmic[0]);
+		fddmic[0] = -1;
+	}
+	if (fdplay[0] >= 0) {
+		close(fdplay[0]);
+		fdplay[0] = -1;
+	}
 	DEBUG("----------------------> Stop aec_handle \n");
 //	is_aec_read_running = false;
 	pthread_exit(&status);
