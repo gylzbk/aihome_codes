@@ -114,6 +114,7 @@ int op_init(struct op **obj, int arg, void *context)
 	(*obj)->low_output = NULL;
 	(*obj)->high_output = NULL;
 	(*obj)->low_input = NULL;
+	(*obj)->cur_output = NULL;
 
 end:
 	return retvalue;
@@ -210,7 +211,6 @@ int op_high_output(struct op *o, int key)
 #endif
 		goto end_free;
 	}
-
 	char *title = cJSON_GetObjectItem(music, "title")->valuestring;
 	char *artist = cJSON_GetObjectItem(music, "artist")->valuestring;
 	char *url = cJSON_GetObjectItem(music, "url")->valuestring;

@@ -15,5 +15,5 @@ int machine_close(struct op *o, music_obj *m);
 int music_list_cur_prev_print(music_obj *m);
 int music_list_cur_next_print(music_obj *m);
 int machine_open(struct op *o);
-
+int music_restart(music_obj *m_obj);
 #endif

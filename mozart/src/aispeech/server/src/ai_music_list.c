@@ -25,7 +25,12 @@ extern music_obj *g_m;
 
 music_info *ai_music_list_play_order(int order)
 {
-	printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
+	static int times = 0;
+	if (times == 0) {
+		order = 0;
+		times++;
+	}
+
 	music_info *music;
 	switch (order) {
 	case 0:
@@ -80,7 +85,6 @@ music_info *ai_music_list_play_order(int order)
 
 int ai_play_music_order(int order)
 {
-	printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
 	music_info *music = NULL;
 	music = ai_music_list_play_order(order);
 	//pr_debug("url %s\n",url);

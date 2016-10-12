@@ -222,6 +222,7 @@ int machine_open(struct op *o)
 	}
 	music_list_current_position_get(o);
 #if 0
+	/*notice this will change current music position*/
 	music_obj *m = op_context_get(o);
 	music_list_cur_prev_print(m);
 #endif
@@ -346,4 +347,12 @@ int low_input_cb(int arg, char *s, int size)
 	}
 end:
 	return retvalue;
+}
+
+/*clear music list and restart*/
+int music_restart(music_obj *m_obj)
+{
+	music_list_destroy(&m_obj);
+	music_list_alloc(&m_obj, 20);
+	return 0;
 }
