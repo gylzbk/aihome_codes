@@ -18,8 +18,22 @@ int music_list_alloc(music_obj **obj, int max)
 	(*obj)->max = max;
 	(*obj)->cur_num = 0;
 	(*obj)->cur_music = NULL;
+	(*obj)->cur_tmp = malloc(sizeof(music_info));
 error:	
 	return retvalue;
+}
+
+int music_cur_set(music_obj *obj, music_info *m)
+{
+	int retvalue = 1;
+	if ((m == NULL) && (obj->cur_music == NULL)) {
+		printf("error:[%s %s %d]\n", __FILE__, __func__, __LINE__);
+		retvalue = -1;
+		goto end;
+	}
+	obj->cur_music = m;
+end:
+	return  retvalue;
 }
 
 music_info *music_cur_get(music_obj *obj)
@@ -312,6 +326,8 @@ int music_list_destroy(music_obj **obj)
 	(*obj)->max = 0;
 	(*obj)->cur_num = 0;
 	(*obj)->cur_music = NULL;
+	free((*obj)->cur_tmp);
+	(*obj)->cur_tmp = NULL;
 	free((*obj));
 	*obj = NULL;
 	return 0;

@@ -6,6 +6,17 @@
 
 #define debug 0
 
+void *op_context_get(struct op *o)
+{
+	if (o == NULL) {
+		print("error\n");
+		exit(0);
+	}
+
+	return o->context? o->context : NULL;
+
+}
+
 int op_arg_get(struct op *o)
 {
 	if (o == NULL) {
@@ -28,6 +39,23 @@ int op_reg_low_output(struct op *o, int (*low_output)
 		goto end;
 	}
 	o->low_output = low_output;
+end:
+	return retvalue;
+}
+
+int op_reg_cur_output(struct op *o, int (*cur_output)
+					(void *context,
+					char *a,
+					char *b,
+					char *c))
+{
+	int retvalue = 1;
+	if (o == NULL) {
+		print("error\n");
+		retvalue = -1;
+		goto end;
+	}
+	o->cur_output = cur_output;
 end:
 	return retvalue;
 }
@@ -159,13 +187,6 @@ int op_high_output(struct op *o, int key)
 		goto end;
 	}
 
-	if (o->high_output == NULL) {
-		retvalue = -1;
-		print("please implement callback use funciton"
-			" op_reg_high_output\n");
-		goto end;
-	}
-
 	size = strlen(o->buf);
 	if (size == 0) {
 		retvalue = -1;
@@ -185,7 +206,7 @@ int op_high_output(struct op *o, int key)
 	if (music == NULL) {
 		retvalue = -1;
 #if debug
-		print("key is no in json\n");
+		print("key:%d is no in json\n", key);
 #endif
 		goto end_free;
 	}
@@ -196,10 +217,27 @@ int op_high_output(struct op *o, int key)
 	if ((NULL == title) || (NULL == artist) || (NULL == url)) {
 		retvalue = -1;
 		print("key is no in json\n");
-		goto end;
+		goto end_free;
 	}
-	o->high_output(o->context, title, artist, url);
+	/*XXX:*/
+	if (key == 10000) {
+		if (o->cur_output == NULL) {
+			retvalue = -1;
+			print("please implement callback use funciton"
+				" op_reg_cur_output\n");
+			goto end;
+		}
+		o->cur_output(o->context, title, artist, url);
+	} else {
+		if (o->high_output == NULL) {
+			retvalue = -1;
+			print("please implement callback use funciton"
+				" op_reg_high_output\n");
+		goto end;
+		}
 
+		o->high_output(o->context, title, artist, url);
+	}
 end_free:
 	cJSON_Delete(root);
 end:
