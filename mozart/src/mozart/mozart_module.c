@@ -11,6 +11,7 @@
 #include "mozart_smartui.h"
 #include "mozart_prompt_tone.h"
 #include "mozart_update_control.h"
+#include "baselib.h"
 
 #include "mozart_config.h"
 #if (SUPPORT_VR == VR_ATALK)
@@ -420,6 +421,7 @@ void mozart_module_factory_reset(void)
 #define RESET_TEST
 
 #ifdef RESET_TEST
+	mozart_system("rm -rf /usr/data/music_list.json");
 	mozart_system("rm -rf /mnt/sdcard/music/*");
 	mozart_system("rm -rf /usr/bsa");
 	mozart_system("rm -rf /usr/network_manager.ini");
@@ -429,6 +431,7 @@ void mozart_module_factory_reset(void)
 	mozart_system("cp -a /usr/share/data/* /usr/data");
 	system("reboot");
 #else
+	mozart_system("rm -rf /usr/data/music_list.json");
 	printf("%s. Reset config file and empty sd card\n", __func__);
 	/* Reset config file */
 	mozart_system("rm -rf /mnt/sdcard/music/*");

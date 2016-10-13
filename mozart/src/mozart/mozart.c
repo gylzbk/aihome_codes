@@ -26,8 +26,8 @@
 #include "mozart_battery.h"
 #include "mozart_prompt_tone.h"
 #include "baselib.h"
-extern music_obj *g_m;
-extern struct op *o_obj;
+extern music_obj *global_music;
+extern struct op *global_op;
 
 #include "mozart_config.h"
 #if (SUPPORT_VR == VR_ATALK)
@@ -67,7 +67,7 @@ static void sig_handler(int signo)
 
 	printf("\n\n[%s: %d] mozart crashed by signal %s.\n", __func__, __LINE__, signal_str[signo]);
 	print("machine close\n");
-	int fd = op_arg_get(o_obj);
+	int fd = op_arg_get(global_op);
 	if (fd <= 0) {
 		print("\nerror\n");
 		exit(0);
@@ -75,11 +75,11 @@ static void sig_handler(int signo)
 	ftruncate(fd, 0);  
     	lseek(fd, 0, SEEK_SET);
 
-	machine_close(o_obj, g_m);
+	machine_close(global_op, global_music);
 
 	/*memory recycle*/
-	op_delete(&o_obj);
-	music_list_destroy(&g_m);
+	op_delete(&global_op);
+	music_list_destroy(&global_music);
 	close(fd);
 	
 
