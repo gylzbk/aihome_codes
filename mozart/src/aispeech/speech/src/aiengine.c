@@ -608,6 +608,7 @@ int ai_set_enable(bool enable){
 	//	}else{
 			recog.status =AIENGINE_STATUS_AEC;
 			ai_flag.is_running = true;
+			recog.key_record_stop = false;
 			ai_song_list_set_enable(true);
 			usleep(10000);
 			ai_aitalk_send(aitalk_send_current_music(false));	//*/
@@ -625,6 +626,7 @@ int ai_set_enable(bool enable){
 			if (ai_flag.is_init){
 				ai_aiengine_exit();
 			}
+			recog.key_record_stop = false;
 			ai_song_list_set_enable(false);
 		}
 	}
@@ -811,50 +813,49 @@ int ai_tts(char *data,int enable_stop){
 int ai_key_record_wakeup(void){
 	int count = 0;
 	DEBUG("ai_key_record_wakeup start...\n");
-	if ((ai_flag.is_running)&&(ai_flag.is_init)){
-		if(recog.status == AIENGINE_STATUS_AEC){
+	//if ((ai_flag.is_running)&&(ai_flag.is_init)){
+	//	if(recog.status == AIENGINE_STATUS_AEC){
 			ai_aec_stop();
-			while(recog.status == AIENGINE_STATUS_AEC){
-				usleep(1000); // wake 15s to deal
-				count ++;
-				if (count > 5000){
-					break;
-				}
-			}
-		}
-	}
+		//	while(recog.status == AIENGINE_STATUS_AEC){
+		//		usleep(1000); // wake 15s to deal
+		//		count ++;
+		//		if (count > 5000){
+		//			break;
+		//		}
+		//	}
+	//	}
+	//}
 }
 
 int ai_key_record_stop(void){
 	int count = 0;
 	DEBUG("ai_key_record_stop start...\n");
 	if ((ai_flag.is_running)&&(ai_flag.is_init)){
-		recog.key_record_stop = true;
 		switch(recog.status){
 			case AIENGINE_STATUS_SEM:
+				recog.key_record_stop = true;
 				ai_cloud_sem_stop();
-				while((recog.status == AIENGINE_STATUS_SEM)){
+		/*		while((recog.status == AIENGINE_STATUS_SEM)){
 					usleep(1000); // wake 15s to deal
 					count ++;
 					if (count > 5000){
 						break;
 					}
-				}
+				}//*/
 				break;
 			case AIENGINE_STATUS_PROCESS:
-
-				while((recog.status == AIENGINE_STATUS_PROCESS)){
+				recog.key_record_stop = true;
+		/*		while((recog.status == AIENGINE_STATUS_PROCESS)){
 					usleep(1000); // wake 15s to deal
 					count ++;
 					if (count > 5000){
 						break;
 					}
-				}	//8
+				}//*/
 				break;	//*/
 			default:
 				break;	//*/
 		}
-		recog.key_record_stop = false;
 	}
 	return 0;
 }
