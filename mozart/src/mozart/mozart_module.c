@@ -420,6 +420,7 @@ void mozart_module_factory_reset(void)
 #define RESET_TEST
 
 #ifdef RESET_TEST
+	music_restart();//--- clean music list
 	mozart_system("rm -rf /mnt/sdcard/music/*");
 	mozart_system("rm -rf /usr/bsa");
 	mozart_system("rm -rf /usr/network_manager.ini");
@@ -430,6 +431,7 @@ void mozart_module_factory_reset(void)
 	system("reboot");
 #else
 	printf("%s. Reset config file and empty sd card\n", __func__);
+	music_restart();//--- clean music list
 	/* Reset config file */
 	mozart_system("rm -rf /mnt/sdcard/music/*");
 	mozart_system("rm -rf /usr/data/*");
