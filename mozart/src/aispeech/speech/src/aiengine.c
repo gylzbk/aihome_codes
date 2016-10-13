@@ -12,8 +12,11 @@
 #include "aiengine.h"
 #include "aiengine_app.h"
 #include "ai_slot.h"
+#include "baselib.h"
 
 music_obj *g_m;
+struct op *o_obj;
+
 #if AI_CONTROL_MOZART
 #include "mozart_key.h"
 #endif
@@ -89,7 +92,7 @@ static const char *agn_cfg =
         \"strip\": 1\
     },\
     \"cloud\": {\
-		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
+		\"server\": \"ws://112.80.39.95:8009\"\
     }\
 }";
 
@@ -576,6 +579,7 @@ int ai_init_data(void){
 }
 
 int ai_init(void){
+	int retvalue = 1;
 	int err = 0;
 	ai_init_data();
 	ai_flag.is_running = false;
@@ -585,7 +589,24 @@ int ai_init(void){
 		goto exit_error;
 	}
 	ai_flag.is_init = true;
+
+	/*musci list init*/
 	music_list_alloc(&g_m, 20);
+
+	/*file operate init*/
+	int fd = file_create("/usr/data/config");
+	if (fd == -1) {
+		print("error\n\n");
+		retvalue = -1;
+		exit(0);
+	}	
+	op_init(&o_obj, fd, g_m);
+	op_reg_low_output(o_obj, low_output_cb);
+	op_reg_high_output(o_obj, high_output_cb);
+	op_reg_low_input(o_obj, low_input_cb);
+	op_reg_cur_output(o_obj, cur_output_cb);
+
+	machine_open(o_obj);
 
 	ai_server_init();
 exit_error:
@@ -647,16 +668,15 @@ int ai_aiengine_stop(void){
 
 int ai_aiengine_delete(void){
 	if (ai_flag.is_init){
-	if (ew){
-		echo_wakeup_delete(ew);
-		ew = NULL;
-	}
-	music_list_destroy(&g_m);
-
-	if (agn){
-		aiengine_delete(agn);
-		agn = NULL;
-	}
+		if (ew){
+			echo_wakeup_delete(ew);
+			ew = NULL;
+		}
+	
+		if (agn){
+			aiengine_delete(agn);
+			agn = NULL;
+		}
 	}
 	ai_flag.is_init = false;
 	ai_server_exit();
