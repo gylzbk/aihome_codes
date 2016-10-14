@@ -92,7 +92,7 @@ static const char *agn_cfg =
         \"strip\": 1\
     },\
     \"cloud\": {\
-		\"server\": \"ws://112.80.39.95:8009\"\
+		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
     }\
 }";
 
@@ -599,7 +599,7 @@ int ai_init(void){
 		print("error\n\n");
 		retvalue = -1;
 		exit(0);
-	}	
+	}
 	op_init(&global_op, fd, global_music);
 	op_reg_low_output(global_op, low_output_cb);
 	op_reg_high_output(global_op, high_output_cb);
@@ -672,7 +672,7 @@ int ai_aiengine_delete(void){
 			echo_wakeup_delete(ew);
 			ew = NULL;
 		}
-	
+
 		if (agn){
 			aiengine_delete(agn);
 			agn = NULL;
