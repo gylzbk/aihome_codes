@@ -72,7 +72,7 @@ static void sig_handler(int signo)
 		print("\nerror\n");
 		exit(0);
 	}
-	ftruncate(fd, 0);  
+	ftruncate(fd, 0);
     	lseek(fd, 0, SEEK_SET);
 
 	machine_close(global_op, global_music);
@@ -81,7 +81,7 @@ static void sig_handler(int signo)
 	op_delete(&global_op);
 	music_list_destroy(&global_music);
 	close(fd);
-	
+
 
 	printf("Call Trace:\n");
 	size = backtrace(array, 10);
@@ -162,7 +162,7 @@ static inline int initall(void)
 
 	mozart_volume_set(60, BT_CALL_VOLUME);
 	mozart_volume_set(40, BT_MUSIC_VOLUME);
-	mozart_volume_set(40, MUSIC_VOLUME);
+	mozart_volume_set(60, MUSIC_VOLUME);
 
 	ai_aitalk_sem_init();
 
