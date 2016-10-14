@@ -14,8 +14,8 @@
 #include "ai_slot.h"
 #include "baselib.h"
 
-music_obj *g_m;
-struct op *o_obj;
+music_obj *global_music;
+struct op *global_op;
 
 #if AI_CONTROL_MOZART
 #include "mozart_key.h"
@@ -591,22 +591,22 @@ int ai_init(void){
 	ai_flag.is_init = true;
 
 	/*musci list init*/
-	music_list_alloc(&g_m, 20);
+	music_list_alloc(&global_music, 20);
 
 	/*file operate init*/
-	int fd = file_create("/usr/data/config");
+	int fd = file_create("/usr/data/music_list.json");
 	if (fd == -1) {
 		print("error\n\n");
 		retvalue = -1;
 		exit(0);
 	}	
-	op_init(&o_obj, fd, g_m);
-	op_reg_low_output(o_obj, low_output_cb);
-	op_reg_high_output(o_obj, high_output_cb);
-	op_reg_low_input(o_obj, low_input_cb);
-	op_reg_cur_output(o_obj, cur_output_cb);
+	op_init(&global_op, fd, global_music);
+	op_reg_low_output(global_op, low_output_cb);
+	op_reg_high_output(global_op, high_output_cb);
+	op_reg_low_input(global_op, low_input_cb);
+	op_reg_cur_output(global_op, cur_output_cb);
 
-	machine_open(o_obj);
+	machine_open(global_op);
 
 	ai_server_init();
 exit_error:

@@ -350,9 +350,10 @@ end:
 }
 
 /*clear music list and restart*/
-int music_restart(music_obj *m_obj)
+int music_reset(const char *name)
 {
-	music_list_destroy(&m_obj);
-	music_list_alloc(&m_obj, 20);
+	char p[1024] = {0};
+	sprintf(p, "rm %s", name);
+	system(p);
 	return 0;
 }
