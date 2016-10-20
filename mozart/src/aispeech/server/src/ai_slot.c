@@ -56,6 +56,8 @@ int ai_slot_recog_free(vr_info *recog){
 	recog->object = NULL;
 	free(recog->operation);
 	recog->operation = NULL;
+	free(recog->scene);
+	recog->scene = NULL;
 	free(recog->device);
 	recog->device = NULL;
 	free(recog->location);
@@ -120,6 +122,7 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 	cJSON *state = NULL;
 	cJSON *param_json = NULL;
 	cJSON *operation = NULL;
+	cJSON *scene = NULL;
 	cJSON *device = NULL;
 	cJSON *location = NULL;
 	cJSON *object = NULL;
@@ -163,6 +166,11 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 	}	//*/
 
 	ai_slot_recog_free(recog);
+#if 1
+	char* c_json = cJSON_Print(sem_json);
+	printf("\n%s\n",c_json);
+	free(c_json);
+#endif
 	//	--------------------------------------------------- input
 	input = cJSON_GetObjectItem(sem_json, "input");
 	if (input){
@@ -194,6 +202,14 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 						if(operation->valuestring){
 							free(recog->operation);
 							recog->operation = strdup(operation->valuestring);
+						}
+					}
+				//	------------------------------------------------- scene
+					scene = cJSON_GetObjectItem(param_json, "模式");
+					if(scene){
+						if(scene->valuestring){
+							free(recog->scene);
+							recog->scene = strdup(scene->valuestring);
 						}
 					}
 				//	------------------------------------------------- device
@@ -596,6 +612,7 @@ exit_slot:
 	DEBUG("domain : %s\n", aiSlotDomain[recog->domain]);
 	DEBUG("state : %s\n", aiSlotState[recog->state]);
 	DEBUG("operation : %s\n", recog->operation);
+	DEBUG("scene : %s\n", recog->scene);
 	DEBUG("device : %s\n", recog->device);
 	DEBUG("location : %s\n", recog->location);
 	DEBUG("object : %s\n", recog->object);

@@ -190,6 +190,7 @@ typedef struct vr_info {
 	char *recordId;
 	char *env;
 	char* operation;
+	char* scene;
 	char* device;
 	char* location;
 	char* volume;

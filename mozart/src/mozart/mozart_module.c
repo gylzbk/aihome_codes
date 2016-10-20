@@ -421,12 +421,14 @@ void mozart_module_factory_reset(void)
 #define RESET_TEST
 
 #ifdef RESET_TEST
+
 	mozart_system("rm -rf /mnt/sdcard/music/*");
 	mozart_system("rm -rf /usr/data/music_list.json");	//--- clean music list
 	mozart_system("rm -rf /usr/data/bsa");
 	mozart_system("rm -rf /usr/data/network_manager.ini");
 	mozart_system("rm -rf /usr/data/render.ini");
 	mozart_system("rm -rf /usr/data/system.ini");
+	mozart_system("rm -rf /usr/data/user_info.conf");	//---- elife info
 	mozart_system("rm -rf /usr/data/wpa_supplicant.conf");
 	mozart_system("cp -a /usr/share/data/* /usr/data");
 	system("reboot");

@@ -243,6 +243,8 @@ int ai_recog_free(void){
 	recog.object = NULL;
 	free(recog.operation);
 	recog.operation = NULL;
+	free(recog.scene);
+	recog.scene = NULL;
 	free(recog.device);
 	recog.device = NULL;
  	free(recog.location);
@@ -551,6 +553,7 @@ int ai_init_data(void){
 	recog.output = NULL;
 	recog.object = NULL;
 	recog.operation = NULL;
+	recog.scene= NULL;
 	recog.device= NULL;
 	recog.location= NULL;
 	recog.volume = NULL;

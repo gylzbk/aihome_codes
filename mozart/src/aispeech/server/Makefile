@@ -20,6 +20,7 @@ INSTALL    = install
 SRCS := ./src/ai_error.c  ./src/ai_music_list.c ./src/ai_server.c  ./src/ai_slot.c ./src/ai_song_list.c
 SRCS += ./src/ai_zlog.c
 SRCS += ./src/ai_aitalk_send.c ./src/list.c ./src/music_list.c ./src/iota.c ./src/cJSON.c ./src/fop.c ./src/json_op.c ./src/baselib.c
+SRCS += ./src/elife/ai_elife_send.c ./src/elife/ai_elife.c 
 
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 TARGET=libaiserver.so

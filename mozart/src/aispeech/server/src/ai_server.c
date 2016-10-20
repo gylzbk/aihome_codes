@@ -18,8 +18,6 @@
 #include "ai_server.h"
 #include "ai_error.h"
 
-#include "ai_elife_doss.h"
-
 #include "vr-speech_interface.h"
 
 unsigned long get_file_size(const char *path)
@@ -136,6 +134,10 @@ int ai_server_fun(vr_info *recog)
 			goto exit_command;
 		}
 	}
+
+	#if SUPPORT_ELIFE
+		ai_tts(ai_elife_server(recog),false);
+	#endif
 
 	switch(recog->domain){
 	//	----------------------------------------  music
@@ -320,30 +322,31 @@ int ai_server_fun(vr_info *recog)
 	//	----------------------------------------    movie
 		case RECOG_DOMAIN_MOVIE:
 			recog->next_status     = AIENGINE_STATUS_AEC;
-			#if SUPPORT_ELIFE
+		/*	#if SUPPORT_ELIFE
 				ai_elife_movie_free();
 				if (recog->operation){
-					ai_elife.cmd = strdup(recog->operation);
+					elife.cmd = strdup(recog->operation);
 				}
 				if (recog->movie.name){
-					ai_elife.movie.name = strdup(recog->movie.name);
+					elife.movie.name = strdup(recog->movie.name);
 				}
-				ai_elife.movie.sequence = recog->movie.sequence;
+				elife.movie.sequence = atoi(recog->movie.sequence);
 
 				if (recog->movie.director){
-					ai_elife.movie.director = strdup(recog->movie.director);
+					elife.movie.director = strdup(recog->movie.director);
 				}
 				if (recog->movie.player){
-					ai_elife.movie.player = strdup(recog->movie.player);
+					elife.movie.player = strdup(recog->movie.player);
 				}
 				if (recog->movie.type){
-					ai_elife.movie.type = strdup(recog->movie.type);
+					elife.movie.type = strdup(recog->movie.type);
 				}
 				if (recog->movie.area){
-					ai_elife.movie.area= strdup(recog->movie.area);
+					elife.movie.area= strdup(recog->movie.area);
 				}
 				ai_elife_movie();
 			#endif
+			//*/
 		break;
 	//	----------------------------------------    command
 		case RECOG_DOMAIN_COMMAND:
@@ -478,18 +481,19 @@ DEBUG("PASS\n");
 			break;
 		#if SUPPORT_ELIFE
 		case SDS_COMMAND_ELIFE:
+		/*	DEBUG("Start elfe command!...\n");
 			ai_elife_command_free();
 			if (recog->operation){
-				ai_elife.cmd = strdup(recog->operation);
+				elife.cmd = strdup(recog->operation);
 			}
 			if (recog->device){
-				ai_elife.name = strdup(recog->device);
+				elife.name = strdup(recog->device);
 			}
 			if (recog->location){
-				ai_elife.position = strdup(recog->location);
+				elife.position = strdup(recog->location);
 			}
 			ai_elife_command();
-			break;
+			break;	//*/
 		#endif
 #endif
 		default:

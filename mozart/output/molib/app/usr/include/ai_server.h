@@ -15,6 +15,8 @@
 #include "ai_slot.h"
 #include "aiengine.h"
 #include "ai_song_list.h"
+#include "ai_elife.h"
+
 //#include "ai_music_list.h"
 //#include "ai_tts_msg.h"
 //#include "ai_player.h"
@@ -25,8 +27,9 @@
 #include "ai_zlog.h"
 #include "cJSON.h"
 
-#define APPKEY 				"146337845885959a"
-#define SERKEY 				"dbc0313b7467d669ce2f5148ea992bf8"
+#define SUPPORT_ELIFE 1
+//#define APPKEY 				"146337845885959a"
+//#define SERKEY 				"dbc0313b7467d669ce2f5148ea992bf8"
 extern int ai_server_fun(vr_info *recog);
 extern int ai_server_init(void);
 extern int ai_server_restart(void);
