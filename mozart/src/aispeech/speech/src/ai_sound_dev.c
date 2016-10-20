@@ -271,10 +271,6 @@ void *dmic_read(void *args)
 			goto result;
 		}
 
-#ifdef AEC_FILE_DEBUG
-//		write(fdr, bufdmic, AEC_SIZE);
-#endif
-
 		status = write(fddmic[1], bufdmic, AEC_SIZE);
 		if (status != AEC_SIZE) {
 			if (status == -1) {
@@ -339,11 +335,6 @@ void *loopback_read(void *args)
 
 		}
 #endif
-
-#ifdef AEC_FILE_DEBUG
-//		write(fdp, bufloop, AEC_SIZE);
-#endif
-
 		status = write(fdplay[1], bufloop, AEC_SIZE);
 		if (status != AEC_SIZE) {
 			if (status == -1) {

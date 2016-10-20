@@ -55,7 +55,7 @@ int _semantic_callback(void *usrdata, const char *id, int type,
 	cJSON *error_j = NULL;
 	cJSON *errId_j = NULL;
   //  if(strstr((char *)message, "input")){
-	//    DEBUG("sem: size = %d\n%s\n",size,(char *)message);
+//	    DEBUG("sem: size = %d\n%s\n",size,(char *)message);
   //  }
     out = cJSON_Parse((char*) message);
     if (!out)
@@ -75,7 +75,7 @@ int _semantic_callback(void *usrdata, const char *id, int type,
     }
 	recordId = cJSON_GetObjectItem(out, "recordId");
 	if(recordId){
-		DEBUG("recordId: %s\n", recordId->valuestring);
+//		DEBUG("recordId: %s\n", recordId->valuestring);
 		free(recog.recordId);
 		recog.recordId = NULL;
 		recog.recordId = strdup(recordId->valuestring);

@@ -75,7 +75,7 @@ void  ai_aec_stop(void){
 	}
 }
 
-#if 0 //def AEC_FILE_DEBUG
+#ifdef AEC_FILE_DEBUG
 	int record_count;
 	int fdr = -1;
 	int fdp = -1;
