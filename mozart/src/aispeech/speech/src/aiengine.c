@@ -14,6 +14,8 @@
 #include "ai_slot.h"
 #include "baselib.h"
 
+#include "ini_interface.h"
+
 music_obj *global_music;
 struct op *global_op;
 
@@ -581,9 +583,44 @@ int ai_init_data(void){
 	recog.event = NULL;
 }
 
+void ai_init_get_config(void){
+	char buf[32] = {0};
+	int time = 0;
+
+	//------------------------------ record time
+	ai_flag.asr_record_time = 80;			//default 8s
+	if (mozart_ini_getkey("/usr/data/aiengine.ini", "asr", "record_time", buf)){
+		PERROR("failed to parse /usr/data/aiengine.ini, set default asr record time to 8 s.\n");
+	}
+	else{
+		time = atoi(buf);
+		if ((time <5 || time > 15)){
+			PERROR("error set asr record time to %d s false(5-15). set default to 8 s\n",time);
+  		} else {
+			ai_flag.asr_record_time = time * 10;	//	time * 100ms
+			DEBUG("set asr record time to %d s.\n", time);
+		}
+	}
+	//------------------------------ wait result time
+	ai_flag.asr_wait_time = 10000;			// default	10s
+	if (mozart_ini_getkey("/usr/data/aiengine.ini", "asr", "wait_time", buf)){
+		PERROR("failed to parse /usr/data/aiengine.ini, set default asr wait time to 10 s.\n");
+	}
+	else{
+		time = atoi(buf);
+		if ((time <5 || time > 20)){
+			PERROR("error set asr wait time to %d s false(5-20). set default to 10 s\n",time);
+  		} else {
+			ai_flag.asr_wait_time = time * 1000;
+			DEBUG("set asr wait time to %d s.\n", time);
+		}
+	}
+}
+
 int ai_init(void){
 	int retvalue = 1;
 	int err = 0;
+	ai_init_get_config();
 	ai_init_data();
 	ai_flag.is_running = false;
 	if (ai_aiengine_init() == -1){

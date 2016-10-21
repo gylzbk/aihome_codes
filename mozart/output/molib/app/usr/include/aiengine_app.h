@@ -90,6 +90,8 @@ typedef struct ai_status_s{
 	int mode_cfg;
 	bool is_play_music;
 	int asr_mode_cfg;
+	int asr_record_time;
+	int asr_wait_time;
 //	echo_wakeup_t *ew;
 //	struct aiengine *agn;
 //	pthread_mutex_t mutex_lock;
