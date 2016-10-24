@@ -593,9 +593,11 @@ endif
 	-rm -rf $(APPFS_DIR)/usr/sbin/alarm_manager
 	-rm -rf $(APPFS_DIR)/etc/init.d/S01alarm.sh
 # cgi
+ifeq ("$(SUPPORT_CGI)", "0")
 	-rm -rf $(APPFS_DIR)/var/www/
 	-rm -rf $(APPFS_DIR)/etc/init.d/S88app.sh
 	-rm -rf $(UPDATERFS_DIR)/var/www
+endif
 
 # strip all ELF files.
 	@$(call MESSAGE,"Strip ELF files")
