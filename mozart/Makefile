@@ -546,6 +546,20 @@ smartui_disable_config:
 	@echo "#define SUPPORT_SMARTUI 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 
+# cgi config in config.mak and config.h
+#	1: enable
+#	other: disalbe
+cgi_enable_config:
+	@echo "SUPPORT_CGI=1" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_CGI 1" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
+cgi_disable_config:
+	@echo "SUPPORT_CGI=0" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_CGI 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
+
 # airplay config in config.mak and config.h
 #       1: enable
 #   other: disable
@@ -847,6 +861,7 @@ wb38_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_
 		smartui_enable_config webrtc_aec_enable_config\
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
+		cgi_enable_config \
 		board_wb38_config netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
 		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
