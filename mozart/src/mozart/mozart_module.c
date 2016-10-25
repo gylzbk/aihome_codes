@@ -333,6 +333,10 @@ void mozart_module_wifi_config(void)
 	struct mozart_module_struct *module;
 	void (*func)(struct mozart_module_struct *self);
 
+	#if (SUPPORT_ELIFE)
+		mozart_system("rm -rf /usr/data/wpa_supplicant.conf");
+		mozart_system("rm -rf /usr/data/user_info.conf");
+	#endif
 	mozart_module_mutex_lock();
 	module = mozart_module_get();
 	func = module->kops.wifi_config;
@@ -431,6 +435,10 @@ void mozart_module_factory_reset(void)
 	mozart_system("rm -rf /usr/data/user_info.conf");	//---- elife info
 	mozart_system("rm -rf /usr/data/wpa_supplicant.conf");
 	mozart_system("cp -a /usr/share/data/* /usr/data");
+	#if (SUPPORT_ELIFE)
+	mozart_system("rm -rf /usr/data/user_info.conf");
+	#endif
+
 	system("reboot");
 #else
 	mozart_system("rm -rf /usr/data/music_list.json");	//--- clean music list
