@@ -36,9 +36,9 @@ int main(void)
 	cgi_init_headers();
 
 	//devicename
-	cJSON_AddStringToObject(pObject,"deviceName","AIHOME");
+	cJSON_AddStringToObject(pObject,"DeviceName","geakmusic");
 	//hardware
-	cJSON_AddStringToObject(pObject,"hardware","DS-WB38");
+	cJSON_AddStringToObject(pObject,"hardware","hard 1.0");
 	//Software
 	int fd =  mozart_ota_init();
 	int externalVersion = mozart_ota_get_version(fd);
@@ -54,6 +54,18 @@ int main(void)
     char *ipAddress = get_ip_addr("wlan0");
     cJSON_AddStringToObject(pObject,"ipaddr",ipAddress);
 
+	//deviceID
+    cJSON_AddStringToObject(pObject,"deviceID","id 123");
+	//sdcard
+	sdinfo sdcardinfo = mozart_get_sdcard_info("/mnt/sdcard/");
+    cJSON_AddNumberToObject(pObject,"sdcardCapacity", sdcardinfo.totalSize);//sdcardCapacity
+    cJSON_AddNumberToObject(pObject,"AvailableSpace", sdcardinfo.availableSize);//AvailableSpace
+
+	//upgrade
+    cJSON_AddStringToObject(pObject,"upgrade","1");
+
+	//bluetooth
+    cJSON_AddStringToObject(pObject,"bluetooth","bluetooth_XXX");
 	//Electricity
     int power  = mozart_get_battery_capacity();
 	cJSON_AddNumberToObject(pObject,"electricity",power);
@@ -69,4 +81,3 @@ int main(void)
 
 	return 0;
 }
-
