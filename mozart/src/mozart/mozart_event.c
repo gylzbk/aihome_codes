@@ -141,7 +141,7 @@ static void create_combo_pthread(int key, int value)
 
 extern int mozart_ini_setkey(char *ini_file, char *section, char *key, char *value);
 
-#if(SUPPORT_BOARD == BOARD_DS1825)
+#if(SUPPORT_BOARD == BOARD_DS1825 || SUPPORT_BOARD == BOARD_PUBLIC)
 /*******************************************************************************
  * long press
  *******************************************************************************/
@@ -337,7 +337,7 @@ static void mozart_event_key(mozart_event event)
 	}
 
 	#if (SUPPORT_VR == VR_SPEECH)
-		#if(SUPPORT_BOARD == BOARD_DS1825)
+		#if(SUPPORT_BOARD == BOARD_DS1825 || SUPPORT_BOARD == BOARD_PUBLIC)
 			if(code  == KEY_RECORD){		//-------------- record
 				if (value == 1){	//	wakeup
 					create_key_long_press_pthread(&record_key_info);
