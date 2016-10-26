@@ -25,6 +25,9 @@
 #include "mozart_net.h"
 #include "mozart_battery.h"
 #include "mozart_prompt_tone.h"
+#include "baselib.h"
+extern music_obj *global_music;
+extern struct op *global_op;
 
 #include "mozart_config.h"
 #if (SUPPORT_VR == VR_ATALK)
@@ -63,6 +66,22 @@ static void sig_handler(int signo)
 	int i = 0;
 
 	printf("\n\n[%s: %d] mozart crashed by signal %s.\n", __func__, __LINE__, signal_str[signo]);
+	print("machine close\n");
+	int fd = op_arg_get(global_op);
+	if (fd <= 0) {
+		print("\nerror\n");
+		exit(0);
+	}
+	ftruncate(fd, 0);
+    	lseek(fd, 0, SEEK_SET);
+
+	machine_close(global_op, global_music);
+
+	/*memory recycle*/
+	op_delete(&global_op);
+	music_list_destroy(&global_music);
+	close(fd);
+
 
 	printf("Call Trace:\n");
 	size = backtrace(array, 10);
@@ -141,8 +160,9 @@ static inline int initall(void)
 	if (mozart_path_is_mount("/mnt/sdcard"))
 		mozart_localplayer_scan();
 
-	mozart_volume_set(60, BT_VOLUME);
-	mozart_volume_set(40, MUSIC_VOLUME);
+	mozart_volume_set(60, BT_CALL_VOLUME);
+	mozart_volume_set(40, BT_MUSIC_VOLUME);
+	mozart_volume_set(60, MUSIC_VOLUME);
 
 	ai_aitalk_sem_init();
 

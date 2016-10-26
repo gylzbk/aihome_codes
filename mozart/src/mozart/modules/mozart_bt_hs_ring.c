@@ -142,7 +142,7 @@ static void bt_hs_ring_module_resume_pause(struct mozart_module_struct *self)
 
 static void bt_hs_ring_module_disconnect_handler(struct mozart_module_struct *self)
 {
-	mozart_bluetooth_hs_hangup();
+	mozart_bluetooth_hs_hangup_call();
 	mozart_smartui_bt_hs_disconnect();
 }
 

@@ -21,21 +21,26 @@
 #include "ai_song_list.h"
 #include "music_list.h"
 
-extern music_obj *g_m;
+extern music_obj *global_music;
 
 music_info *ai_music_list_play_order(int order)
 {
-	printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
+	static int times = 0;
+	if (times == 0) {
+		order = 0;
+		times++;
+	}
+
 	music_info *music;
 	switch (order) {
 	case 0:
-		music = music_cur_get(g_m);
+		music = music_cur_get(global_music);
 		if (music == NULL)
 			printf("[%s %s %d] no song\n", __FILE__, __func__, __LINE__);
 
 		break;
 	case 1:
-		music = music_next_get(g_m);
+		music = music_next_get(global_music);
 		/*XXX: maybe tone tip*/
 		if (music == NULL) {
 			printf("[%s %s %d] no next song\n", __FILE__, __func__, __LINE__);
@@ -45,11 +50,11 @@ music_info *ai_music_list_play_order(int order)
 				return NULL;
 			music_info *tmp;
 			music_info_alloc(&tmp, music->title, music->artist, music->url);
-			music_list_insert(g_m, tmp);
+			music_list_insert(global_music, tmp);
 		}
 		break;
 	case -1:
-		music = music_prev_get(g_m);
+		music = music_prev_get(global_music);
 		/*XXX: maybe tone tip*/
 		if (music == NULL) {
 		//	music = ai_song_recommend_push();
@@ -58,7 +63,7 @@ music_info *ai_music_list_play_order(int order)
 				return NULL;
 			music_info *tmp;
 			music_info_alloc(&tmp, music->title, music->artist, music->url);
-			music_list_insert_head(g_m, tmp);
+			music_list_insert_head(global_music, tmp);
 			printf("[%s %s %d] no previous song\n", __FILE__, __func__, __LINE__);
 		}
 		break;
@@ -75,7 +80,7 @@ music_info *ai_music_list_play_order(int order)
 			return NULL;
 		music_info *tmp;
 		music_info_alloc(&tmp, music->title, music->artist, music->url);
-		music_list_insert(g_m, tmp);
+		music_list_insert(global_music, tmp);
 		printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
 	}
 	return music;
@@ -83,7 +88,6 @@ music_info *ai_music_list_play_order(int order)
 
 int ai_play_music_order(int order)
 {
-	printf("[%s %s %d]\n", __FILE__, __func__, __LINE__);
 	music_info *music = NULL;
 	music = ai_music_list_play_order(order);
 	//pr_debug("url %s\n",url);

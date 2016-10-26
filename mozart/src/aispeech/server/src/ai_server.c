@@ -508,6 +508,7 @@ exit_error:
 	else {
 		recog->status = AIENGINE_STATUS_AEC;
 	}
+	recog->key_record_stop = false;
    	return error;
 }
 

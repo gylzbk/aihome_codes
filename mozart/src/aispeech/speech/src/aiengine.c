@@ -12,8 +12,11 @@
 #include "aiengine.h"
 #include "aiengine_app.h"
 #include "ai_slot.h"
+#include "baselib.h"
 
-music_obj *g_m;
+music_obj *global_music;
+struct op *global_op;
+
 #if AI_CONTROL_MOZART
 #include "mozart_key.h"
 #endif
@@ -576,6 +579,7 @@ int ai_init_data(void){
 }
 
 int ai_init(void){
+	int retvalue = 1;
 	int err = 0;
 	ai_init_data();
 	ai_flag.is_running = false;
@@ -585,7 +589,24 @@ int ai_init(void){
 		goto exit_error;
 	}
 	ai_flag.is_init = true;
-	music_list_alloc(&g_m, 20);
+
+	/*musci list init*/
+	music_list_alloc(&global_music, 20);
+
+	/*file operate init*/
+	int fd = file_create("/usr/data/music_list.json");
+	if (fd == -1) {
+		print("error\n\n");
+		retvalue = -1;
+		exit(0);
+	}
+	op_init(&global_op, fd, global_music);
+	op_reg_low_output(global_op, low_output_cb);
+	op_reg_high_output(global_op, high_output_cb);
+	op_reg_low_input(global_op, low_input_cb);
+	op_reg_cur_output(global_op, cur_output_cb);
+
+	machine_open(global_op);
 
 	ai_server_init();
 exit_error:
@@ -608,6 +629,7 @@ int ai_set_enable(bool enable){
 	//	}else{
 			recog.status =AIENGINE_STATUS_AEC;
 			ai_flag.is_running = true;
+			recog.key_record_stop = false;
 			ai_song_list_set_enable(true);
 			usleep(10000);
 			ai_aitalk_send(aitalk_send_current_music(false));	//*/
@@ -625,6 +647,7 @@ int ai_set_enable(bool enable){
 			if (ai_flag.is_init){
 				ai_aiengine_exit();
 			}
+			recog.key_record_stop = false;
 			ai_song_list_set_enable(false);
 		}
 	}
@@ -645,16 +668,15 @@ int ai_aiengine_stop(void){
 
 int ai_aiengine_delete(void){
 	if (ai_flag.is_init){
-	if (ew){
-		echo_wakeup_delete(ew);
-		ew = NULL;
-	}
-	music_list_destroy(&g_m);
+		if (ew){
+			echo_wakeup_delete(ew);
+			ew = NULL;
+		}
 
-	if (agn){
-		aiengine_delete(agn);
-		agn = NULL;
-	}
+		if (agn){
+			aiengine_delete(agn);
+			agn = NULL;
+		}
 	}
 	ai_flag.is_init = false;
 	ai_server_exit();
@@ -811,50 +833,49 @@ int ai_tts(char *data,int enable_stop){
 int ai_key_record_wakeup(void){
 	int count = 0;
 	DEBUG("ai_key_record_wakeup start...\n");
-	if ((ai_flag.is_running)&&(ai_flag.is_init)){
-		if(recog.status == AIENGINE_STATUS_AEC){
+	//if ((ai_flag.is_running)&&(ai_flag.is_init)){
+	//	if(recog.status == AIENGINE_STATUS_AEC){
 			ai_aec_stop();
-			while(recog.status == AIENGINE_STATUS_AEC){
-				usleep(1000); // wake 15s to deal
-				count ++;
-				if (count > 5000){
-					break;
-				}
-			}
-		}
-	}
+		//	while(recog.status == AIENGINE_STATUS_AEC){
+		//		usleep(1000); // wake 15s to deal
+		//		count ++;
+		//		if (count > 5000){
+		//			break;
+		//		}
+		//	}
+	//	}
+	//}
 }
 
 int ai_key_record_stop(void){
 	int count = 0;
 	DEBUG("ai_key_record_stop start...\n");
 	if ((ai_flag.is_running)&&(ai_flag.is_init)){
-		recog.key_record_stop = true;
 		switch(recog.status){
 			case AIENGINE_STATUS_SEM:
+				recog.key_record_stop = true;
 				ai_cloud_sem_stop();
-				while((recog.status == AIENGINE_STATUS_SEM)){
+		/*		while((recog.status == AIENGINE_STATUS_SEM)){
 					usleep(1000); // wake 15s to deal
 					count ++;
 					if (count > 5000){
 						break;
 					}
-				}
+				}//*/
 				break;
 			case AIENGINE_STATUS_PROCESS:
-
-				while((recog.status == AIENGINE_STATUS_PROCESS)){
+				recog.key_record_stop = true;
+		/*		while((recog.status == AIENGINE_STATUS_PROCESS)){
 					usleep(1000); // wake 15s to deal
 					count ++;
 					if (count > 5000){
 						break;
 					}
-				}	//8
+				}//*/
 				break;	//*/
 			default:
 				break;	//*/
 		}
-		recog.key_record_stop = false;
 	}
 	return 0;
 }

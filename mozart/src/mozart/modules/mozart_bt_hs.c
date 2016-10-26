@@ -45,7 +45,7 @@ static void bt_hs_set_volume(bool set)
 
 	if (set) {
 #if 1
-		if (mozart_ini_getkey("/usr/data/system.ini", "volume", "bt", buf))
+		if (mozart_ini_getkey("/usr/data/system.ini", "volume", "bt_call", buf))
 			printf("failed to parse /usr/data/system.ini, set BT music volume to 30.\n");
 		else
 			volume = atoi(buf);
@@ -53,7 +53,7 @@ static void bt_hs_set_volume(bool set)
 		volume = 60;
 #endif
 
-		mozart_volume_set(volume, BT_VOLUME);
+		mozart_volume_set(volume, BT_CALL_VOLUME);
 	} else {
 		if (mozart_ini_getkey("/usr/data/system.ini", "volume", "music", buf))
 			printf("failed to parse /usr/data/system.ini, set music volume to 30.\n");
@@ -131,19 +131,28 @@ static void bt_hs_module_resume_pause(struct mozart_module_struct *self)
 	int state = mozart_bluetooth_hs_get_call_state();
 
 	if (state == CALLSETUP_STATE_INCOMMING_CALL) {
-		pr_debug(">>>>>>>>>>>>> answer call>>>>>\n");
+		printf(">>>>>>>>>>>>>answer call>>>>>\n");
 		mozart_bluetooth_hs_answer_call();
 	} else if (state == CALL_STATE_LEAST_ONE_CALL_ONGOING ||
-		   state == CALLSETUP_STATE_REMOTE_BEING_ALERTED_IN_OUTGOING_CALL) {
-		pr_debug(">>>>>>>>>>>>> hang up>>>>>\n");
-		mozart_bluetooth_hs_hangup();
-		mozart_smartui_bt_hs_disconnect();
+		   state == CALLSETUP_STATE_OUTGOING_CALL ||
+		   state == CALLSETUP_STATE_REMOTE_BEING_ALERTED_IN_OUTGOING_CALL ||
+		   state == CALLHELD_STATE_NO_CALL_HELD) {
+		printf(">>>>>>>>>>>>>hang up>>>>>\n");
+		mozart_bluetooth_hs_hangup_call();
+	} else if (state == CALLSETUP_STATE_WAITING_CALL) {
+		/* you can do other operation */
+		mozart_bluetooth_hs_hold_call(BTHF_CHLD_TYPE_HOLDACTIVE_ACCEPTHELD);
+	} else if (state == CALLHELD_STATE_PLACED_ON_HOLD_OR_SWAPPED) {
+		/* you can do other operation */
+		mozart_bluetooth_hs_hold_call(BTHF_CHLD_TYPE_RELEASEACTIVE_ACCEPTHELD);
+	} else {
+		printf("not support state : %d\n", state);
 	}
 }
 
 static void bt_hs_module_disconnect_handler(struct mozart_module_struct *self)
 {
-	mozart_bluetooth_hs_hangup();
+	mozart_bluetooth_hs_hangup_call();
 	mozart_smartui_bt_hs_disconnect();
 }
 

@@ -37,7 +37,11 @@ typedef enum volume_domain {
 	/**
 	 * @brief bt volume
 	 */
-	BT_VOLUME,
+	BT_CALL_VOLUME,
+	/**
+	 * @brief bt volume
+	 */
+	BT_MUSIC_VOLUME,
 	/**
 	 * @brief tone volume
 	 */

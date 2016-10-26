@@ -468,7 +468,7 @@ static void mozart_event_misc(mozart_event event)
 	pr_debug("%s: %s\n", name, type);
 
 	if (!strcasecmp(name, "volume")) {
-		if (!strcasecmp(type, "update music")) {
+		if (!strcasecmp(type, "update music") || !strcasecmp(type, "update bt_music")) {
 			mozart_smartui_volume_update();
 			mozart_module_volume_change();
 		}
@@ -603,7 +603,7 @@ static void mozart_event_misc(mozart_event event)
 				 * we reviced ABS_VOL_CMD_EVT, and set volume to dsp,
 				 * it will generate a case of sound mutation */
 				if (fd != -1) {
-					mozart_volume_set(avk_volume_set_dsp[index], MUSIC_VOLUME);
+					mozart_volume_set(avk_volume_set_dsp[index], BT_MUSIC_VOLUME);
 				} else {
 					char vol[8] = {};
 					sprintf(vol, "%d", avk_volume_set_dsp[index]);
@@ -654,7 +654,9 @@ static void mozart_event_misc(mozart_event event)
 		 *    + 手机选择音箱为音频设备: call
 		 *    + 挂断: close (state = 0)
 		 */
-		pr_debug("hs call state: %d\n", mozart_bluetooth_hs_get_call_state());
+		int state = mozart_bluetooth_hs_get_call_state();
+
+		pr_debug("hs call state: %d\n", state);
 		if (!strcasecmp(type, "ring")) {
 			mozart_module_mutex_lock();
 			if (!__mozart_bt_hs_is_start() && !__mozart_bt_hs_ring_is_start())
@@ -675,8 +677,6 @@ static void mozart_event_misc(mozart_event event)
 
 			mozart_bt_hs_start(false);
 		} else if (!strcasecmp(type, "close")) {
-			int state = mozart_bluetooth_hs_get_call_state();
-
 			/*
 			 * iphone
 			 * CALL_STATE_NO_CALLS_ONGOING: 来电中挂断
@@ -706,25 +706,25 @@ static void mozart_event_misc(mozart_event event)
 				mozart_smartui_bt_hs_disconnect();
 			}
 			mozart_module_mutex_unlock();
+#if 0
 		} else if (!strcasecmp(type, "vgs")) {
 			int volume = event.event.misc.value[0];
 
 			mozart_volume_set(volume * 100 / APP_HS_CALL_VOLUME_MAX, BT_VOLUME);
 			printf("phone volume: %d, mozart set hs volume: %d\n",
-					volume,
-					volume * 100 / APP_HS_CALL_VOLUME_MAX);
-
+			       volume, volume * 100 / APP_HS_CALL_VOLUME_MAX);
+#endif
 		} else {
 			printf("unhandle bt phone event: %s.\n", event.event.misc.type);
 		}
 
 	} else if (!strcasecmp(name, "bt_avrcp")) {
 		if (!strcasecmp(event.event.misc.type, "playing")) {
-			printf("playing!\n");
+			mozart_bt_avk_do_play();
 		} else if (!strcasecmp(event.event.misc.type, "paused")) {
-			printf("pause!\n");
+			mozart_bt_avk_do_pause();
 		} else if (!strcasecmp(event.event.misc.type, "stopped")) {
-			printf("stopped!\n");
+			;
 		} else if (!strcasecmp(event.event.misc.type, "track_change")) {
 			mozart_bluetooth_avk_send_get_element_att_cmd();
 		} else if (!strcasecmp(event.event.misc.type, "play_pos")) {

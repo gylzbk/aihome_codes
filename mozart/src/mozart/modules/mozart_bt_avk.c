@@ -105,74 +105,93 @@ static enum avk_data_stage {
 static char avk_data[4096];
 static int avk_data_offset;
 
+
+#define APP_AVK_VOLUME_MAX	17
+
+static UINT8 avk_volume_set_dsp[17] = {0, 6, 12, 18, 25, 31, 37, 43, 50,
+				       56, 62, 68, 75, 81, 87, 93, 100};
+static UINT8 avk_volume_set_phone[17] = {0, 15, 23, 31, 39, 47, 55, 63, 71,
+					 79, 87, 95, 103, 111, 113, 125, 127};
+static int bt_avk_volume_dsp2phone(int *volume)
+{
+	int i = 0;
+
+	for (i = 0; i < APP_AVK_VOLUME_MAX - 1; i++)
+		if (*volume >= avk_volume_set_dsp[i] && *volume < avk_volume_set_dsp[i + 1])
+			break;
+
+	*volume = avk_volume_set_dsp[i];
+	printf("%s: dsp(%d) => phone(%d)\n", __func__, *volume, avk_volume_set_phone[i]);
+
+	return avk_volume_set_phone[i];
+}
+
 static void bt_avk_module_volume_up(struct mozart_module_struct *self)
 {
 	int i = 0;
-	int vol = 0;
 	char vol_buf[8] = {};
-	int avk_volume_max = 17;
-	UINT8 avk_volume_set_dsp[17] = {0, 6, 12, 18, 25, 31, 37, 43, 50, 56, 62, 68, 75, 81, 87, 93, 100};
-	UINT8 avk_volume_set_phone[17] = {0, 15, 23, 31, 39, 47, 55, 63, 71, 79, 87, 95, 103, 111, 113, 125, 127};
+	int vol = 0, phone_vol;
 
-	if (mozart_ini_getkey("/usr/data/system.ini", "volume", "music", vol_buf)) {
-		printf("failed to parse /usr/data/system.ini, set BT volume to 66.\n");
-		vol = 63;
-	} else {
-		vol = atoi(vol_buf);
-	}
-
-	if(vol >= 100) {
-		printf("bt volume has maximum!\n");
-	}
-	for(i = 0; i < avk_volume_max; i++) {
-		if(avk_volume_set_dsp[i] > vol)
-			break;
-	}
-	if(i >= avk_volume_max) {
-		printf("failed to get music volume %d from avk_volume_set_dsp\n", vol);
-		return;
-	}
-	printf("set avk dsp %d, set phone %d\n", avk_volume_set_dsp[i], avk_volume_set_phone[i]);
-	mozart_volume_set(avk_volume_set_dsp[i], MUSIC_VOLUME);
-	mozart_bluetooth_avk_set_volume_up(avk_volume_set_phone[i]);
-}
-
-static void bt_avk_module_volume_down(struct mozart_module_struct *self)
-{
-	int i = 0;
-	int vol = 0;
-	char vol_buf[8] = {};
-	int avk_volume_max = 17;
-	UINT8 avk_volume_set_dsp[17] = {0, 6, 12, 18, 25, 31, 37, 43, 50, 56, 62, 68, 75, 81, 87, 93, 100};
-	UINT8 avk_volume_set_phone[17] = {0, 15, 23, 31, 39, 47, 55, 63, 71, 79, 87, 95, 103, 111, 113, 125, 127};
-
-	if (mozart_ini_getkey("/usr/data/system.ini", "volume", "music", vol_buf)) {
+	if (mozart_ini_getkey("/usr/data/system.ini", "volume", "bt_music", vol_buf)) {
 		printf("failed to parse /usr/data/system.ini, set BT volume to 63.\n");
 		vol = 63;
 	} else {
 		vol = atoi(vol_buf);
 	}
 
-	if(vol <= 0) {
-		printf("bt volume has minimum!\n");
-		return;
-	}
-	for(i = (avk_volume_max - 1); i >= 0; i--) {
-		if(avk_volume_set_dsp[i] < vol)
+	if (vol >= 100)
+		printf("bt volume has maximum!\n");
+
+	for (i = 0; i < APP_AVK_VOLUME_MAX; i++)
+		if (avk_volume_set_dsp[i] > vol)
 			break;
-	}
-	if(i < 0) {
+
+	if (i >= APP_AVK_VOLUME_MAX) {
 		printf("failed to get music volume %d from avk_volume_set_dsp\n", vol);
 		return;
 	}
-	printf("set avk dsp %d, set phone %d\n", avk_volume_set_dsp[i], avk_volume_set_phone[i]);
 
-	mozart_volume_set(avk_volume_set_dsp[i], MUSIC_VOLUME);
-	mozart_bluetooth_avk_set_volume_down(avk_volume_set_phone[i]);
+	vol = avk_volume_set_dsp[i];
+	phone_vol = bt_avk_volume_dsp2phone(&vol);
+	mozart_volume_set(vol, BT_MUSIC_VOLUME);
+	mozart_bluetooth_avk_set_volume_up(phone_vol);
 }
 
+static void bt_avk_module_volume_down(struct mozart_module_struct *self)
+{
 
+	int i = 0;
+	char vol_buf[8] = {};
+	int vol = 0, phone_vol;
+
+	if (mozart_ini_getkey("/usr/data/system.ini", "volume", "bt_music", vol_buf)) {
+		printf("failed to parse /usr/data/system.ini, set BT volume to 63.\n");
+		vol = 63;
+	} else {
+		vol = atoi(vol_buf);
+	}
+
+	if (vol < 0)
+		printf("bt volume has minimum!\n");
+
+	for (i = (APP_AVK_VOLUME_MAX - 1); i >= 0; i--)
+		if (avk_volume_set_dsp[i] < vol)
+			break;
+
+	if (i >= APP_AVK_VOLUME_MAX) {
+		printf("failed to get music volume %d from avk_volume_set_dsp\n", vol);
+		return;
+	}
+
+	vol = avk_volume_set_dsp[i];
+	phone_vol = bt_avk_volume_dsp2phone(&vol);
+	mozart_volume_set(vol, BT_MUSIC_VOLUME);
+	mozart_bluetooth_avk_set_volume_up(phone_vol);
+}
+
+#if (SUPPORT_BSA_AEC_RESAMPLE == 1)
 static int avk_resample_outlen_max = 0;
+#endif
 static void mozart_avk_resample_data_callback(avk_callback_msg *avk_msg)
 {
 	/* int offset; */
@@ -521,7 +540,7 @@ static int stop_bt(void)
 
 static int bt_avk_resume_handler(void)
 {
-	if (!mozart_bluetooth_get_avk_play_state())
+	if (!mozart_bluetooth_avk_get_play_state())
 		mozart_bluetooth_avk_play_pause();
 	else
 		pr_debug("avk state is playing\n");
@@ -531,7 +550,7 @@ static int bt_avk_resume_handler(void)
 
 static int bt_avk_pause_handler(void)
 {
-	if (mozart_bluetooth_get_avk_play_state())
+	if (mozart_bluetooth_avk_get_play_state())
 		mozart_bluetooth_avk_play_pause();
 	else
 		pr_debug("avk state is pause\n");
@@ -554,7 +573,7 @@ static int bt_avk_module_start(struct mozart_module_struct *self)
 		__mozart_prompt_tone_key_sync("atalk_swich_false_5");
 
 	do {
-		ret = mozart_bluetooth_auto_reconnect(USE_HS_AVK);
+		ret = mozart_bluetooth_auto_reconnect(USE_HS_AVK, 0);
 		if (timeout-- <= 0)
 			break;
 	} while (ret);
@@ -603,13 +622,13 @@ static void bt_avk_module_next_song(struct mozart_module_struct *self)
 
 static void bt_avk_module_resume_pause(struct mozart_module_struct *self)
 {
-	int link = mozart_bluetooth_get_link_status();
+	bsa_link_status link = mozart_bluetooth_get_link_status();
 
 	mozart_module_mutex_lock();
 
 	pr_debug("player_state = %d, link = %d\n", self->player_state, link);
 
-	if (link) {
+	if (link == BT_LINK_CONNECTED) {
 		if (self->player_state == player_state_idle ||
 		    self->player_state == player_state_pause) {
 			/* resume */
@@ -633,7 +652,7 @@ static void bt_avk_module_resume_pause(struct mozart_module_struct *self)
 			}
 		}
 	} else {
-		mozart_bluetooth_auto_reconnect(USE_HS_AVK);
+		mozart_bluetooth_auto_reconnect(USE_HS_AVK, 0);
 	}
 
 	mozart_module_mutex_unlock();
@@ -710,7 +729,7 @@ int mozart_bt_avk_start(bool in_lock)
 
 int mozart_bt_avk_do_play(void)
 {
-	int i, ret;
+	int i, ret, vol;
 	module_status domain_status;
 	struct mozart_module_struct *self = &bt_avk_module;
 
@@ -726,8 +745,6 @@ int mozart_bt_avk_do_play(void)
 		else
 			break;
 	}
-	if (i >= 10)
-		pr_err("wait WAIT_REPONSE timeout!\n");
 
 	mozart_module_mutex_lock();
 	if (__mozart_module_is_run(self)) {
@@ -743,11 +760,13 @@ int mozart_bt_avk_do_play(void)
 	} else {
 		ret = -1;
 		share_mem_set(BT_AVK_DOMAIN, RESPONSE_CANCEL);
-		mozart_module_mutex_unlock();
 	}
 	mozart_module_mutex_unlock();
 
 	pr_debug("ret = %d\n", ret);
+
+	vol = mozart_volume_get();
+	mozart_bluetooth_avk_set_volume_up(bt_avk_volume_dsp2phone(&vol));
 
 	return ret;
 }
@@ -758,9 +777,10 @@ int mozart_bt_avk_do_pause(void)
 	struct mozart_module_struct *self = &bt_avk_module;
 
 	mozart_smartui_bt_toggle(false);
-	self->player_state = player_state_pause;
 
 	mozart_module_mutex_lock();
+	self->player_state = player_state_pause;
+
 	if (__mozart_module_is_run(self))
 		ret = 1;
 	else if (__mozart_module_is_start(self))
