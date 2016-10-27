@@ -90,7 +90,7 @@ char  *_elife_get_recog(vr_info *recog){
 	elife.input = strdup(recog->input);
 	switch(recog->domain){
 		case RECOG_DOMAIN_MOVIE:
-			elife.type = strdup("voice");
+			elife.type = strdup("video");
 			if (recog->operation){
 				elife.video.cmd = strdup(recog->operation);
 			}
