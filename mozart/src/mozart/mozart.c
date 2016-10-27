@@ -229,8 +229,10 @@ int main(int argc, char **argv)
 	e_key_handler = mozart_event_handler_get(mozart_event_key_callback, global_app_name);
 	e_misc_handler = mozart_event_handler_get(mozart_event_misc_callback, global_app_name);
 
-	while (1)
+	while (1) {
+		system("echo 3 > /proc/sys/vm/drop_caches");
 		sleep(60);
+	}
 
 	return 0;
 }
