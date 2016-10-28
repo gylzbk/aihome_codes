@@ -131,17 +131,27 @@ extern "C" {
 #define TXTF_ERR_NOT_FOUND -5
 
 /**
- * @brief get all sections in ini_file  
+ * @brief get all sections in ini_file
  *
  * @param ini_file [in] ini file path
  * @param sections [out] sections pointer array, need allocate memory.
  *
  * @return return 0 On success, else error.
  */
-extern int mozart_ini_getsections(char *ini_file, char *sections[]);
+extern int mozart_ini_getsections(char *ini_file, char **sections);
 
 /**
- * @brief get all keys in sections in ini_file  
+ * @brief similar to mozart_ini_getsections(...), but alloc memory internal for sections.
+ *
+ * @param ini_file [in] ini file path
+ * @param sections [out] all sections cnt.
+ *
+ * @return all sections, need free after used done.
+ */
+extern char **mozart_ini_getsections1(char *ini_file, int *n_sections);
+
+/**
+ * @brief get all keys in sections in ini_file
  *
  * @param ini_file [in] ini file path
  * @param section [in] section name
@@ -164,7 +174,7 @@ extern int mozart_ini_getkeys(char *ini_file, char *section, char *keys[]);
 extern int mozart_ini_getkey(char *ini_file, char *section, char *key, char *value);
 
 /**
- * @brief set key's value in section in ini_file  
+ * @brief set key's value in section in ini_file
  *
  * @param ini_file [in] ini file path
  * @param section [in] section name
