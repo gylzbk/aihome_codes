@@ -8,7 +8,7 @@
 #include <semaphore.h>
 #include <json-c/json.h>
 #include "vr-speech_interface.h"
-#include "aiengine.h"
+#include "aiengine_app.h"
 
 #ifndef MOZART_RELEASE
 #define MOZART_AITALK_DEBUG

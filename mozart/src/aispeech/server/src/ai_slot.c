@@ -14,6 +14,7 @@
 #include <netinet/in.h>
 #include <linux/soundcard.h>
 
+#include "ai_server.h"
 #include "ai_slot.h"
 #include "ai_error.h"
 #include "cJSON.h"

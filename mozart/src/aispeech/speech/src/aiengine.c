@@ -12,6 +12,7 @@
 #include "aiengine.h"
 #include "aiengine_app.h"
 #include "ai_slot.h"
+#include "ai_server.h"
 #include "baselib.h"
 
 #include "ini_interface.h"
@@ -40,6 +41,42 @@ static const char *version =
 //		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
 //		\"server\": \"ws://112.80.39.95:8009\"\
 
+static const char *cfg =
+"\
+{\
+    \"luaPath\": \"./bin/luabin.lub\",\
+    \"appKey\": \"14327742440003c5\",\
+    \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
+    \"provision\": \"./bin/aiengine-2.8.8-14327742440003c5.provision\",\
+    \"serialNumber\": \"./serialNumber\",\
+    \"prof\": {\
+        \"enable\": 0,\
+        \"output\": \"/mnt/sdcard/a.log\"\
+    },\
+    \"vad\":{\
+        \"enable\": 1,\
+        \"res\": \"./bin/vad.aihome.v0.5.20160324.bin\",\
+        \"speechLowSeek\": 70,\
+        \"sampleRate\": 16000,\
+        \"pauseTime\":700,\
+        \"strip\": 1\
+    },\
+    \"cloud\": {\
+		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
+    },\
+    \"native\": {\
+        \"cn.dnn\": {\
+            \"resBinPath\": \"./bin/wakeup_aihome_aispeech_nhxl_20161019.bin\"\
+        },\
+        \"cn.echo\": {\
+            \"frameLen\": 512,\
+            \"filterLen\": 2048,\
+            \"rate\": 16000\
+        }\
+    }\
+}";
+
+
 #if 1
 static const char *ew_cfg =
 "\
@@ -47,7 +84,7 @@ static const char *ew_cfg =
     \"luaPath\": \"/usr/fs/usr/share/vr/bin/luabin.lub\",\
     \"appKey\": \"14327742440003c5\",\
     \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
-    \"provision\": \"/usr/fs/usr/share/vr/bin/prov-jz-2.7.8-mac.file-20201031\",\
+    \"provision\": \"/usr/fs/usr/share/vr/bin/aiengine-2.8.8-14327742440003c5.provision\",\
     \"serialNumber\": \"/usr/data/serialNumber\",\
     \"prof\": {\
         \"enable\": 0,\
@@ -55,7 +92,7 @@ static const char *ew_cfg =
     },\
     \"vad\":{\
         \"enable\": 1,\
-        \"res\": \"/usr/fs/usr/share/vr/bin/vad.aihome.0.3.1027.bin\",\
+        \"res\": \"/usr/fs/usr/share/vr/bin/vad.aihome.v0.5.20160324.bin\",\
         \"speechLowSeek\": 70,\
         \"sampleRate\": 16000,\
         \"pauseTime\":700,\
@@ -63,7 +100,7 @@ static const char *ew_cfg =
     },\
     \"native\": {\
         \"cn.dnn\": {\
-            \"resBinPath\": \"/usr/fs/usr/share/vr/bin/aihome.1030.bin\"\
+            \"resBinPath\": \"/usr/fs/usr/share/vr/bin/wakeup_aihome_aispeech_nhxl_20161019.bin\"\
         },\
         \"cn.echo\": {\
             \"frameLen\": 512,\
@@ -79,7 +116,7 @@ static const char *agn_cfg =
     \"luaPath\": \"/usr/fs/usr/share/vr/bin/luabin.lub\",\
     \"appKey\": \"14327742440003c5\",\
     \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
-    \"provision\": \"/usr/fs/usr/share/vr/bin/prov-jz-2.7.8-mac.file-20201031\",\
+    \"provision\": \"/usr/fs/usr/share/vr/bin/aiengine-2.8.8-14327742440003c5.provision\",\
     \"serialNumber\": \"/usr/data/serialNumber\",\
     \"prof\": {\
         \"enable\": 0,\
@@ -87,7 +124,7 @@ static const char *agn_cfg =
     },\
     \"vad\":{\
         \"enable\": 1,\
-        \"res\": \"/usr/fs/usr/share/vr/bin/vad.aihome.0.3.1027.bin\",\
+        \"res\": \"/usr/fs/usr/share/vr/bin/vad.aihome.v0.5.20160324.bin\",\
         \"speechLowSeek\": 70,\
         \"sampleRate\": 16000,\
         \"pauseTime\":700,\
@@ -391,6 +428,7 @@ int ai_status_aecing(void){
 	#endif
 	recog.is_control_play_music = false;
 	ai_recog_free();
+	system("echo 3 > /proc/sys/vm/drop_caches &");
 	if (ai_aec(ew) == 0){
 		if(ai_flag.is_running){
 			if(ai_song_list.is_getting == true){
@@ -431,6 +469,7 @@ int ai_status_seming(void){
 #endif
 	ai_to_mozart();
 
+	system("echo 3 > /proc/sys/vm/drop_caches &");
 	ret = ai_cloud_sem(agn);
 	if(ai_flag.is_running){
 		switch (ret){

@@ -22,7 +22,6 @@
 
 #include "vr-speech_interface.h"
 
-#include "aiengine.h"
 #include "aiengine_app.h"
 
 
@@ -255,7 +254,7 @@ int ai_song_list_get_from_param(cJSON *param){
 				                ai_song_list.song_num ++;
 								ai_song_list.is_success = true;
 				               	}else{
-		                            DEBUG("i_data error!\n")
+		                            DEBUG("i_data error!\n");
 		                       	}
 							}/*end for(i=0;i<song_num;i++)*/
 	                   	}/*end if (song_num>0)*/

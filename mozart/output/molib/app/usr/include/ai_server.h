@@ -13,7 +13,7 @@
 
 #include "vr-speech_interface.h"
 #include "ai_slot.h"
-#include "aiengine.h"
+#include "aiengine_app.h"
 #include "ai_song_list.h"
 #include "ai_elife.h"
 
@@ -34,6 +34,5 @@ extern int ai_server_fun(vr_info *recog);
 extern int ai_server_init(void);
 extern int ai_server_restart(void);
 extern music_info *ai_music_list_play_order(int order);
-extern ai_sem_search_t ai_sem_search;
 
 #endif

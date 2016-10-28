@@ -1,7 +1,7 @@
 #ifndef __AI_SLOT_H_
 #define __AI_SLOT_H_
 
-#include "aiengine.h"
+#include "aiengine_app.h"
 #include "vr-speech_interface.h"
 #include "cJSON.h"
 

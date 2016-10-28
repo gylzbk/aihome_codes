@@ -14,7 +14,7 @@
 //#include "ini_interface.h"
 //#include "utils_interface.h"
 #include "vr-speech_interface.h"
-#include "aiengine.h"
+#include "aiengine_app.h"
 #include "echo_wakeup.h"
 //#include "volume_interface.h"
 #include "ai_sound_dev.h"

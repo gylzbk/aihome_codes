@@ -44,7 +44,7 @@ static char* ai_cloudsem_get_lbs_city(void);
 //static int ai_add_lbs_city_to_sem_param(char *lbs_city);
 static int ai_add_sds_info_to_sem_param(void);
 
-int _semantic_callback(void *usrdata, const char *id, int type,
+int _semantic_callback(const void *usrdata, const char *id, int type,
                                         const void *message, int size)
 {
 	//cJSON *nbest;

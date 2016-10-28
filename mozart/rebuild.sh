@@ -47,9 +47,10 @@ make libaiserver-rebuild -j
 #cp ./src/asr/ai_server/src/*.h ./src/asr/speech/x1000_1mic/
 #cp ./src/asr/include/*.h ./src/asr/speech/x1000_1mic/
 
-make libaispeech-rebuild -j
+make libaispeech-rebuild
 
-make mozart-rebuild -j
+make mozart-rebuild
+make app-config-rebuild
 
 make -j
 

@@ -38,7 +38,7 @@ static const char *cloud_syn_param =
 
 char *fn = cloud_sync_record;
 
-int _cloud_syn_callback(void *usrdata, const char *id, int type,
+int _cloud_syn_callback(const void *usrdata, const char *id, int type,
         const void *message, int size)
 {
 	if(type == 1)

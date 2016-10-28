@@ -37,8 +37,9 @@ static bool is_working = false;
 
 extern struct aiengine *agn;
 
-int _semantic_text_callback(void *usrdata, const char *id, int type,
+int _semantic_text_callback(const void *usrdata, const char *id, int type,
                                         const void *message, int size)
+
 {
     int error =   0;
     cJSON *out = NULL;

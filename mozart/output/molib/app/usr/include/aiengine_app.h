@@ -25,6 +25,16 @@
 extern int asr_mode_cfg;
 extern int fd_dsp_rd;
 
+#define __DEBUG__
+#ifdef __DEBUG__
+#define DEBUG(format, ...) printf("[%s : %s : %d] ",__FILE__,__func__,__LINE__); printf(format, ##__VA_ARGS__);
+#else
+#define DEBUG(format, ...)
+#endif
+#define PERROR(format, ...) printf("[%s : %s : %d] ",__FILE__,__func__,__LINE__); printf(format, ##__VA_ARGS__);
+
+
+
 
 extern pthread_mutex_t ai_lock;
 #define ai_mutex_lock(lock)				\
@@ -117,16 +127,6 @@ typedef struct ai_aec_flag_t{
 	bool set_end;
 }ai_aec_flag_t;
 extern  ai_aec_flag_t ai_aec_flag;
-
-struct aiengine * aiengine_new(const char *cfg);
-int aiengine_delete(struct aiengine *engine);
-int aiengine_start(struct aiengine *engine, const char *param, char id[64], aiengine_callback callback, const void *usrdata);
-int aiengine_feed(struct aiengine *engine, const void *data, int size);
-int aiengine_stop(struct aiengine *engine);
-//int aiengine_cancel(struct aiengine *engine, struct mic_record * record_info);
-int aiengine_cancel(struct aiengine *engine);
-int aiengine_echo(struct aiengine *engine, const void *rec, const void *play, int size, int flag);
-
 
 #define RECORD_BUFSZ                (3200)
 #define TMP_BUFFER_SZ               (1024)
