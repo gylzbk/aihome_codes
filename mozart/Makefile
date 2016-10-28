@@ -851,6 +851,7 @@ ds1825_atalk_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_a
 		smartui_enable_config webrtc_aec_enable_config\
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
+		cgi_disable_config elife_disable_config \
 		board_ds1825_config netowrk_atalk_airkiss_config aispeech_disable_config\
 		mplayer_float_config vr_atalk_config vr_wakeup_voice_config \
 		atalk_enable_config adb_enable_config battery_nv_flag_enable_config\
@@ -862,6 +863,19 @@ ds1825_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare produc
 		smartui_enable_config webrtc_aec_enable_config\
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
+		cgi_disable_config elife_disable_config \
+		board_ds1825_config netowrk_atalk_airkiss_config aispeech_enable_config\
+		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
+		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
+		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
+	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
+
+ds1825_aispeech_elife_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_aslmom_v1.0_ap6212a_config \
+		wifi_ap6212a_atalk_config bt_ap6212a_config bt_hci_dev_ttyS0_config \
+		smartui_enable_config webrtc_aec_enable_config\
+		audio_dev_x1000_config dmr_enable_config dms_disable_config \
+		airplay_enable_config localplayer_enable_config \
+		cgi_enable_config elife_enable_config \
 		board_ds1825_config netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
 		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
@@ -873,7 +887,7 @@ wb38_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_
 		smartui_enable_config webrtc_aec_enable_config\
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
-		cgi_enable_config elife_enable_config \
+		cgi_disable_config elife_disable_config \
 		board_wb38_config netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
 		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
@@ -885,7 +899,7 @@ public_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare produc
 		smartui_disable_config webrtc_aec_enable_config\
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
-		cgi_disable_config \
+		cgi_disable_config elife_disable_config \
 		board_public_config netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
 		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\

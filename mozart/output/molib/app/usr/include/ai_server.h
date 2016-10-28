@@ -12,6 +12,8 @@
 #include <linux/soundcard.h>
 
 #include "vr-speech_interface.h"
+
+#include "mozart_config.h"
 #include "ai_slot.h"
 #include "aiengine_app.h"
 #include "ai_song_list.h"
@@ -27,7 +29,6 @@
 #include "ai_zlog.h"
 #include "cJSON.h"
 
-#define SUPPORT_ELIFE 1
 //#define APPKEY 				"146337845885959a"
 //#define SERKEY 				"dbc0313b7467d669ce2f5148ea992bf8"
 extern int ai_server_fun(vr_info *recog);
