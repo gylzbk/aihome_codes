@@ -422,7 +422,7 @@ void mozart_module_factory_reset(void)
 	__mozart_prompt_tone_key_sync("atalk_factory_reset_36");
 	mozart_smartui_shutdown();
 
-#define RESET_TEST
+//#define RESET_TEST
 
 #ifdef RESET_TEST
 
