@@ -92,21 +92,21 @@ static int net_module_suspend(struct mozart_module_struct *current)
 
 static int net_module_stop(struct mozart_module_struct *current)
 {
-	printf("+++ net_module_stop -----1-\n");
+//	printf("+++ net_module_stop -----1-\n");
 	wifi_info_t infor = get_wifi_mode();
 
-	printf("+++ net_module_stop -----2-\n");
+//	printf("+++ net_module_stop -----2-\n");
 	mozart_module_net_lock();
 
-	printf("+++ net_module_stop -----3-\n");
+//	printf("+++ net_module_stop -----3-\n");
 	pr_debug("net_mode is %s, infor.wifi_mode = %d\n\n",
 		 net_mode_str[global_net_mode], infor.wifi_mode);
 
-	printf("+++ net_module_stop -----4-\n");
+//	printf("+++ net_module_stop -----4-\n");
 	if ((global_net_mode == NET_MODE_CFG_START)||(global_net_mode == NET_MODE_SW_NETCFG))
 		stop_net_config();
 
-	printf("+++ net_module_stop -----5-\n");
+//	printf("+++ net_module_stop -----5-\n");
 	if (((global_net_mode == NET_MODE_BOOT_STA || global_net_mode == NET_MODE_CFG_STA ||
 	      global_net_mode == NET_MODE_SW_STA) && infor.wifi_mode != STA) ||
 	    global_net_mode == NET_MODE_INVALID || global_net_mode == NET_MODE_SW_NETCFG ||
@@ -115,7 +115,7 @@ static int net_module_stop(struct mozart_module_struct *current)
 			global_net_mode = NET_MODE_SW_STA_ALLTIME;
 	}
 
-	printf("+++ net_module_stop -----6-\n");
+//	printf("+++ net_module_stop -----6-\n");
 	mozart_module_net_unlock();
 
 	return 0;

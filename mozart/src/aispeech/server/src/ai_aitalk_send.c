@@ -135,7 +135,6 @@ char *aitalk_send_pause(bool tone){
 }
 
 char *aitalk_send_resume(bool tone){
-	DEBUG("\n");
 	char *tone_s;
 	if (tone)
 		tone_s = "true";
@@ -148,7 +147,6 @@ char *aitalk_send_resume(bool tone){
 }
 
 char *aitalk_send_stop_music(bool tone){
-	DEBUG("\n");
 	char *tone_s;
 	if (tone)
 		tone_s = "true";
@@ -167,7 +165,6 @@ char *aitalk_send_play_music(const char *url){
 #endif
 
 char *aitalk_send_previous_music(bool tone){
-	DEBUG("\n");
 	char *tone_s;
 	if (tone)
 		tone_s = "true";
@@ -180,7 +177,6 @@ char *aitalk_send_previous_music(bool tone){
 }
 
 char *aitalk_send_next_music(bool tone){
-	DEBUG("\n");
 	char *tone_s;
 	if (tone)
 		tone_s = "true";
@@ -193,17 +189,14 @@ char *aitalk_send_next_music(bool tone){
 }
 
 char *aitalk_send_current_music(bool tone){
-	DEBUG("\n");
 	return send_obj("current_music",NULL);
 }
 
 char *aitalk_send_exit(const char *url){
-	DEBUG("\n");
 	return send_obj("exit",NULL);
 }
 
 char *aitalk_send_error(const char *error_key){
-	DEBUG("\n");
 	json_object *params;
 	if (error_key == NULL){
 		return NULL;
@@ -214,7 +207,6 @@ char *aitalk_send_error(const char *error_key){
 }
 
 char *aitalk_send_set_volume(const char *cmd, const char *tone_key){
-	DEBUG("\n");
 	json_object *params;
 
 	if (cmd == NULL){

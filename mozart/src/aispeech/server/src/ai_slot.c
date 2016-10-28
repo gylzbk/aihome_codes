@@ -154,20 +154,9 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 	cJSON *artist = NULL;
 	cJSON *url_64 = NULL;
 	cJSON *url_32 = NULL;
-/*	if (sem_param == NULL){
-		ret = -1;
-		PERROR("sem_param = NULL\n");
-		goto exit_error;
-	}
-	sem_json = cJSON_Parse((char*) sem_param);
-	if (sem_json == NULL){
-		ret = -1;
-		PERROR("sem_json = NULL\n");
-		goto exit_error;
-	}	//*/
 
 	ai_slot_recog_free(recog);
-#if 1
+#if 0
 	char* c_json = cJSON_Print(sem_json);
 	printf("\n%s\n",c_json);
 	free(c_json);
@@ -469,11 +458,8 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 	if(data){
 		dbdata = cJSON_GetObjectItem(data, "dbdata");
 		if(dbdata){
-			DEBUG("PASS\n");
 			if(recog->domain == RECOG_DOMAIN_WEATHER){
-				DEBUG("PASS\n");
 				int number = cJSON_GetArraySize(dbdata);
-				DEBUG("number = %d\n",number);
 				if (number ==1){
 					dbdata_i = cJSON_GetArrayItem(dbdata, 0);
 					area = cJSON_GetObjectItem(dbdata_i, "area");

@@ -31,67 +31,8 @@ unsigned long get_file_size(const char *path)
     }
     return filesize;
 }
-#if 0
-//--------------------------------------------------- prompt something
-int ai_server_prompt(vr_info *recog,char *prompt){
-	if (prompt == NULL){
-		return -1;
-	}
-
-	free(recog->output);
-	recog->output = strdup(prompt);
-	if(recog->output)
-		recog->next_status = AIENGINE_STATUS_TTS_ANSWER;
-	else
-		recog->next_status = AIENGINE_STATUS_AEC;
 
 
-	return 0;
-}
-#endif
-#if 0
-static char *play_prompt = NULL;
-
-int ai_domain_update(int domain){
-//	char *prompt = NULL;
-	ai_domain = domain;
-	switch(ai_domain){
-		case RECOG_DOMAIN_MUSIC:
-			play_prompt = "音 乐";
-		break;
-		case RECOG_DOMAIN_CHAT:
-			play_prompt = "闲 聊";
-			break;
-		case RECOG_DOMAIN_WEATHER:
-			play_prompt = "天 气";
-			break;
-		case RECOG_DOMAIN_CALENDAR:
-			play_prompt = "日 历";
-			break;
-		case RECOG_DOMAIN_NETFM:
-			play_prompt = "电 台";
-			break;
-		case RECOG_DOMAIN_STOCK:
-			play_prompt = "股 票";
-			break;
-		case RECOG_DOMAIN_POETRY:
-			play_prompt = "诗 歌";
-			break;
-		default:
-			play_prompt = NULL;
-			break;
-	}
-
-	/*if (prompt){
-		free(play_prompt);
-		play_prompt = NULL;
-		play_prompt = strdup(prompt);
-		pr_debug("\ndomain=%d,prompt=%s,play_prompt=%s\n",domain,prompt,play_prompt);
-	}//*/
-	pr_debug("\ndomain=%d,play_prompt=%s\n",domain,play_prompt);
-	return 0;
-}
-#endif
 
 int ai_server_fun(vr_info *recog)
 {
@@ -107,12 +48,6 @@ int ai_server_fun(vr_info *recog)
 		goto exit_error;
 	}	//*/
 //-------------------------------------------------- sem error
-#if 0
-	//-------------------------------------------- long work test
-	recog->next_status     = AIENGINE_STATUS_AEC;
-	DEBUG("DEBUG: long work test \n");
-	goto exit_error;
-#endif
     /***Add sem timeout prompt to restart to wakeup after aoubt 8s by Ray Zhang***/
 	if(NULL == recog->input){
 		recog->next_status     = AIENGINE_STATUS_ERROR;
@@ -434,7 +369,6 @@ exit_command:
 			}
 			break;
 #if AI_CONTROL_MOZART
-DEBUG("PASS\n");
 		case SDS_COMMAND_MUSIC_PAUSE:
 		//	mozart_prompt_tone_key_sync("pause",false);
 		//	ai_flag.is_play_music = false;

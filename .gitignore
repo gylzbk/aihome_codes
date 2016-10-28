@@ -18,6 +18,7 @@ cscope.*
 
 /update/*
 /version/*
+/*.sh
 
 
 

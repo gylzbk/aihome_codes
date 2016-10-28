@@ -222,12 +222,12 @@ static int send_play_done(const char *url, int error_no)
 	if (is_aitalk_playing){
 
 		if (is_play_tts){
-			pr_debug("--------aaa------ paly tts \n");
+	//		pr_debug("--------aaa------ paly tts \n");
 		//	mozart_aitalk_cloudplayer_do_resume();
 			mozart_aitalk_cloudplayer_do_next_song();
 			is_play_tts = false;
 		} else {
-			pr_debug("---------bbb------ paly next \n");
+	//		pr_debug("---------bbb------ paly next \n");
 			mozart_aitalk_cloudplayer_do_next_song();
 		}
 	}
@@ -306,7 +306,7 @@ static bool vendor_is_valid(json_object *cmd)
 
 static int wakeup_handler(json_object *cmd)
 {
-	pr_debug("wakeup_handler...\n");
+//	pr_debug("wakeup_handler...\n");
 	mozart_module_asr_wakeup();
 	return 0;
 }
@@ -394,7 +394,7 @@ static int play_handler(json_object *cmd)
 
 static int play_tts_handler(json_object *cmd)
 {
-	pr_debug("------------------ paly tts \n");
+//	pr_debug("------------------ paly tts \n");
 	int ret;
 	const char *url;
 	json_object *params, *url_j = NULL;
@@ -448,7 +448,7 @@ static int play_tts_handler(json_object *cmd)
 
 static int stop_handler(json_object *cmd)
 {
-	pr_debug("stop_handler...\n");
+//	pr_debug("stop_handler...\n");
 	bool is_tone = false;
 	json_object *params = NULL;
 	json_object *tone_j = NULL;
@@ -462,7 +462,7 @@ static int stop_handler(json_object *cmd)
 		}
 	}
 	if (is_tone){
-		pr_debug("tone: stop !...\n");
+//		pr_debug("tone: stop !...\n");
 		mozart_prompt_tone_key_sync("stop",false);
 	}
 	mozart_aitalk_cloudplayer_do_stop();
@@ -471,7 +471,7 @@ static int stop_handler(json_object *cmd)
 
 static int pause_handler(json_object *cmd)
 {
-	pr_debug("pause_handler...\n");
+//	pr_debug("pause_handler...\n");
 	bool is_tone = false;
 	json_object *params = NULL;
 	json_object *tone_j = NULL;
@@ -485,7 +485,7 @@ static int pause_handler(json_object *cmd)
 		}
 	}
 	if (is_tone){
-		pr_debug("tone: pause !...\n");
+//		pr_debug("tone: pause !...\n");
 		is_aitalk_playing = false;
 		mozart_prompt_tone_key_sync("pause",false);
 	}
@@ -495,7 +495,7 @@ static int pause_handler(json_object *cmd)
 
 static int resume_handler(json_object *cmd)
 {
-	pr_debug("resume_handler...\n");
+//	pr_debug("resume_handler...\n");
 	bool is_tone = false;
 	json_object *params = NULL;
 	json_object *tone_j = NULL;
@@ -509,7 +509,7 @@ static int resume_handler(json_object *cmd)
 		}
 	}
 	if (is_tone){
-		pr_debug("tone: resume !...\n");
+//		pr_debug("tone: resume !...\n");
 		mozart_prompt_tone_key_sync("resume",false);
 	}
 	mozart_aitalk_cloudplayer_do_resume();
@@ -607,7 +607,7 @@ static int previous_music_handler(json_object *cmd)
 		}
 	}
 	if (is_tone){
-		pr_debug("tone: previous_music !...\n");
+//		pr_debug("tone: previous_music !...\n");
 		mozart_prompt_tone_key_sync("previous",false);
 	}
 	mozart_aitalk_cloudplayer_do_previous_song();
@@ -635,7 +635,7 @@ static int next_music_handler(json_object *cmd)
 		}
 	}
 	if (is_tone){
-		pr_debug("tone: next_music !...\n");
+//		pr_debug("tone: next_music !...\n");
 		mozart_prompt_tone_key_sync("next",false);
 	}
 	mozart_aitalk_cloudplayer_do_next_song();

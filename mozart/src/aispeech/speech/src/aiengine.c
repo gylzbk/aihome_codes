@@ -41,43 +41,6 @@ static const char *version =
 //		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
 //		\"server\": \"ws://112.80.39.95:8009\"\
 
-static const char *cfg =
-"\
-{\
-    \"luaPath\": \"./bin/luabin.lub\",\
-    \"appKey\": \"14327742440003c5\",\
-    \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
-    \"provision\": \"./bin/aiengine-2.8.8-14327742440003c5.provision\",\
-    \"serialNumber\": \"./serialNumber\",\
-    \"prof\": {\
-        \"enable\": 0,\
-        \"output\": \"/mnt/sdcard/a.log\"\
-    },\
-    \"vad\":{\
-        \"enable\": 1,\
-        \"res\": \"./bin/vad.aihome.v0.5.20160324.bin\",\
-        \"speechLowSeek\": 70,\
-        \"sampleRate\": 16000,\
-        \"pauseTime\":700,\
-        \"strip\": 1\
-    },\
-    \"cloud\": {\
-		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
-    },\
-    \"native\": {\
-        \"cn.dnn\": {\
-            \"resBinPath\": \"./bin/wakeup_aihome_aispeech_nhxl_20161019.bin\"\
-        },\
-        \"cn.echo\": {\
-            \"frameLen\": 512,\
-            \"filterLen\": 2048,\
-            \"rate\": 16000\
-        }\
-    }\
-}";
-
-
-#if 1
 static const char *ew_cfg =
 "\
 {\
@@ -134,43 +97,6 @@ static const char *agn_cfg =
 		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
     }\
 }";
-
-#else
-static const char *cfg =
-"\
-{\
-    \"luaPath\": \"./bin/luabin.lub\",\
-    \"appKey\": \"14327742440003c5\",\
-    \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
-    \"provision\": \"./bin/prov-jz-2.7.8-mac.file-20201031\",\
-    \"serialNumber\": \"/usr/data/serialNumber\",\
-    \"prof\": {\
-        \"enable\": 0,\
-        \"output\": \"/mnt/sdcard/a.log\"\
-    },\
-    \"vad\":{\
-        \"enable\": 1,\
-        \"res\": \"./bin/vad.aihome.0.3.1027.bin\",\
-        \"speechLowSeek\": 70,\
-        \"sampleRate\": 16000,\
-        \"pauseTime\":700,\
-        \"strip\": 1\
-    },\
-    \"cloud\": {\
-		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
-    },\
-    \"native\": {\
-        \"cn.dnn\": {\
-            \"resBinPath\": \"./bin/aihome.1030.bin\"\
-        },\
-        \"cn.echo\": {\
-            \"frameLen\": 512,\
-            \"filterLen\": 2048,\
-            \"rate\": 16000\
-        }\
-    }\
-}";
-#endif
 
 ai_status_s ai_flag;
 vr_info recog;
@@ -230,7 +156,6 @@ int ai_sem_time(char *data){
 	time_subtract(&time,t_sem_start,t_sem_end);
 	printf("sem: %6d\n",time);
 	if ((recog.recordId)){//&&(time > 1500)){
-		DEBUG("LOG-SEM: : rID:%s, t:%6d, sem:%s\n",recog.recordId,time,data);//*/
 		ai_log_add(LOG_DEBUG,"SEM: rID: %s , t: %6d , sem: %s",recog.recordId,time,data);//*/
 	}
 	return 0;
@@ -258,7 +183,6 @@ int ai_tts_time(char *data){
 	time_subtract(&time,t_tts_start,t_tts_end);
 	printf("tts: %6d\n",time);
 	if ((recog.recordId)){//&&(time > 1500)){
-		DEBUG("LOG-TTS: rID:%s, t:%6d, tts:%s\n",recog.recordId,time,data);//*/
 		ai_log_add(LOG_DEBUG,"TTS: rID: %s , t: %6d, tts: %s",recog.recordId,time,data);//*/
 	}
 	return 0;
@@ -413,7 +337,7 @@ exit_error:
 int ai_status_aecing(void){
 	ai_to_mozart();
 	if (aitalk_cloudplayer_is_playing()){
-		DEBUG("aitalk   is playing..! %d \n", recog.is_control_play_music);
+	//	DEBUG("aitalk   is playing..! %d \n", recog.is_control_play_music);
 		if(recog.is_control_play_music == false){
 			usleep(10000);
 			ai_aitalk_send(aitalk_send_resume(false));	//*/
@@ -433,7 +357,6 @@ int ai_status_aecing(void){
 		if(ai_flag.is_running){
 			if(ai_song_list.is_getting == true){
 				ai_aitalk_send(aitalk_send_error("error_server_busy"));
-			//	mozart_prompt_tone_key_sync("error_server_busy",false);
 				recog.status = AIENGINE_STATUS_AEC;
 			}
 			else{

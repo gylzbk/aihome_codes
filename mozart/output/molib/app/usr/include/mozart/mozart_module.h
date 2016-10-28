@@ -95,14 +95,12 @@ struct mozart_module_struct {
 
 #define mozart_module_mutex_lock()			\
 	do {						\
-		printf("-----lock----file: %s, func: %s, line: %d \n", __FILE__, __func__, __LINE__);\
 		module_mutex_lock(&module_lock);	\
 	} while (0)
 
 #define mozart_module_mutex_unlock()			\
 	do {						\
 		module_mutex_unlock(&module_lock);	\
-		printf("-----unlock----file: %s, func: %s, line: %d \n", __FILE__, __func__, __LINE__);\
 	} while (0)
 
 extern char *global_app_name;

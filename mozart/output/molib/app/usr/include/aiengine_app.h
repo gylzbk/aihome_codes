@@ -25,7 +25,7 @@
 extern int asr_mode_cfg;
 extern int fd_dsp_rd;
 
-#define __DEBUG__
+//#define __DEBUG__
 #ifdef __DEBUG__
 #define DEBUG(format, ...) printf("[%s : %s : %d] ",__FILE__,__func__,__LINE__); printf(format, ##__VA_ARGS__);
 #else
@@ -40,7 +40,6 @@ extern pthread_mutex_t ai_lock;
 #define ai_mutex_lock(lock)				\
 	do {								\
 		int i = 0;			\
-		DEBUG("++++++++++++++++++++++++++++++++ ai lock\n");\
 		while (pthread_mutex_trylock(&ai_lock)) {			\
 			if (i++ >= 100) {				\
 				PERROR("####dead lock####\n");	\
@@ -52,7 +51,6 @@ extern pthread_mutex_t ai_lock;
 
 #define ai_mutex_unlock(lock) 	\
 	do {								\
-		DEBUG("--------------------------------- ai unlock\n");\
 		pthread_mutex_unlock(&ai_lock);\
 	} while (0)
 

@@ -28,7 +28,7 @@ static const char *param = "{"
 int _wakeup_aec_callback(const void *usrdata, int type, const void *message, int bytes)
 {
 
-	 printf("resp data: %.*s\n", bytes, (char *) message);
+	 //printf("resp data: %.*s\n", bytes, (char *) message);
     if(type)
     {
      	 DEBUG("=======>唤醒成功<=======\n");
