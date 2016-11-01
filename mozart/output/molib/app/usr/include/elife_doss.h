@@ -130,5 +130,7 @@ int send_wise_movie_cmd(char* cmd, char* name, int seq, char* director, char* pl
 ***************************************************************************/
 int send_wise_voice_cmd(char* voice_cmd, char* play_voice);
 
+int get_info(char* user_info);
+
 
 #endif

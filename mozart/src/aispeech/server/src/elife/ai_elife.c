@@ -211,6 +211,10 @@ char *ai_elife_server(vr_info *recog){
 	json_object *sessionid_j = NULL;
 
 	send_c = _elife_get_recog(recog);
+	if(send_c == NULL){
+		return NULL;
+	}
+
 	printf("elife send buf:       %s \n",send_c);
 	memset(result, 0, sizeof(result));
 	ret = send_wise_voice_cmd(send_c,result);
