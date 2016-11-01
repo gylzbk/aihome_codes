@@ -335,6 +335,10 @@ exit_error:
 
 
 int ai_status_aecing(void){
+	while(ai_song_list.is_getting == true){
+		usleep(10000);
+	}
+	system("echo 3 > /proc/sys/vm/drop_caches");
 	ai_to_mozart();
 	if (aitalk_cloudplayer_is_playing()){
 	//	DEBUG("aitalk   is playing..! %d \n", recog.is_control_play_music);
@@ -352,7 +356,6 @@ int ai_status_aecing(void){
 	#endif
 	recog.is_control_play_music = false;
 	ai_recog_free();
-	system("echo 3 > /proc/sys/vm/drop_caches &");
 	if (ai_aec(ew) == 0){
 		if(ai_flag.is_running){
 			if(ai_song_list.is_getting == true){
@@ -379,6 +382,7 @@ int ai_status_aecing(void){
 int ai_status_seming(void){
 	int ret = 0;
 	int vol = 0;
+	system("echo 3 > /proc/sys/vm/drop_caches");
 #if AI_CONTROL_MOZART
 	vol = mozart_volume_get();
 	if (vol == 0){
@@ -392,7 +396,6 @@ int ai_status_seming(void){
 #endif
 	ai_to_mozart();
 
-	system("echo 3 > /proc/sys/vm/drop_caches &");
 	ret = ai_cloud_sem(agn);
 	if(ai_flag.is_running){
 		switch (ret){
@@ -902,8 +905,9 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 		ai_aiengine_exit();
 		ai_speech_set_status(VR_SPEECH_NULL);
 	}	//*/
-	if(ai_flag.is_init != true){
 
+	if(ai_flag.is_init != true){
+		system("echo 3 > /proc/sys/vm/drop_caches");
 		if(ai_init()== -1){
 			PERROR("AI init error!...\n");
 			goto exit_error;
