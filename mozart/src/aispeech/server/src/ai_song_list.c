@@ -284,6 +284,7 @@ int ai_song_list_init(void){
 	ai_song_list.song_num = 0;
 	ai_song_list.push_num = 0;
 	ai_song_list.is_working = true;
+	ai_song_list.is_running = false;
 	ai_song_list.is_set_renew = true;
 	if (pthread_create(&run_t, NULL, _run_thread, NULL) != 0) {
 		PERROR("Can't create ai_song_list_run_thread in : %s\n",strerror(errno));
