@@ -1,6 +1,0 @@
-echo sum=16 > /tmp/tmpfile
-echo reboot=0 >> /tmp/tmpfile
-echo kernel_size=2326592 >> /tmp/tmpfile
-echo update_size=4677632 >> /tmp/tmpfile
-echo usrfs_size=7491584 >> /tmp/tmpfile
-dd if=/tmp/updatezip15/image/usrfs_07 of=/dev/mtdblock4 seek=7168 bs=1024 count=1024

@@ -410,7 +410,7 @@ static void mozart_event_key(mozart_event event)
 		case KEY_F10:
 			mozart_module_mutex_lock();
 			if (__mozart_module_is_online())
-				mozart_update_control_try_start(true);
+				mozart_update_control_startup();
 			mozart_module_mutex_unlock();
 			break;
 		case KEY_F12:

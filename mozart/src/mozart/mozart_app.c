@@ -86,8 +86,6 @@ static void mozart_startup_prompt(void)
 	mozart_battery_update();
 	/* Play prompt tone */
 	mozart_prompt_tone_key_sync("atalk_welcome_1", true);
-	/* Prompt Back from update, if needed */
-	mozart_update_control_backfrom_update();
 }
 
 int startall(int depend_network)
@@ -176,7 +174,6 @@ int stopall(int depend_network)
 	if (depend_network & APP_DEPEND_NET_STA) {
 		mozart_system("killall ntpd");
 		mozart_system("killall dnsmasq > /dev/null 2>&1");
-		mozart_update_control_shutdown();
 		stop_flag = true;
 	}
 
