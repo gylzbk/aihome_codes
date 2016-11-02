@@ -401,7 +401,6 @@ static void mozart_event_key(mozart_event event)
 			mozart_module_favorite();
 			break;
 		case KEY_F3:
-			mozart_prompt_tone_key_sync("bt_connected", true);
 			mozart_module_next_channel();
 			break;
 		case KEY_F2:
@@ -721,7 +720,7 @@ static void mozart_event_misc(mozart_event event)
 
 	} else if (!strcasecmp(name, "bt_avrcp")) {
 		if (!strcasecmp(event.event.misc.type, "playing")) {
-			mozart_bt_avk_do_play_without_shm();
+			mozart_bt_avk_do_play();
 		} else if (!strcasecmp(event.event.misc.type, "paused")) {
 			mozart_bt_avk_do_pause();
 		} else if (!strcasecmp(event.event.misc.type, "stopped")) {
