@@ -77,7 +77,6 @@ endif
 
 -include configs/version.mk
 export MOZART_VERSION
-export MOZART_VERSION_LEGACY
 
 OUTPUT_DIR := $(TOPDIR)/output
 
@@ -90,6 +89,7 @@ MOLIB_APP_DIR:= $(MOLIB_DIR)
 MOLIB_UPDATER_DIR := $(OUTPUT_DIR)/molib/updater
 
 TARGET_DIR := $(OUTPUT_DIR)/target
+UPDATEPKG_DIR := $(OUTPUT_DIR)/updatepkg
 
 APPFS_DIR := $(OUTPUT_DIR)/fs/appfs
 UPDATERFS_DIR := $(OUTPUT_DIR)/fs/updaterfs
@@ -104,6 +104,7 @@ export MOLIB_DIR
 export MOLIB_APP_DIR
 export MOLIB_UPDATER_DIR
 export TARGET_DIR
+export UPDATEPKG_DIR
 export APPFS_DIR
 export USRDATAFS_DIR
 export UPDATERFS_DIR
@@ -120,7 +121,7 @@ ifeq ($(MOZART_DIR)/usr/include/mozart_config.h,$(wildcard $(MOZART_DIR)/usr/inc
 
 include $(TOPDIR)/configs/config.mk
 
-all: world updatepkg
+all: world rootfs
 
 include configs/pkg.mk
 include configs/mkfs.mk
@@ -137,10 +138,10 @@ debug:
 
 prepare: dirs
 
-dirs: $(OUTPUT_DIR) $(TARGET_DIR) $(APPFS_DIR) $(MOZART_DIR) $(USRDATAFS_DIR) $(UPDATERFS_DIR)
+dirs: $(OUTPUT_DIR) $(TARGET_DIR) $(UPDATEPKG_DIR) $(APPFS_DIR) $(MOZART_DIR) $(USRDATAFS_DIR) $(UPDATERFS_DIR)
 
 
-$(OUTPUT_DIR) $(APPFS_DIR) $(MOZART_DIR) $(USRDATAFS_DIR) $(UPDATERFS_DIR):
+$(OUTPUT_DIR) $(UPDATEPKG_DIR) $(APPFS_DIR) $(MOZART_DIR) $(USRDATAFS_DIR) $(UPDATERFS_DIR):
 	@mkdir -p $@
 $(TARGET_DIR)::
 	@rm -rf $@; mkdir -p $@
@@ -757,16 +758,27 @@ audio_dev_x1000_config:
 #      USRDATA_FLASH_PAGESIZE: flash page size
 #     USRDATA_FLASH_ERASESIZE: flash earse size
 #       USRDATA_FLASH_PADSIZE: usrdata partition size
+flash_spi_gd25q256c_config:
+	@echo "FLASH_TYPE=spinor" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_PAGE_SIZE=0x100" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_ERASE_BLOCK_SIZE=0x8000" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_USRDATA_PADSIZE=0xa0000" >> $(TOPDIR)/configs/config.mk #640KB
+
 flash_spi_gd25q128c_config:
-	@echo "USRDATA_FLASH_PAGESIZE=0x100" >> $(TOPDIR)/configs/config.mk
-	@echo "USRDATA_FLASH_ERASESIZE=0x8000" >> $(TOPDIR)/configs/config.mk
-	@echo "USRDATA_FLASH_PADSIZE=0xa0000" >> $(TOPDIR)/configs/config.mk #640KB
+	@echo "FLASH_TYPE=spinor" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_PAGE_SIZE=0x100" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_ERASE_BLOCK_SIZE=0x8000" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_USRDATA_PADSIZE=0xa0000" >> $(TOPDIR)/configs/config.mk #640KB
 
 flash_spi_gd25lq64c_config:
-	@echo "USRDATA_FLASH_PAGESIZE=0x100" >> $(TOPDIR)/configs/config.mk
-	@echo "USRDATA_FLASH_ERASESIZE=0x8000" >> $(TOPDIR)/configs/config.mk
-	@echo "USRDATA_FLASH_PADSIZE=0x38000" >> $(TOPDIR)/configs/config.mk #224KB
+	@echo "FLASH_TYPE=spinor" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_PAGE_SIZE=0x100" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_ERASE_BLOCK_SIZE=0x8000" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_USRDATA_PADSIZE=0x38000" >> $(TOPDIR)/configs/config.mk #224KB
 
+flash_emmc_config:
+	@echo "FLASH_TYPE=emmc" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_ERASE_BLOCK_SIZE=0x8000" >> $(TOPDIR)/configs/config.mk # virtual setting, ONLY used for padding nv.img
 
 ###########################################################################
 #
