@@ -138,19 +138,19 @@ char  *_elife_get_recog(vr_info *recog){
 			break;
 	}
 
-	printf("send ===>> %s \n",send_c);
-	printf("input: %s\n", elife.input);
-	printf("type: %s\n", elife.type);
-	printf("dev.name: %s\n", elife.dev.name);
-	printf("dev.cmd: %s\n", elife.dev.cmd);
-	printf("dev.position: %s\n", elife.dev.position);
-	printf("video.name: %s\n", elife.video.name);
-	printf("video.cmd: %s\n", elife.video.cmd);
-	printf("video.director: %s\n", elife.video.director);
-	printf("video.actor: %s\n", elife.video.actor);
-	printf("video.area: %s\n", elife.video.area);
-	printf("video.v_type: %s\n", elife.video.v_type);
-	printf("video.episode_no: %s\n", elife.video.episode_no);
+	DEBUG("send ===>> %s \n",send_c);
+	DEBUG("input: %s\n", elife.input);
+	DEBUG("type: %s\n", elife.type);
+	DEBUG("dev.name: %s\n", elife.dev.name);
+	DEBUG("dev.cmd: %s\n", elife.dev.cmd);
+	DEBUG("dev.position: %s\n", elife.dev.position);
+	DEBUG("video.name: %s\n", elife.video.name);
+	DEBUG("video.cmd: %s\n", elife.video.cmd);
+	DEBUG("video.director: %s\n", elife.video.director);
+	DEBUG("video.actor: %s\n", elife.video.actor);
+	DEBUG("video.area: %s\n", elife.video.area);
+	DEBUG("video.v_type: %s\n", elife.video.v_type);
+	DEBUG("video.episode_no: %s\n", elife.video.episode_no);
 
 	return send_c;
 }
@@ -215,7 +215,7 @@ char *ai_elife_server(vr_info *recog){
 		return NULL;
 	}
 
-	printf("elife send buf:       %s \n",send_c);
+	DEBUG("elife send buf:       %s \n",send_c);
 	memset(result, 0, sizeof(result));
 	ret = send_wise_voice_cmd(send_c,result);
 
@@ -247,11 +247,11 @@ char *ai_elife_server(vr_info *recog){
 	}
 
 
-	printf("ret: %d\n", elife.resp.ret);
-	printf("ret: %d\n", elife.resp.is_cy);
-	printf("ret: %d\n", elife.resp.is_mult);
-	printf("msg: %s\n", elife.resp.msg);
-	printf("sessionid: %s\n", elife.resp.sessionid);
+	DEBUG("ret: %d\n", elife.resp.ret);
+	DEBUG("is_cy: %d\n", elife.resp.is_cy);
+	DEBUG("is_mult: %d\n", elife.resp.is_mult);
+	DEBUG("msg: %s\n", elife.resp.msg);
+	DEBUG("sessionid: %s\n", elife.resp.sessionid);
 
 exit_error:
 	DEBUG("--------------------------------------- ret = %d\n",ret);

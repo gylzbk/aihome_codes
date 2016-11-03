@@ -35,7 +35,7 @@ int main(void)
 		return -1;
 	}
 	if (strlen(result) != 0){
-		printf("%s<br>\n",result);
+		printf("%s\n",result);
 	}
 
 #if 0
