@@ -1,4 +1,3 @@
 #!/bin/bash
 
-# start updater
-update
+updater -u &

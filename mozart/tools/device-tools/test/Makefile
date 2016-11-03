@@ -39,12 +39,6 @@ TARGETS += volume
 TARGETS += playtone
 TARGETS += playkey
 TARGETS += welcome
-# test program for libota
-TARGETS += otact
-TARGETS += ota_state
-TARGETS += ota_test
-TARGETS += ota_test_nv
-TARGETS += ota_test_version
 # test program for libpower
 TARGETS += power
 # test program for libplayer.
@@ -55,6 +49,8 @@ TARGETS += render_test
 TARGETS += record_test
 # test program for event_manager.
 TARGETS += event_test_recv event_test_send
+# test program for libnvrw
+TARGETS += nvparser
 
 all:$(TARGETS)
 
@@ -99,21 +95,6 @@ else
 welcome:libtips/welcome.o
 	$(CC) $? -o $@ $(LDFLAGS) -ltips -lz -lplayer -lini -lutils
 endif
-otact:libota/ota_active.o
-	$(CC) $? -o $@ $(LDFLAGS) -lota -lini
-
-ota_state:libota/ota_state.o
-	$(CC) $? -o $@ $(LDFLAGS) -lota
-
-ota_test:libota/ota_test.o
-	$(CC) $? -o $@ $(LDFLAGS) -lota
-
-ota_test_nv:libota/test_nv.o
-	$(CC) $? -o $@ $(LDFLAGS) -lota
-
-ota_test_version:libota/test_version.o
-	$(CC) $? -o $@ $(LDFLAGS) -lota
-
 power:libpower/power.o
 	$(CC) $? -o $@ $(LDFLAGS) -lpower
 
@@ -132,6 +113,10 @@ event_test_recv:event_manager/test_recv.o
 event_test_send:event_manager/test_send.o
 	$(CC) $? -o $@ $(LDFLAGS) -levent
 
+nvparser:libnvrw/test.o
+	$(CC) $? -o $@ $(LDFLAGS) -lnvrw
+
+
 install:$(TARGETS)
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -d $(DESTDIR1)$(BINDIR)
@@ -149,26 +134,22 @@ install:$(TARGETS)
 #	$(INSTALL) -m 755 stop_wifi $(DESTDIR)$(TESTDIR)/
 	$(INSTALL) -m 755 playtone $(DESTDIR)$(TESTDIR)/
 	$(INSTALL) -m 755 playkey $(DESTDIR)$(TESTDIR)/
-	$(INSTALL) -m 755 otact $(DESTDIR1)$(BINDIR)/
-	$(INSTALL) -m 755 ota_state $(DESTDIR1)$(BINDIR)/
-	$(INSTALL) -m 755 ota_test $(DESTDIR)$(TESTDIR)/
-	$(INSTALL) -m 755 ota_test_nv $(DESTDIR)$(TESTDIR)/
-	$(INSTALL) -m 755 ota_test_version $(DESTDIR)$(TESTDIR)/
 	$(INSTALL) -m 755 power $(DESTDIR)$(TESTDIR)/
 	$(INSTALL) -m 755 player_test $(DESTDIR)$(TESTDIR)/
 	$(INSTALL) -m 755 render_test $(DESTDIR)$(TESTDIR)/
 	$(INSTALL) -m 755 record_test $(DESTDIR)$(TESTDIR)/
 	$(INSTALL) -m 755 event_test_send $(DESTDIR)$(TESTDIR)/
 	$(INSTALL) -m 755 event_test_recv $(DESTDIR)$(TESTDIR)/
+	$(INSTALL) -m 755 nvparser $(DESTDIR1)$(BINDIR)/
 
 clean distclean:
 	-rm -rf inirw.c *.o */*.o $(TARGETS)
 
 uninstall:
-	rm -rf $(DESTDIR1)/$(BINDIR)/{inirw,volume,ota_state,welcome}
+	rm -rf $(DESTDIR1)/$(BINDIR)/{inirw,volume,welcome,nvparser}
 	rm -rf $(DESTDIR)/$(TESTDIR)/{playtone,playtone}
 	rm -rf $(DESTDIR)/$(TESTDIR)/{getshm,setshm,switch_airkiss,switch_ap,switch_sta,get_mode,get_wifi_list,stop_wifi}
-	rm -rf $(DESTDIR)/$(TESTDIR)/{power,player_test,otact,ota_test,ota_test_nv,ota_test_version,render_test,record_test}
+	rm -rf $(DESTDIR)/$(TESTDIR)/{power,player_test,render_test,record_test}
 	rm -rf $(DESTDIR)/$(TESTDIR)/{event_test_recv,event_test_send}
 
 .PHONY:all clean install uninstall $(TARGETS)
