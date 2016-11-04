@@ -243,7 +243,9 @@ int ai_song_list_get_from_param(cJSON *param){
 	                                        }
 	                                    }
 	                                }
-	                            }else{
+					                ai_song_list.song_num ++;
+									ai_song_list.is_success = true;
+	                            } else {
 	                     	       DEBUG("no url error!\n");
 	                  //              ret = -1;
 	                  //              goto exit_error;
@@ -251,8 +253,6 @@ int ai_song_list_get_from_param(cJSON *param){
 			        //     	    DEBUG("artist= %s\n",ai_song_list.song[i].artist);
 			       //             DEBUG("title= %s\n",ai_song_list.song[i].title);
 			      //              DEBUG("url= %s\n",ai_song_list.song[i].url);
-				                ai_song_list.song_num ++;
-								ai_song_list.is_success = true;
 				               	}else{
 		                            DEBUG("i_data error!\n");
 		                       	}
