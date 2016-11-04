@@ -229,13 +229,9 @@ int main(int argc, char **argv)
 	e_key_handler = mozart_event_handler_get(mozart_event_key_callback, global_app_name);
 	e_misc_handler = mozart_event_handler_get(mozart_event_misc_callback, global_app_name);
 
-	int count =0;
 	while (1) {
-		if (count++ > 5){
-			count = 0;
-			system("echo 3 > /proc/sys/vm/drop_caches");
-		}	
 		sleep(20);
+		system("echo 3 > /proc/sys/vm/drop_caches");
 		system("echo 3 > /dev/watchdog");
 	}
 

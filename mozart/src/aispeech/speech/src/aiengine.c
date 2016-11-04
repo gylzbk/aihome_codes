@@ -480,7 +480,8 @@ int ai_status_error(void){
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_SYSTEM:
-		ai_aitalk_send(aitalk_send_error("error_system"));
+		ai_aitalk_send(aitalk_send_error("error_server_busy"));
+		sleep(2);
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_NO_VOICE:
@@ -489,6 +490,7 @@ int ai_status_error(void){
 		break;
 	case  AI_ERROR_SERVER_BUSY:
 		ai_aitalk_send(aitalk_send_error("error_server_busy"));
+		sleep(2);
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_NET_SLOW:
@@ -639,6 +641,7 @@ int ai_set_enable(bool enable){
 			usleep(10000);
 			ai_aitalk_send(aitalk_send_current_music(false));	//*/
 			usleep(10000);
+			system("echo 3 > /proc/sys/vm/drop_caches");
 		//	if (ai_flag.is_init){
 		//		ai_server_restart();
 		//		ai_song_recommend_auto();
@@ -654,6 +657,7 @@ int ai_set_enable(bool enable){
 			}
 			recog.key_record_stop = false;
 			ai_song_list_set_enable(false);
+			system("echo 3 > /proc/sys/vm/drop_caches");
 		}
 	}
 	return 0;

@@ -465,6 +465,7 @@ void mozart_module_next_module(void)
 		pr_debug("%s\n", module->name);
 		func(module);
 	}
+	system("echo 3 > /proc/sys/vm/drop_caches");
 }
 
 void mozart_module_disconnect_handler(void)
