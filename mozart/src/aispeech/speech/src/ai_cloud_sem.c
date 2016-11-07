@@ -118,12 +118,13 @@ int _semantic_callback(const void *usrdata, const char *id, int type,
     error_j = cJSON_GetObjectItem(out, "error");
     if (error_j)
     {
-	//	char *error_s = cJSON_Print(error_j);
-	//	DEBUG("CLOUD SEM Error: \n%s\n", error_s);
-	//	free(error_s);
+		char *error_s = cJSON_Print(error_j);
+		DEBUG("CLOUD SEM Error: \n%s\n", error_s);
+		free(error_s);
  		errId_j = cJSON_GetObjectItem(out, "errId");
 		if (errId_j){
 			recog.error_id = errId_j->valueint;
+    	    PERROR("CLOUD SEM Error ID = %d\n", recog.error_id);
 		}
 		recog.status = AIENGINE_STATUS_ERROR;
 		ai_sem_flag.state = SEM_STATUS_FAIL;

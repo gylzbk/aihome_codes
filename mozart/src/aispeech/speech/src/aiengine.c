@@ -438,6 +438,7 @@ int ai_status_process(void){
 		PERROR("Error ID = %d\n",recog.error_id);
 		recog.error_type = ai_error_get_id(recog.error_id);
 		recog.status = AIENGINE_STATUS_ERROR;
+		recog.error_id = 0;
 	}
 }
 
