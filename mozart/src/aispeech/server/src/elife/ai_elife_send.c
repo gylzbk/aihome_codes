@@ -17,13 +17,13 @@ static char *pjson = NULL;
 char *_send_obj(elife_t *elife, json_object *obj)
 {
 	json_object *o = NULL;
+	json_object *semantics = NULL;
 	const char *s = NULL;
 	free(pjson);
 	pjson =   NULL;
 
 	if((elife == NULL)
 	||(elife->input == NULL)
-	||(elife->type == NULL)
 	||(obj == NULL)){
 		if (obj){
 			json_object_put(obj);
@@ -38,7 +38,14 @@ char *_send_obj(elife_t *elife, json_object *obj)
 	}
 	/* notification */
 	json_object_object_add(o, "input", json_object_new_string(elife->input));
-	json_object_object_add(o, "type", json_object_new_string(elife->type));
+	if (elife->type){
+		json_object_object_add(o, "type", json_object_new_string(elife->type));
+	}
+	if (elife->semantics){
+		semantics = json_tokener_parse(elife->semantics);
+		json_object_object_add(o, "semantics", semantics);
+	}
+
 	if (elife->sessionid){
 		json_object_object_add(o, "sessionid", json_object_new_string(elife->sessionid));
 	}
@@ -56,6 +63,10 @@ exit_err:
 			json_object_put(obj);
 		}
 	}
+
+	if (semantics)
+		json_object_put(semantics);
+
 	return pjson;
 }
 
@@ -156,4 +167,18 @@ char *send_voice(elife_t *elife){
 	}
 	return _send_obj(elife,params);
 }
+
+//---------------------------------------------------- other
+char *send_other(elife_t *elife){
+	DEBUG("++++++++++++++++++++++ send_voice \n");
+	json_object *params = NULL;
+
+	params = json_object_new_object();
+	if (params == NULL){
+		DEBUG("-------------------------- params error\n");
+		return NULL;
+	}
+	return _send_obj(elife,params);
+}
+
 

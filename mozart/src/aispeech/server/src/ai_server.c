@@ -71,7 +71,19 @@ int ai_server_fun(vr_info *recog)
 	}
 
 	#if SUPPORT_ELIFE
-		ai_tts(ai_elife_server(recog),false);
+		elife_t *elife = ai_elife_server(recog);
+		if (elife->resp.msg){
+			ai_tts(elife->resp.msg,false);
+		}
+		if (elife->resp.is_cy){					//	elife do
+			if (elife->resp.is_mult){			//	elife mult
+				recog->next_status  = AIENGINE_STATUS_SEM;
+			}
+			else{
+				recog->next_status  = AIENGINE_STATUS_AEC;
+			}
+			goto exit_error;
+		}
 	#endif
 
 	switch(recog->domain){
@@ -452,7 +464,9 @@ exit_error:
 
 int ai_server_init(void)
 {
-//	ai_curlInit();
+	#if AI_LOG_ENABLE
+	ai_log_init();
+	#endif
 	//ai_music_list_init();
 //	ai_song_recommend_init();
 //	ai_song_recommend_auto();

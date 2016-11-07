@@ -57,6 +57,8 @@ int ai_slot_recog_free(vr_info *recog){
 	recog->object = NULL;
 	free(recog->operation);
 	recog->operation = NULL;
+	free(recog->semantics);
+	recog->semantics= NULL;
 	free(recog->scene);
 	recog->scene = NULL;
 	free(recog->device);
@@ -172,6 +174,7 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 	//	------------------------------------------------- semantics
 	semantics = cJSON_GetObjectItem(sem_json, "semantics");
 	if(semantics){
+		recog->semantics = cJSON_PrintUnformatted(semantics);
 		//	------------------------------------------------- request
 		request = cJSON_GetObjectItem(semantics, "request");
 		if(request){

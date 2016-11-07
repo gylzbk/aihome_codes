@@ -8,5 +8,6 @@ extern char *send_dev(elife_t *elife);
 extern char *send_voice(elife_t *elife);
 extern char *send_scene(elife_t *elife);
 extern char *send_security(elife_t *elife);
+extern char *send_other(elife_t *elife);
 
 #endif

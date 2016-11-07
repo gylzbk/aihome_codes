@@ -41,6 +41,7 @@ typedef struct elife_resp_t {
 typedef struct elife_t{
 	char *type;
 	char *input;
+	char *semantics;
 	char *sessionid;
 	elife_video_t video;
 	elife_dev_t dev;
@@ -53,6 +54,6 @@ extern elife_t elife;
 
 extern void ai_elife_init(void);
 extern void ai_elife_free(void);
-extern char *ai_elife_server(vr_info *recog);
+extern elife_t *ai_elife_server(vr_info *recog);
 
 #endif

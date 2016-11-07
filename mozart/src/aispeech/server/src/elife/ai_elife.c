@@ -27,6 +27,8 @@ static char *cloud_pwd;
 void _free(void){
 	free(elife.input);
 	elife.input = NULL;
+	free(elife.semantics);
+	elife.semantics= NULL;
 	free(elife.type);
 	elife.type = NULL;
 	free(elife.sessionid);
@@ -88,6 +90,9 @@ char  *_elife_get_recog(vr_info *recog){
 		return NULL;
 	}
 	elife.input = strdup(recog->input);
+	if (recog->semantics){
+		elife.semantics = strdup(recog->semantics);
+	}
 	switch(recog->domain){
 		case RECOG_DOMAIN_MOVIE:
 			elife.type = strdup("video");
@@ -135,6 +140,10 @@ char  *_elife_get_recog(vr_info *recog){
 				}
 				send_c = send_dev(&elife);
 			}
+			break;
+		default:
+			elife.type = strdup("other");
+			send_c = send_other(&elife);
 			break;
 	}
 
@@ -199,7 +208,7 @@ void ai_elife_free(void){
 	_resp_free(&elife.resp);
 }
 
-char *ai_elife_server(vr_info *recog){
+elife_t *ai_elife_server(vr_info *recog){
 	int ret = 0;
 	char *send_c = NULL;
 	json_object *result_j = NULL;
@@ -255,7 +264,7 @@ char *ai_elife_server(vr_info *recog){
 
 exit_error:
 	DEBUG("--------------------------------------- ret = %d\n",ret);
-	return elife.resp.msg;
+	return &elife;
 }
 
 

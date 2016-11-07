@@ -189,6 +189,7 @@ typedef struct vr_info {
 	int error_type;
 	char *recordId;
 	char *env;
+	char *semantics;
 	char* operation;
 	char* scene;
 	char* device;
