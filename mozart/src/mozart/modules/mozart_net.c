@@ -579,12 +579,21 @@ static inline void network_wifi_mode_handler(event_info_t network_event)
 
 			#if (SUPPORT_VR == VR_ATALK)
 				mozart_smartui_net_success();
+				mozart_module_net_unlock();
+
+				mozart_module_mutex_lock();
 				mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
+				mozart_module_mutex_unlock();
 			#elif (SUPPORT_VR == VR_SPEECH)
+				mozart_smartui_boot_build_display("网络连接成功");
 				mozart_smartui_net_success();
-				mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", false);
 				printf("\n\n- online BBBB -----------\n\n");
-			//	mozart_aitalk_cloudplayer_start(true);
+				mozart_module_net_unlock();
+
+				mozart_module_mutex_lock();
+				__mozart_module_set_online();
+				mozart_prompt_tone_key_sync("atalk_wifi_config_success_8", true);
+				mozart_module_mutex_unlock();
 			#endif
 
 			mozart_module_net_lock();
