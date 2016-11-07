@@ -157,8 +157,6 @@ void _renew_server(void){
 void *_run_thread(void *args)
 {
 	pthread_detach(pthread_self());
-	int count = 0;
-	ai_song_list.is_send_music = true;
 	while (ai_song_list.is_working){
 		while(ai_song_list.is_running){
 			_renew_server();
@@ -311,7 +309,9 @@ void ai_song_list_exit(void){
 int ai_song_list_set_enable(bool enable){
 	if (enable){
 		ai_song_list.is_running = true;
-		ai_song_list.is_send_music = true;
+		if(aiengine_ini.server.is_auto_play){	//	auto play music
+			ai_song_list.is_send_music = true;
+		}
 	} else {
 		ai_song_list.is_running = false;
 		ai_song_list.is_send_music = false;
@@ -367,7 +367,7 @@ music_info *ai_song_list_push(void){
 			if (aitalk_cloudplayer_is_playing()){
 				usleep(10000);
 				ai_aitalk_send(aitalk_send_stop_music(false));	//*/
-				ai_song_list.is_send_music = true;
+			//	ai_song_list.is_send_music = true;
 				usleep(10000);
 			}
 			goto exit_error;

@@ -86,6 +86,7 @@ int ai_server_fun(vr_info *recog)
 		}
 	#endif
 
+
 	switch(recog->domain){
 	//	----------------------------------------  music
 		case RECOG_DOMAIN_MUSIC:
@@ -452,11 +453,11 @@ exit_error:
 	if (error<0){
 		recog->next_status    = AIENGINE_STATUS_ERROR;
 	}
-	if (recog->key_record_stop == false){
-		recog->status = recog->next_status    ;
-	}
-	else {
+	if((recog->key_record_stop == true)
+	|| (aiengine_ini.sds.is_multi == false)){	//	add sds multi check at  161106
 		recog->status = AIENGINE_STATUS_AEC;
+ 	} else {
+		recog->status = recog->next_status    ;
 	}
 	recog->key_record_stop = false;
    	return error;

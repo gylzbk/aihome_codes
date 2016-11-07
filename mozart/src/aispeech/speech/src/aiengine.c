@@ -105,7 +105,7 @@ pthread_mutex_t ai_lock = PTHREAD_MUTEX_INITIALIZER;
 struct timeval t_debug;
 struct aiengine *agn = NULL;
 echo_wakeup_t *ew = NULL;
-
+ini_aiengine_s aiengine_ini;
 
 
 #ifdef SYN_TOO_LONG
@@ -146,8 +146,7 @@ int ai_tts_play_time(void){
 	printf("tts_play: %12d\n",time);
 //	ai_time_reset();
 	return 0;
-}
-	//*/
+}//*/
 int ai_sem_time(char *data){
 	if (data == NULL)
 		return -1;
@@ -554,44 +553,10 @@ int ai_init_data(void){
 	recog.event = NULL;
 }
 
-void ai_init_get_config(void){
-	char buf[32] = {0};
-	int time = 0;
-
-	//------------------------------ record time
-	ai_flag.asr_record_time = 80;			//default 8s
-	if (mozart_ini_getkey("/usr/data/aiengine.ini", "asr", "record_time", buf)){
-		PERROR("failed to parse /usr/data/aiengine.ini, set default asr record time to 8 s.\n");
-	}
-	else{
-		time = atoi(buf);
-		if ((time <5 || time > 15)){
-			PERROR("error set asr record time to %d s false(5-15). set default to 8 s\n",time);
-  		} else {
-			ai_flag.asr_record_time = time * 10;	//	time * 100ms
-			DEBUG("set asr record time to %d s.\n", time);
-		}
-	}
-	//------------------------------ wait result time
-	ai_flag.asr_wait_time = 10000;			// default	10s
-	if (mozart_ini_getkey("/usr/data/aiengine.ini", "asr", "wait_time", buf)){
-		PERROR("failed to parse /usr/data/aiengine.ini, set default asr wait time to 10 s.\n");
-	}
-	else{
-		time = atoi(buf);
-		if ((time <5 || time > 20)){
-			PERROR("error set asr wait time to %d s false(5-20). set default to 10 s\n",time);
-  		} else {
-			ai_flag.asr_wait_time = time * 1000;
-			DEBUG("set asr wait time to %d s.\n", time);
-		}
-	}
-}
-
 int ai_init(void){
 	int retvalue = 1;
 	int err = 0;
-	ai_init_get_config();
+	aiengine_init_get_config(&aiengine_ini);
 	ai_init_data();
 	ai_flag.is_running = false;
 	if (ai_aiengine_init() == -1){

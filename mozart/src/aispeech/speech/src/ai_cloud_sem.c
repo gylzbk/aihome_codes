@@ -243,7 +243,7 @@ int ai_cloud_sem(struct aiengine *agn)
             PERROR("engine feed failed.\n");
             break;
         }
-		if (++buf_count > ai_flag.asr_record_time){
+		if (++buf_count > aiengine_ini.asr.record_time){
 		//	ai_sem_flag.result = SEM_EXIT;
 		//	PERROR("Time out for record.\n");
 			break;
@@ -264,7 +264,7 @@ int ai_cloud_sem(struct aiengine *agn)
 	//----------------- wake server return unturl timeout.
     while((ai_sem_flag.state == SEM_STATUS_START)       && !ai_sem_flag.set_end) {
         usleep(1000);
-        if(++loop>ai_flag.asr_wait_time)
+        if(++loop>aiengine_ini.asr.wait_time)
         {
             PERROR("No result found, Time out\n");
             ai_sem_flag.state = SEM_STATUS_FAIL;
