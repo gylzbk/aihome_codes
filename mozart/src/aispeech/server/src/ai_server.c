@@ -49,12 +49,14 @@ int ai_server_fun(vr_info *recog)
 	}	//*/
 //-------------------------------------------------- sem error
     /***Add sem timeout prompt to restart to wakeup after aoubt 8s by Ray Zhang***/
-	if(NULL == recog->input){
+	if((NULL == recog->input)
+	||(strlen(recog->input) == 0)){
 		recog->next_status     = AIENGINE_STATUS_ERROR;
 		recog->error_type = AI_ERROR_NO_VOICE;
 		error = -1;
 		goto exit_error;
 	}
+
     /***Add sem timeout prompt to restart to wakeup after aoubt 8s by Ray Zhang***/
 	if(SDS_STATE_EXIT==recog->state){
 		recog->next_status     = AIENGINE_STATUS_AEC;
