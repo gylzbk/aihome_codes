@@ -163,7 +163,7 @@ int ai_server_fun(vr_info *recog)
 					ai_tts(recog->output,false);
 				}
 				else{
-					ai_tts(recog->output,true);
+					ai_tts(recog->output,false);
 				}
 			}
 		break;
@@ -188,7 +188,7 @@ int ai_server_fun(vr_info *recog)
 					ai_tts(recog->output,false);
 				}
 				else{
-					ai_tts(recog->output,true);
+					ai_tts(recog->output,false);
 				}
 			}
 		break;
@@ -220,7 +220,7 @@ int ai_server_fun(vr_info *recog)
 					ai_tts(recog->output,false);
 				}
 				else{
-					ai_tts(recog->output,true);
+					ai_tts(recog->output,false);
 				}
 			}
 			break;
