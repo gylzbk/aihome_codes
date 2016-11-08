@@ -337,8 +337,12 @@ exit_error:
 
 
 int ai_status_aecing(void){
+	int count  = 0;
 	while(ai_song_list.is_getting == true){
-		usleep(10000);
+		usleep(10*000);
+		if(count++ > 1000){
+			break;
+		}
 	}
 	system("echo 3 > /proc/sys/vm/drop_caches");
 	ai_to_mozart();
