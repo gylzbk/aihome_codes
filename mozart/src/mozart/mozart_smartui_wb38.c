@@ -1898,7 +1898,7 @@ void *create_refresh_pic_func(void *arg)
 
 			mozart_smartui_build_refresh_pic_view(REFRESH_PIC_ASR_RECONG);
 			//smartui_textview_clear(refresh_asr_textview);
-			smartui_textview_display(refresh_asr_textview, "识别中");
+			smartui_textview_display(refresh_asr_textview, "处理中");
 		}
 		break;
 		case REFRESH_PIC_MAX :
