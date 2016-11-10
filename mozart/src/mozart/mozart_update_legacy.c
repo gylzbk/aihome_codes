@@ -127,7 +127,6 @@ static int update_check_version(int remote, int current)
 
 static void *update_check_func(void *data)
 {
-	pthread_detach(pthread_self());
 	uint32_t current_ver, new_ver;
 	int fd;
 	int retval;
