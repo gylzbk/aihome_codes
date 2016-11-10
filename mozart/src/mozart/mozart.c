@@ -41,6 +41,8 @@ static event_handler *e_handler;
 static event_handler *e_key_handler;
 static event_handler *e_misc_handler;
 
+static bool is_system_error = false;
+
 static char *signal_str[] = {
 	[1] = "SIGHUP",       [2] = "SIGINT",       [3] = "SIGQUIT",      [4] = "SIGILL",      [5] = "SIGTRAP",
 	[6] = "SIGABRT",      [7] = "SIGBUS",       [8] = "SIGFPE",       [9] = "SIGKILL",     [10] = "SIGUSR1",
@@ -103,6 +105,7 @@ static void sig_handler(int signo)
 
 	printf("stop all services\n");
 	stopall(APP_DEPEND_ALL);
+	is_system_error = true;
 
 	printf("unregister event manager\n");
 	mozart_event_handler_put(e_handler);
@@ -174,7 +177,7 @@ static inline int initall(void)
 int main(int argc, char **argv)
 {
 	int c, daemonize = 0;
-
+	is_system_error = false;
 	global_app_name = strdup(argv[0]);
 	/* Get command line parameters */
 	while (1) {
@@ -232,8 +235,11 @@ int main(int argc, char **argv)
 	while (1) {
 		sleep(20);
 		system("echo 3 > /proc/sys/vm/drop_caches");
-		system("echo 3 > /dev/watchdog");
+		if (!is_system_error){
+			system("echo 3 > /dev/watchdog");
+		}
 	}
 
 	return 0;
 }
+
