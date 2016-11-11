@@ -14,8 +14,8 @@
 #include "vr-speech_interface.h"
 
 #define SONG_LIST_MAX 11
-#define SONG_GET_ERROR_MAX 5
-#define SONG_GET_TIMEOUT_S 5
+#define SONG_GET_ERROR_MAX 2
+#define SONG_GET_WAIT_S 120
 
 typedef enum song_type_e{
 	SONG_TYPE_AUTO,
