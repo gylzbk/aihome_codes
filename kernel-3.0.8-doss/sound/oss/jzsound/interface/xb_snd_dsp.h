@@ -108,6 +108,7 @@ struct spipe_info {
     enum spipe_mode_t spipe_mode;
 };
 
+#define SNDCTL_EXT_ENABLE_PRE_BUFFER                   	_SIOW ('P', 103, int)
 #define SNDCTL_EXT_SET_DEBUG				_SIOW ('P', 102, int)
 #define SNDCTL_EXT_MOD_TIMER				_SIOW ('P', 101, int)
 #define SNDCTL_EXT_SET_BUFFSIZE				_SIOR ('P', 100, int)
@@ -216,6 +217,8 @@ enum snd_dsp_command {
 	/**
 	 * @SND_DSP_IS_REPLAY, is to check if i2s is replaying now.
 	**/
+    /* wait for previous i2s_work_queue finish */
+    SND_DSP_FLUSH_WORK,
 	SND_DSP_IS_REPLAY,
 };
 
@@ -230,6 +233,7 @@ enum snd_dsp_command {
 #define FRAGCNT_M   4
 #define FRAGCNT_L   8
 #define FRAGCNT_B   16
+#define FRAGCNT_H   32
 
 
 
@@ -284,6 +288,8 @@ struct dsp_pipe {
 	volatile bool       is_used;
 	volatile bool       is_shared;
 	volatile bool       is_mmapd;
+	volatile bool       is_pre_buffer;
+	unsigned int        pre_buffer_times;
 	bool				is_non_block;          /* define by device */
 	bool				can_mmap;              /* define by device */
 	/* callback funs */

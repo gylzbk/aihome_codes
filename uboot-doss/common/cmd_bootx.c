@@ -33,9 +33,6 @@
 #include <boot_img.h>
 #include <fs.h>
 #include <fat.h>
-#ifdef CONFIG_MTD_SFCNAND
-#include <nand.h>
-#endif
 
 #ifdef CONFIG_ASLMOM_BOARD
 #include <asm/gpio.h>
@@ -141,7 +138,7 @@ int get_line_count()
 void display_battery_capacity(int line)
 {
 	int i;
-	for(i = 1;i <= line; i++){
+	for(i = 1;i <= line; i++) {
 		if(!gpio_get_value(63) ||(gpio_get_value(40)))
 			return;
 		lcd_display_bat_line(i,0xff00);
@@ -155,12 +152,6 @@ static void sfc_boot(unsigned int mem_address,unsigned int sfc_addr)
 	struct image_header *header;
 	unsigned int header_size;
 	unsigned int entry_point, load_addr, size;
-#ifdef CONFIG_MTD_SFCNAND
-	struct nand_chip *chip;
-	struct mtd_info *mtd;
-	size_t retlen;
-	mtd = &nand_info[0];
-#endif
 
 #ifdef CONFIG_ASLMOM_BOARD
 	unsigned int update_flag;
@@ -175,21 +166,25 @@ static void sfc_boot(unsigned int mem_address,unsigned int sfc_addr)
 		lcd_disable();
 		jz_hibernate();
 	}
+		
 	gpio_port_direction_input(1,31);
 	gpio_port_direction_input(1,8);
+	gpio_port_direction_input(1,16);
+	
 	update_flag = get_update_flag();
-	if((update_flag & 0x03) != 0x03){
+	if((update_flag & 0x03) != 0x03) {
 		while (gpio_get_value(63) && (!(gpio_get_value(40)))) {
+		//while (1) {
 			if (bat_cap != get_battery_current_cpt()) {
 				bat_cap = get_battery_current_cpt();
 				line = get_line_count();
 			}
-
+			
 			if (first && bat_cap == 100) {
 				lcd_enable();
 				lcd_display_bat_cap_first(100);
 				mdelay(100);
-				lcd_disable();
+				//lcd_disable();
 			} else {
 				lcd_enable();
 				lcd_display_zero_cap();
@@ -198,29 +193,26 @@ static void sfc_boot(unsigned int mem_address,unsigned int sfc_addr)
 					line = 5;
 				display_battery_capacity(line);
 				mdelay(100);
-				lcd_disable();
+				//lcd_disable();
 				if (bat_cap == 100)
 					first = 1;
 				else
 					first = 0;
 			}
 		}
-		if(gpio_get_value(40)){
+	}
+	lcd_disable();
 
-			printf("usb have remove ,power off!!!\n");
-			//call axp173 power off
-			jz_hibernate();
-		}
+	if(gpio_get_value(40)) {
+
+		printf("usb have remove ,power off!!!\n");
+		//call axp173 power off
+		jz_hibernate();
 	}
 #endif
 	printf("Enter SFC_boot routine ...\n");
 	header_size = sizeof(struct image_header);
-
-#ifdef CONFIG_MTD_SFCNAND
-	mtd->_read(mtd, sfc_addr, header_size, &retlen, CONFIG_SYS_TEXT_BASE);
-#else
 	sfc_nor_read(sfc_addr, header_size, CONFIG_SYS_TEXT_BASE);
-#endif
 	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE);
 
 	entry_point = image_get_load(header);
@@ -228,11 +220,7 @@ static void sfc_boot(unsigned int mem_address,unsigned int sfc_addr)
 	load_addr = entry_point - header_size;
 	size = image_get_data_size(header) + header_size;
 
-#ifdef CONFIG_MTD_SFCNAND
-	mtd->_read(mtd, sfc_addr, size, &retlen, load_addr);
-#else
 	sfc_nor_read(sfc_addr, size, load_addr);
-#endif
 #ifdef CONFIG_ASLMOM_BOARD
 	panel_power_off();
 #endif

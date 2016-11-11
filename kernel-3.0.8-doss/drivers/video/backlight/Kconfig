@@ -309,6 +309,14 @@ config LCD_FRD240A3602B
 	  If you have an FRD240A3602B Panel, say Y to enable its
 	  control driver. The driver IC of this module is ILI9341.
 
+config LCD_FRD20024N
+	tristate "FRD20024N TFT Smart LCD panel(176x220)"
+	depends on BACKLIGHT_CLASS_DEVICE
+	default n
+	help
+	  If you have an FRD20024N Panel, say Y to enable its
+	  control driver. The driver IC of this module is ILI9225-G.
+
 config LCD_TRULY_TFT240240_2_E
        tristate "SLCD TRULY TFT240240-2-E with control IC st7789s (240x240)"
        depends on BACKLIGHT_CLASS_DEVICE

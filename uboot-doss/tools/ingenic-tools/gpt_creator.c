@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <ctype.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 #include <u-boot/zlib.h>
@@ -142,8 +144,8 @@ typedef struct _group {
 	item_t items[128];
 } group_t;
 
-static u8 file_buffer[2048] = { 0 };
-static group_t group_list[10] = { 0 };
+static u8 file_buffer[2048] = {};
+static group_t group_list[10] = {};
 
 u64 parse_size(char *sz);
 
@@ -179,11 +181,11 @@ int parse_config_file(char * buffer)
 			is_last_line = 1;
 		}
 
-		if (p = strchr(line, '#')) {
+		if ((p = strchr(line, '#'))) {
 			*p = 0;
 		}
 
-		if (p = strchr(line, ':')) { //find group name
+		if ((p = strchr(line, ':'))) { //find group name
 			char * group_name;
 			*p = 0;
 			group_name = str_trim(line);
@@ -195,7 +197,7 @@ int parse_config_file(char * buffer)
 				}
 				group_list[group_index].name = group_name;
 			}
-		} else if (p = strchr(line, '=')) { //find property name
+		} else if ((p = strchr(line, '='))) { //find property name
 			char * property_name;
 			*(p++) = 0;
 			property_name = str_trim(line);
@@ -308,7 +310,9 @@ int parse_partition_item(char * value, u64 * start, u64* size) {
     if (sub_str == NULL) return -1;
     *sub_str++ = 0;
     str_type = str_trim(sub_str);
+#if 0
     if (*str_type == 0) return -1;
+#endif
 
     *start = parse_size(str_start);
     *size = parse_size(str_size);
@@ -367,8 +371,8 @@ int add_ptn(struct ptable *ptbl, u64 first, u64 last, const char *name)
 	unsigned n;
 
 	if (first < 34) {
-		fprintf(stderr,"partition '%s' overlaps partition table, first=%lld\n", name, first);
-		return -1;
+		fprintf(stderr,"warning: partition '%s' overlaps partition table, first=%lld, force to 34.\n", name, first);
+		first = 34;
 	}
 
 	if (last > hdr->last_lba) {

@@ -152,7 +152,20 @@ static int get_pmu_current(void)
 
 static int get_pmu_voltage(void)
 {
+#if 0
 	return axp173_get_adc_data(BAT_VOL, 0);
+#else
+	unsigned char tmp[2] = {0,};
+	unsigned int val = 0;
+
+#define GET_ADC_VALUE(reg1, reg2)		\
+	axp173_read_reg(reg1, tmp, 1);		\
+	axp173_read_reg(reg2, tmp+1, 1)
+	GET_ADC_VALUE(POWER_BAT_AVERVOL_H8, POWER_BAT_AVERVOL_L4);
+	val = ((tmp[0] << 4) + ((tmp[1] & 0x0f))) * 11 / 10;
+#undef GET_ADC_VALUE
+	return val;
+#endif
 }
 
 static unsigned int jz_current_battery_voltage()

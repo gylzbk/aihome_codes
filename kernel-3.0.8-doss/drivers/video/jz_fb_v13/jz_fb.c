@@ -45,6 +45,8 @@
 #ifdef CONFIG_LOGO_BMP
 #ifdef CONFIG_PRODUCT_X1000_ASLMOM
 #include "logo_bmp_aslmom.h"
+#elif defined (CONFIG_PRODUCT_X1000_CANNA)
+#include "logo_bmp_canna.h"
 #else
 #include "logo_bmp.h"
 #endif
@@ -671,7 +673,7 @@ static void jzfb_slcd_mcu_init(struct fb_info *info)
 	reg_write(jzfb,SLCDC_CFG,reg_read(jzfb, SLCDC_CFG) & ~(0x01<<8));
 	reg_write(jzfb,SLCDC_CFG_NEW,reg_read(jzfb,SLCDC_CFG_NEW) | (0x01<<13));
 #endif
-#if (defined(CONFIG_LCD_XRM2002903)||defined(CONFIG_LCD_FRD240A3602B))
+#if (defined(CONFIG_LCD_XRM2002903)||defined(CONFIG_LCD_FRD240A3602B) || defined(CONFIG_LCD_FRD20024N))
 	reg_write(jzfb,SLCDC_CFG_NEW,reg_read(jzfb,SLCDC_CFG_NEW) & (0x0<<8));
 	reg_write(jzfb,SLCDC_CFG_NEW,reg_read(jzfb,SLCDC_CFG_NEW) | (0x01<<9));
 #endif

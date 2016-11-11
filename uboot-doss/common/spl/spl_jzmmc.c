@@ -7,6 +7,7 @@
 #include <asm/arch/clk.h>
 #include <asm/arch/mmc.h>
 #include <asm/io.h>
+#include <asm/nvrw_interface.h>
 
 /* #define DEBUG_MSC */
 /* #define DEBUG_DDR_CONTENT */
@@ -106,7 +107,7 @@ static u8* mmc_cmd(u16 cmd, u32 arg, u32 cmdat, u16 rtype)
 }
 
 
-static int mmc_block_read(u32 start, u32 blkcnt, u32 *dst)
+int mmc_block_read(u32 start, u32 blkcnt, u32 *dst)
 {
 	u32 stat, cnt, nob;
 	int timeout = 0x1ffff;
@@ -385,8 +386,47 @@ end:
 #endif
 	return err;
 }
-void spl_mmc_load_image(void)
+
+static int mmc_load_kernel(unsigned long sector)
 {
+	int err = 0;
+	u32 image_size_sectors;
+	struct image_header *header;
+
+	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE);
+
+	/* read image header to find the image size & load address */
+	err = mmc_block_read(sector, 1, header);
+	if(err < 0)
+		goto end;
+
+	spl_parse_image_header(header);
+
+	/* convert size to sectors - round up */
+	image_size_sectors = (spl_image.size + 0x200 - 1) / 0x200;
+
+	/* Read the header too to avoid extra memcpy */
+	err = mmc_block_read(sector, image_size_sectors,
+			     (void *)spl_image.load_addr);
+
+#ifdef DEBUG_DDR_CONTENT
+	dump_ddr_content(spl_image.load_addr, 200);
+#endif
+	flush_cache_all();
+end:
+#ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
+	if (err < 0)
+		msc_debug("spl: mmc blk read err - %lu\n", err);
+#endif
+	return err;
+}
+
+char *spl_mmc_load_image(void)
+{
+	char *cmdargs = NULL;
+#ifdef CONFIG_SPL_OS_BOOT
+	nvinfo_t *nvinfo = (nvinfo_t *)CONFIG_SPL_NV_BASE;
+#endif
 #ifdef CONFIG_JZ_MMC_MSC0
 	io_base = MSC0_BASE;
 #else
@@ -394,5 +434,31 @@ void spl_mmc_load_image(void)
 #endif
 
 	jzmmc_init();
+#ifdef CONFIG_SPL_OS_BOOT
+	/* Read nvinfo to memcpy */
+	mmc_block_read(NV_AREA_BASE_ADDR / 0x200, 1, (void *)nvinfo);
+	if ((nvinfo->magic[0] == 'O') &&
+		(nvinfo->magic[1] == 'T') &&
+		(nvinfo->magic[2] == 'A') &&
+		(nvinfo->magic[3] == '\0')) {
+		debug("nvinfo->magic, nvinfo->update_flag=%d, nvinfo->update_process: %d.\n",
+			  nvinfo->magic, nvinfo->update_flag, nvinfo->update_process);
+	} else {
+		/* if magic not valid, force to nonupdate status */
+		nvinfo->update_flag = FLAG_NONUPDATE;
+	}
+	if (nvinfo->update_flag == FLAG_NONUPDATE) {
+		mmc_load_kernel(CONFIG_SPL_OS_OFFSET / 0x200);
+		cmdargs = CONFIG_SYS_SPL_ARGS_ADDR;
+	} else if (nvinfo->update_flag == FLAG_UPDATE) {
+		mmc_load_kernel(CONFIG_SPL_OTA_OS_OFFSET / 0x200);
+		cmdargs = CONFIG_SYS_SPL_OTA_ARGS_ADDR;
+	} else {
+		debug("Invalid update flag: %d.\n", nvinfo->update_flag);
+	}
+#else
 	mmc_load_image_raw(CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR);
+#endif
+
+	return cmdargs;
 }

@@ -75,37 +75,82 @@ static struct jz_gpio_keys_button board_longbuttons[] = {
                 },
                 .desc                           = "power down & wakeup",
                 .active_low                     = ACTIVE_LOW_POWERDOWN,
-                .longpress_interval             = 1800,
+                .longpress_interval             =  3 * 1000,
 		.wakeup                         = 1,
                 .debounce_interval              = 2,
         },
 #endif
+#ifdef CONFIG_DOSS_WB38_INDEPENDENT_KEY
 #ifdef GPIO_BOOT_SEL0
 	{
                 .gpio                           = GPIO_BOOT_SEL0,
                 .code = {
-                        .shortpress_code        = KEY_F4,
-                        .longpress_code         = KEY_RESERVED,
+                        .shortpress_code        = KEY_MODE,
+                        .longpress_code         = KEY_F1,
+                        .key_combi_code   	= KEY_F12,
                 },
-                .desc                           = "music Shortcut key 2",
-                .active_low                     = ACTIVE_LOW_F4,
-                .longpress_interval             = 0,
-                .debounce_interval              = 2,
+                .desc                          		= "music Shortcut key 2",
+                .active_low                     	= ACTIVE_LOW_F4,
+                .longpress_interval             	= 3 * 1000,
+                .debounce_interval         	= 2,
+                .lock_interval			= 1 * 1000,
+                .key_combi_interval 		= 10 * 1000,
         },
 #endif
-#ifdef GPIO_BOOT_SEL1
+#ifdef GPIO_VOLUME_UP
 	{
-                .gpio                           = GPIO_BOOT_SEL1,
-                .code = {
-                        .shortpress_code        = KEY_F5,
-                        .longpress_code         = KEY_RESERVED,
-                },
-                .desc                           = "music Shortcut key 3",
-                .active_low                     = ACTIVE_LOW_F5,
-                .longpress_interval             = 0,
-                .debounce_interval              = 2,
-        },
-
+			.gpio							= GPIO_VOLUME_UP,
+			.code = {
+					.shortpress_code		= KEY_VOLUMEUP,
+					.longpress_code 		= KEY_NEXTSONG,
+			},
+			.desc						= "music volume up",
+			.active_low 					= ACTIVE_LOW_VOLUMEUP,
+			.longpress_interval 				=  3 * 1000,
+			.debounce_interval				= 2,
+	},
+#endif
+#ifdef GPIO_VOLUME_DOWN
+	{
+			.gpio							= GPIO_VOLUME_DOWN,
+			.code = {
+					.shortpress_code		= KEY_VOLUMEDOWN,
+					.longpress_code 		= KEY_PREVIOUSSONG,
+			},
+			.desc						= "music volume down",
+			.active_low 					= ACTIVE_LOW_VOLUMEDOWN,
+			.longpress_interval 				=  3 * 1000,
+			.debounce_interval				= 2,
+	},
+#endif
+#ifdef GPIO_VOICE
+	{
+			.gpio							= GPIO_VOICE,
+			.code = {
+					.shortpress_code		= KEY_RECORD,
+					.longpress_code 		= KEY_F4,
+			},
+			.desc						= "stop recognition key",
+			.active_low 					= ACTIVE_LOW_VOICE,
+			.longpress_interval 				= 2 * 1000,
+			.debounce_interval				= 2,
+	},
+#endif
+#ifdef GPIO_PLAY_PAUSE
+	{
+			.gpio							= GPIO_PLAY_PAUSE,
+			.code = {
+					.shortpress_code		= KEY_PLAYPAUSE,
+					.longpress_code 		= KEY_F2,
+					.key_combi_code   		= KEY_F12,
+			},
+			.desc						= "music play and pause",
+			.active_low 					= ACTIVE_LOW_PLAYPAUSE,
+			.longpress_interval 				=  3 * 1000,
+			.debounce_interval				= 2,
+			.key_combi_interval 				= 10 * 1000,
+	},
+#endif
 #endif
 };
 

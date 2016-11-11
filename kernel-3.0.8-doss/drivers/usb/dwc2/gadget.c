@@ -12,7 +12,7 @@
 #include <linux/module.h>
 #include <linux/usb/ch9.h>
 #include <linux/usb/gadget.h>
-
+#define DWC_EP_PERIODIC_INT 1
 #include <soc/base.h>
 #include <linux/jz_dwc.h>
 
@@ -208,7 +208,7 @@ void dwc2_enable_device_interrupts(struct dwc2 *dwc)
 	intr_mask.b.outepintr	    = 1;
 	intr_mask.b.erlysuspend	    = 1;
 	//intr_mask.b.incomplisoout = 1;
-	intr_mask.b.incomplisoin    = 1;
+	intr_mask.b.incomplisoin    = 0;
 
 	dwc_writel(intr_mask.d32, &global_regs->gintmsk);
 }
@@ -269,6 +269,15 @@ void dwc2_device_mode_init(struct dwc2 *dwc) {
 	dwc_writel(0, &dev_if->dev_global_regs->doepmsk);
 	dwc_writel(0xFFFFFFFF, &dev_if->dev_global_regs->daint);
 	dwc_writel(0, &dev_if->dev_global_regs->daintmsk);
+
+#ifdef DWC_EP_PERIODIC_INT
+	{
+		dctl_data_t		dctl;
+		dctl.d32 = dwc_readl(&dev_if->dev_global_regs->dctl);
+		dctl.b.ifrmnum = 1;
+		dwc_writel(dctl.d32, &dev_if->dev_global_regs->dctl);
+	}
+#endif
 
 	dwc2_enable_device_interrupts(dwc);
 }
@@ -444,6 +453,13 @@ static void dwc2_gadget_ep_activate(struct dwc2_ep *dep) {
 	}
 
 	depctl.d32 = dwc_readl(depctl_addr);
+
+	if (dep->type == USB_ENDPOINT_XFER_ISOC && !dep->is_in) {
+		doepmsk_data_t	doepmsk = { .d32 = 0 };
+		doepmsk.d32 = dwc_readl(&dev_if->dev_global_regs->doepmsk);
+		doepmsk.b.outtknepdis = 1;
+		dwc_writel(doepmsk.d32, &dev_if->dev_global_regs->doepmsk);
+	}
 
 	if ( (!depctl.b.usbactep) || (depctl.b.mps != dep->maxp) ) {
 		depctl.b.mps = dep->maxp;
@@ -772,7 +788,7 @@ static void dwc2_gadget_stop_out_transfer(struct dwc2_ep *dep) {
 	depctl_data_t		 depctl;
 	int			 i	       = 0;
 
-	dev_warn(dwc->dev, "%s: stop OUT transfer\n", dep->name);
+//	dev_warn(dwc->dev, "%s: stop OUT transfer\n", dep->name);
 
 	dwc2_gadget_set_global_out_nak(dwc);
 	/* after set_global_out_nak, there is no data left in the RxFIFO */
@@ -1160,7 +1176,6 @@ static int dwc2_gadget_ep_disable(struct usb_ep *ep)
 
 	while (!list_empty(&dep->garbage_list)) {
 		req = next_request(&dep->garbage_list);
-
 		dwc2_gadget_giveback(dep, req, -ESHUTDOWN);
 	}
 
@@ -1596,7 +1611,7 @@ static int dwc2_gadget_ep_dequeue(struct usb_ep *ep,
 			dwc2_gadget_recover_out_transfer(dwc, NULL);
 			/* note that recover_out_transfer() will give back this active request*/
 		}
-		dev_warn(dwc->dev, "WARNING: stopped an active request 0x%p on %s\n", r, dep->name);
+		//dev_warn(dwc->dev, "WARNING: stopped an active request 0x%p on %s\n", r, dep->name);
 		goto out;
 	}
 
@@ -1887,7 +1902,7 @@ static int __dwc2_gadget_init_endpoints(struct dwc2 *dwc, int is_in) {
 					&dwc->gadget.ep_list);
 			dep->align_addr = (void *)(dwc->deps_align_addr +
 					DWC2_DEP_ALIGN_ALLOC_SIZE *
-					((eps_offset ? 7 : 0) + epnum - 1));
+					((eps_offset ? (eps_offset - 1) : 0) + epnum - 1));
 		}
         dep->align_dma_addr = 0;
 
@@ -2220,12 +2235,17 @@ static void dwc2_out_ep_interrupt(struct dwc2_ep *dep) {
 	u32			 msk;
 
 	msk = dwc_readl(&dev_if->dev_global_regs->doepmsk);
-	doepint.d32 = dwc_readl(&dev_if->out_ep_regs[epnum]->doepint) & msk;
+	doepint.d32 = dwc_readl(&dev_if->out_ep_regs[epnum]->doepint);
 
 	/* Transfer complete */
 	if (doepint.b.xfercompl) {
 		dwc2_gadget_out_ep_xfer_complete(dep);
 		CLEAR_OUT_EP_INTR(epnum, xfercompl);
+#ifdef DWC_EP_PERIODIC_INT
+		if (dwc->dma_desc_enable && dep->type == USB_ENDPOINT_XFER_ISOC &&
+				doepint.b.pktdrpsts)
+			CLEAR_OUT_EP_INTR(epnum, pktdrpsts);
+#endif
 		doepint.b.xfercompl = 0;
 	}
 
@@ -2236,6 +2256,15 @@ static void dwc2_out_ep_interrupt(struct dwc2_ep *dep) {
 		doepint.b.ahberr = 0;
 	}
 
+	if (doepint.b.outtknepdis) {
+		/*restart request*/
+		CLEAR_OUT_EP_INTR(epnum, outtknepdis);
+		if (dep->type == USB_ENDPOINT_XFER_ISOC)
+			dwc2_gadget_start_out_transfer(dep);
+		doepint.b.outtknepdis = 0;
+	}
+
+	doepint.d32 &= msk;
 	if (doepint.d32) {
 		dev_err(dwc->dev, "Unhandled EP%dout interrupt(0x%08x)\n",
 			epnum, doepint.d32);

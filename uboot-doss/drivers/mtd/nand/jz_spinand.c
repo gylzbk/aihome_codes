@@ -30,7 +30,8 @@
 #include "../spi/spi_flash_internal.h"
 #include "../../spi/jz_spi.h"
 #include "jz_spinand.h"
-#include <cloner/cloner.h>
+
+
 #define IDCODE_CONT_LEN 0
 #define IDCODE_PART_LEN 5
 
@@ -39,12 +40,14 @@ static const char *const mtdids_default = MTDIDS_DEFAULT;
 #else
 static const char *const mtdids_default = "nand0:nand";
 #endif
+
 #define SIZE_UBOOT  0x100000    /* 1M */
 #define SIZE_KERNEL 0x800000    /* 8M */
 #define SIZE_ROOTFS (0x100000 * 40)        /* -1: all of left */
 
-extern unsigned int sfc_rate ;
-static struct jz_spinand_partition jz_mtd_spinand_partition[] = {
+unsigned short column_cmdaddr_bits;/* read from cache ,the bits of cmd + addr */
+
+struct jz_spinand_partition jz_mtd_spinand_partition[] = {
 	{
 		.name =     "uboot",
 		.offset =   0,
@@ -62,14 +65,10 @@ static struct jz_spinand_partition jz_mtd_spinand_partition[] = {
 		.offset =   SIZE_UBOOT + SIZE_KERNEL,
 		.size   =   SIZE_ROOTFS,
 		.manager_mode = UBI_MANAGER,
-		//.manager_mode = MTD_MODE
+		//.manager_mode = MTD_MODE,
 	},
 };
 
-static unsigned short column_cmdaddr_bits=24;/* read from cache ,the bits of cmd + addr */
-
-
-struct nand_param_from_burner nand_param_from_burner;
 
 
 /* wait time before read status (us) for spi nand */
@@ -747,157 +746,40 @@ static int jz_spinand_block_markbad(struct mtd_info *mtd, loff_t ofs)
 
 }
 
-static struct jz_spi_support_from_burner *spi_nandflash_probe(u8 *idcode,struct nand_param_from_burner *param_array)
+static struct jz_spi_support *spi_nandflash_probe(u8 *idcode)
 {
 	int i;
-	struct jz_spi_support_from_burner *params=param_array->addr;
-	printf("sfcnand param num=%d\n",param_array->para_num);
-	for (i = 0; i < param_array->para_num; i++) {
-		if(params->id_manufactory == ((idcode[0]<<8) | idcode[1]))
+	struct jz_spi_support *params;
+
+	for (i = 0; i < ARRAY_SIZE(jz_spi_nand_support_table); i++) {
+		params = &jz_spi_nand_support_table[i];
+		if ( (params->id_manufactory == idcode[0]) && (params->id_device == idcode[1]) )
 			break;
-		params++;
 	}
 
-	if (i == param_array->para_num ) {
-		printf("ingenic: Unsupported ID %04x\n", (idcode[0]<<8)|idcode[1]);
+	if (i == ARRAY_SIZE(jz_spi_nand_support_table)) {
+		printf("ingenic: Unsupported ID %02x\n", idcode[0]);
 		return NULL;
 	}
-#if 0
-	printf("***********************chip information*************************\n");
-	printf("param num=%x\n",param_array->para_num);
-	printf("param id=%x\n",params->id_manufactory);
-	printf("param name=%s\n",params->name);
 
-	printf("param name=%s\n",params->name);
-	printf("param page_size=%d\n",params->page_size);
-	printf("param oobsize=%d\n",params->oobsize);
-	printf("param size=%d\n",params->size);
-	printf("param block_size=%d\n",params->block_size);
-	printf("param page_num=%d\n",params->page_num);
-	printf("param tRD_maxbusy=%d\n",params->tRD_maxbusy);
-	printf("param tPROG_maxbusy=%d\n",params->tPROG_maxbusy);
-	printf("param tBERS_maxbusy=%d\n",params->tBERS_maxbusy);
-	printf("param column_cmdaddr_bits=%d\n",params->column_cmdaddr_bits);
-	printf("partition_num=%d\n",param_array->partition_num);
-	for(i=0;i<param_array->partition_num;i++){
-		printf("partition%d name=%s   ",i,param_array->partition[i].name);
-		printf("partition%d size=0x%x   ",i,param_array->partition[i].size);
-		printf("partition%d offset=0x%x   ",i,param_array->partition[i].offset);
-		printf("partition%d flags=0x%x   ",i,param_array->partition[i].mask_flags);
-		printf("partition%d manager_mode=0x%x\n",i,param_array->partition[i].manager_mode);
-	}
-	printf("***********************end************************************\n");
-#endif
-	param_array->addr=params;
-	param_array->para_num=1;
 	return params;
 }
-static void jz_spi_get_param(char *buffer,struct nand_param_from_burner *param)
-{
-	char * member_addr=buffer+sizeof(int32_t);
-	memcpy(&param->version,member_addr,sizeof(param->version));
-	member_addr+=sizeof(param->version);
-	memcpy(&param->flash_type,member_addr,sizeof(param->flash_type));
-	member_addr+=sizeof(param->flash_type);
-	param->para_num=*(int *)member_addr;
-	member_addr+=sizeof(param->para_num);
-	param->addr=member_addr;
-	member_addr+=param->para_num*sizeof(struct jz_spi_support_from_burner);
-	param->partition_num=*(int *)member_addr;
-	member_addr+=sizeof(param->partition_num);
-	param->partition=member_addr;
-}
-static int get_spinand_pagesize(int page,int column)
-{
-	char buffer[100];
-	int pagesize=0;
-	spi_nand_read_page(buffer,page,column,100);
-	pagesize=buffer[SPL_TYPE_FLAG_LEN+5]*1024;
-	return pagesize;
-}
-static int32_t get_nand_magic(int page,int column)
-{
-	char buffer[column+sizeof(int)];
-	int32_t nand_magic=0;
-	spi_nand_read_page(buffer,page,0,column+sizeof(int));
-	nand_magic=*(int32_t *)(buffer+column);
-	return nand_magic;
-}
-static int get_spinand_param(char *buffer,int ptcount,struct nand_param_from_burner *param,int pagesize)
-{
-	int offset=ptcount % pagesize;
-	spi_nand_read_page(buffer,ptcount/pagesize,0,pagesize);
-	jz_spi_get_param(buffer+offset,param);
-}
-/********************************************************************************************
- * get spinand params from nand ,
- *addr in CONFIG_SPIFLASH_PART_OFFSET,
- *you must check addr is in same page,
- * *****************************************************************************************/
-static char *get_chip_param_from_nand(struct nand_param_from_burner **param,int *using_way)
-{
-	int pagesize=0;
-	char *buffer=NULL;
-	int32_t nand_magic;
-	pagesize=get_spinand_pagesize(0,0);
-	nand_magic=get_nand_magic(CONFIG_SPIFLASH_PART_OFFSET/pagesize,CONFIG_SPIFLASH_PART_OFFSET%pagesize);
-	if(nand_magic==0x6e616e64)
-	{
-		*param=malloc(sizeof(struct nand_param_from_burner));
-		buffer=malloc(pagesize);
-		get_spinand_param(buffer,CONFIG_SPIFLASH_PART_OFFSET,*param,pagesize);
-		*using_way=0;
-	}else{
-		printf("warning: can't get right magic\n");
-		*using_way=1;
-	}
-	return buffer;
-}
-static void tran_old_burnway(struct nand_param_from_burner **param)
-{
-	int i;
-	*param=malloc(sizeof(struct nand_param_from_burner));
-	(*param)->version=-1;
-	(*param)->flash_type=1;
-	(*param)->para_num=ARRAY_SIZE(jz_spi_nand_support_table);
-	(*param)->addr=malloc((*param)->para_num*sizeof(struct jz_spi_support_from_burner));
-	for(i=0;i<(*param)->para_num;i++){
-		(((*param)->addr)[i]).id_manufactory=jz_spi_nand_support_table[i].id_manufactory*256+
-			jz_spi_nand_support_table[i].id_device;
-		(((*param)->addr)[i]).id_device=jz_spi_nand_support_table[i].id_device;
-		memcpy((((*param)->addr)[i]).name,jz_spi_nand_support_table[i].name,32);
-		(((*param)->addr)[i]).page_size=jz_spi_nand_support_table[i].page_size;
-		(((*param)->addr)[i]).oobsize=jz_spi_nand_support_table[i].oobsize;
-		(((*param)->addr)[i]).sector_size=jz_spi_nand_support_table[i].sector_size;
-		(((*param)->addr)[i]).block_size=jz_spi_nand_support_table[i].block_size;
-		(((*param)->addr)[i]).size=jz_spi_nand_support_table[i].size;
-		(((*param)->addr)[i]).page_num=jz_spi_nand_support_table[i].page_num;
-		(((*param)->addr)[i]).column_cmdaddr_bits=jz_spi_nand_support_table[i].column_cmdaddr_bits;
-	}
-	(*param)->partition_num=ARRAY_SIZE(jz_mtd_spinand_partition);
-	(*param)->partition=jz_mtd_spinand_partition;
-}
+
 #define IDCODE_LEN (IDCODE_CONT_LEN + IDCODE_PART_LEN)
-int jz_spi_nand_init(struct nand_param_from_burner *param)
+int jz_spi_nand_init()
 {
 	u8 idcode[IDCODE_LEN + 1];
 	struct nand_chip *chip;
 	struct mtd_info *mtd;
-	struct jz_spi_support_from_burner *spi_flash;
-	int using_way;
+	struct jz_spi_support *spi_flash;
 	mtd = &nand_info[0];
 
 	spi_init();
-	//printf("------->> idcode0 = %02x idcode1 = %02x idcode2 = %02x idcode3 = %02x\n",idcode[0],idcode[1],idcode[2],idcode[3]);
-#ifndef CONFIG_BURNER
-	char *buffer=get_chip_param_from_nand(&param,&using_way);
-	if(using_way==1)                //use old way
-	{
-		tran_old_burnway(&param);
-	}
-#endif
 	read_spinand_id(idcode,sizeof(idcode));
-	spi_flash = spi_nandflash_probe(idcode,param);
+
+	//printf("------->> idcode0 = %02x idcode1 = %02x idcode2 = %02x idcode3 = %02x\n",idcode[0],idcode[1],idcode[2],idcode[3]);
+	spi_flash = spi_nandflash_probe(idcode);
+
 	chip = malloc(sizeof(struct nand_chip));
 	if (!chip)
 		return -ENOMEM;
@@ -933,13 +815,14 @@ int jz_spi_nand_init(struct nand_param_from_burner *param)
 	jz_spinand_ext_init();
 	mtd_spinand_init(mtd);
 	nand_register(0);
+
 	return 0;
 }
-static int mtd_spinand_partition_analysis(unsigned int blk_sz,int partcount,struct jz_spinand_partition *jz_mtd_spinand_partition)
+static int mtd_spinand_partition_analysis(/*MTDPartitionInfo *pinfo,*/unsigned int blk_sz)
 {
 	char mtdparts_env[X_ENV_LENGTH];
 	char command[X_COMMAND_LENGTH];
-	int ptcount = partcount;
+	int ptcount = ARRAY_SIZE(jz_mtd_spinand_partition);
 	int part, ret;
 
 	memset(mtdparts_env, 0, X_ENV_LENGTH);
@@ -947,7 +830,6 @@ static int mtd_spinand_partition_analysis(unsigned int blk_sz,int partcount,stru
 
 	/*MTD part*/
 	sprintf(mtdparts_env, "mtdparts=nand:");
-	printf("partcount=%d\n",partcount);
 	for (part = 0; part < ptcount; part++) {
 		if (jz_mtd_spinand_partition[part].size == -1) {
 			sprintf(mtdparts_env,"%s-(%s)", mtdparts_env,
@@ -970,9 +852,9 @@ static int mtd_spinand_partition_analysis(unsigned int blk_sz,int partcount,stru
 }
 struct jz_spinand_partition *get_partion_index(u32 startaddr,int *pt_index)
 {
-	int ptcount = nand_param_from_burner.partition_num;
+	int ptcount = ARRAY_SIZE(jz_mtd_spinand_partition);
 	int i;
-	struct jz_spinand_partition *jz_mtd_spinand_partition=nand_param_from_burner.partition;
+
 	for(i = 0; i < ptcount; i++){
 		if(startaddr >= jz_mtd_spinand_partition[i].offset && startaddr < (jz_mtd_spinand_partition[i].offset + jz_mtd_spinand_partition[i].size)){
 			*pt_index = i;
@@ -981,10 +863,8 @@ struct jz_spinand_partition *get_partion_index(u32 startaddr,int *pt_index)
 	}
 	return &jz_mtd_spinand_partition[i];
 }
-void get_info_to_spl(databuf){
 
-}
-int mtd_spinand_probe_burner(/*MTDPartitionInfo *pinfo,*/int *erase_mode,struct  nand_param_from_burner *param)
+int mtd_spinand_probe_burner(/*MTDPartitionInfo *pinfo,*/int erase_mode)
 {
 	int ret;
 	struct mtd_info *mtd;
@@ -992,14 +872,16 @@ int mtd_spinand_probe_burner(/*MTDPartitionInfo *pinfo,*/int *erase_mode,struct 
 	struct nand_chip *chip;
 	//int wppin = pinfo->gpio_wp;
 
-	ret = jz_spi_nand_init(param);
+	printf("========>>>>>>>> erase_mode = %d \n",erase_mode);
+	ret = jz_spi_nand_init();
+
 	/*0: none 1, force-erase*/
-	if (*erase_mode == 1)
+	if (erase_mode == 1)
 		ret = run_command("nand scrub.chip -y", 0);
 
 	chip = mtd->priv;
 	chip->scan_bbt(mtd);
 	chip->options |= NAND_BBT_SCANNED;
-	mtd_spinand_partition_analysis(mtd->erasesize,param->partition_num,param->partition);
+	mtd_spinand_partition_analysis(/*pinfo,*/mtd->erasesize);
 	return 0;
 }

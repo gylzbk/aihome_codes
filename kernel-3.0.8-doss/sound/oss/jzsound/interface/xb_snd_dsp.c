@@ -43,6 +43,8 @@ static mm_segment_t old_fs_record;
 #define SNDCTL_DSP_AEC_ENABLE           _SIOW ('J', 17, int)
 extern struct snd_dev_data *get_ddata_by_minor(int minor);
 
+#define PRE_WRITE_TIMES   20    //You can change it follow your need.But it must less than dp->fragcnt.
+
 /*###########################################################*\
  * sub functions
  \*###########################################################*/
@@ -809,6 +811,7 @@ static void snd_dma_callback(void *arg)
 				dp->pddata->dev_ioctl(SND_DSP_DISABLE_DMA_RX,0);
 			}
 			else if (dp->dma_config.direction == DMA_TO_DEVICE) {
+				dp->pre_buffer_times = 0;
 				dp->pddata->dev_ioctl(SND_DSP_DISABLE_DMA_TX,0);
 			}
 		} else if(dp->pddata && dp->pddata->dev_ioctl_2) {
@@ -816,6 +819,7 @@ static void snd_dma_callback(void *arg)
 				dp->pddata->dev_ioctl_2(dp->pddata, SND_DSP_DISABLE_DMA_RX,0);
 			}
 			else if (dp->dma_config.direction == DMA_TO_DEVICE) {
+				dp->pre_buffer_times = 0;
 				dp->pddata->dev_ioctl_2(dp->pddata, SND_DSP_DISABLE_DMA_TX,0);
 			}
 		}
@@ -1463,6 +1467,7 @@ static int init_pipe(struct dsp_pipe *dp,struct device *dev,enum dma_data_direct
 	if ((dp->fragcnt != FRAGCNT_S) &&
 	    (dp->fragcnt != FRAGCNT_M) &&
 	    (dp->fragcnt != FRAGCNT_B) &&
+	    (dp->fragcnt != FRAGCNT_H) &&
 	    (dp->fragcnt != FRAGCNT_L))
 	{
 		return -1;
@@ -1668,6 +1673,10 @@ ssize_t xb_snd_dsp_read(struct file *file,
 		dp->watchdog_mdelay = (dp->fragsize * 1000) / (dp->samplerate * dp->channels * dp->dma_config.dst_addr_width * 2);
 		if (dp->watchdog_mdelay == 0)
 			dp->watchdog_mdelay = 1;
+
+      		if (ddata && ddata->dev_ioctl_2) {
+				ddata->dev_ioctl_2(ddata, SND_DSP_FLUSH_WORK, 0);
+       		}
 	}
 	do {
 		while(1) {
@@ -1862,6 +1871,10 @@ ssize_t xb_snd_dsp_write(struct file *file,
                         if (dp->watchdog_mdelay == 0)
                                 dp->watchdog_mdelay = 1;
 			dp->is_first_start = false;
+
+			if (ddata && ddata->dev_ioctl_2) {
+					ddata->dev_ioctl_2(ddata, SND_DSP_FLUSH_WORK, 0);
+			}
 		}
 
 #ifdef DEBUG_REPLAY
@@ -1880,6 +1893,11 @@ ssize_t xb_snd_dsp_write(struct file *file,
 		mcount -= copy_size;
 		dma_cache_sync(NULL, (void *)node->pBuf, copy_size , dp->dma_config.direction);
 		put_use_dsp_node(dp, node, copy_size);
+
+		if ((dp->is_pre_buffer == true) && (dp->pre_buffer_times < PRE_WRITE_TIMES)){
+                        dp->pre_buffer_times++;
+                        continue;
+                }
 
 		if (dp->is_trans == false) {
 			if (!snd_prepare_dma_desc(dp)) {
@@ -2875,6 +2893,35 @@ long xb_snd_dsp_ioctl(struct file *file,
                 ret = 0;
                 break;
         }
+	case SNDCTL_EXT_ENABLE_PRE_BUFFER:{
+		/* This interface is just temporary for BT audio replay */
+                int enable;
+                if (get_user(enable, (int*)arg)) {
+                        ret = -EFAULT;
+                        goto EXIT_IOCTRL;
+                }
+		if (file->f_mode & FMODE_WRITE) {
+			dp = endpoints->out_endpoint;
+		} else {
+			/* Here it's not necessary to support record pre buffer */
+                        ret = -EFAULT;
+                        goto EXIT_IOCTRL;
+		}
+		if ((dp->fragcnt - 3) < PRE_WRITE_TIMES){
+			printk("Error: pre buffer times is exceed the buffer count.\n");
+                        ret = -EFAULT;
+                        goto EXIT_IOCTRL;
+		}
+                if (enable == 1){
+			dp->is_pre_buffer = true;
+                } else {
+			dp->is_pre_buffer = false;
+		}
+		dp->pre_buffer_times = 0;
+                ret = 0;
+                break;
+        }
+
 	default:
 		//printk("SOUDND ERROR: %s(line:%d) ioctl command %d is not supported\n", __func__, __LINE__, cmd);
 		ret = -1;
@@ -3008,6 +3055,7 @@ int xb_snd_dsp_open(struct inode *inode,
 
 		dpi->is_used = true;
 		dpi->is_first_start = true;
+		dpo->is_pre_buffer = false;
 		dpi->is_non_block = file->f_flags & O_NONBLOCK ? true : false;
 
 		/* enable dsp device record */

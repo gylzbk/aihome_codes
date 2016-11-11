@@ -1,1 +1,3 @@
 obj-$(CONFIG_LCD_XRM2002903) 	+= lcd-xrm2002903.o
+obj-$(CONFIG_LCD_FRD240A3602B) 	+= lcd-frd240a3602b.o
+obj-$(CONFIG_LCD_FRD20024N) 	+= lcd-frd20024n.o
