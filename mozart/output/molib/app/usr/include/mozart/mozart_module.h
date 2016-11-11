@@ -94,13 +94,17 @@ struct mozart_module_struct {
 #define module_mutex_unlock(lock) pthread_mutex_unlock(lock)
 
 #define mozart_module_mutex_lock()			\
-	do {						\
+	do {		\
+		printf("\n+++++++++++++++++++++++++++++++++++++++++++ module_lock\n");\
+		printf("--- module lock----[ %s : %s : %d ]\n", __FILE__, __func__, __LINE__);\
 		module_mutex_lock(&module_lock);	\
 	} while (0)
 
 #define mozart_module_mutex_unlock()			\
 	do {						\
 		module_mutex_unlock(&module_lock);	\
+		printf("\n--- module unlock----[ %s : %s : %d ]\n", __FILE__, __func__, __LINE__);\
+		printf("------------------------------------------- module_unlock\n");\
 	} while (0)
 
 extern char *global_app_name;
