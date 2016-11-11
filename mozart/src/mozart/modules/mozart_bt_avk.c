@@ -599,23 +599,28 @@ static int bt_avk_module_start(struct mozart_module_struct *self)
 
 static int bt_avk_module_run(struct mozart_module_struct *self)
 {
-	if (self->player_state == player_state_play)
+	if (self->player_state == player_state_play) {
+		mozart_bluetooth_avk_open_dsp(0);
 		return bt_avk_resume_handler();
-	else
+	} else {
 		return 0;
+	}
 }
 
 static int bt_avk_module_suspend(struct mozart_module_struct *self)
 {
-	if (self->player_state == player_state_play)
+	if (self->player_state == player_state_play) {
+		mozart_bluetooth_avk_close_dsp(0);
 		return bt_avk_pause_handler();
-	else
+	} else {
 		return 0;
+	}
 }
 
 static int bt_avk_module_stop(struct mozart_module_struct *self)
 {
 	self->player_state = player_state_idle;
+	mozart_bluetooth_avk_close_dsp(0);
 	mozart_bluetooth_disconnect(USE_HS_AVK);
 	mozart_bluetooth_set_visibility(false, false);
 
@@ -786,6 +791,34 @@ int mozart_bt_avk_do_play(void)
 	return ret;
 }
 
+int mozart_bt_avk_do_play_without_shm(void)
+{
+	int ret, vol;
+	struct mozart_module_struct *self = &bt_avk_module;
+
+	mozart_module_mutex_lock();
+	if (__mozart_module_is_run(self)) {
+		ret = 1;
+		self->player_state = player_state_play;
+		mozart_smartui_bt_play();
+	} else if (__mozart_module_is_start(self)) {
+		ret = 0;
+		self->player_state = player_state_play;
+		mozart_smartui_bt_play();
+	} else {
+		ret = -1;
+		share_mem_set(BT_AVK_DOMAIN, RESPONSE_CANCEL);
+	}
+	mozart_module_mutex_unlock();
+
+	pr_debug("ret = %d\n", ret);
+
+	vol = mozart_volume_get();
+	mozart_bluetooth_avk_set_volume_up(bt_avk_volume_dsp2phone(&vol));
+
+	return ret;
+}
+
 int mozart_bt_avk_do_pause(void)
 {
 	int ret;
@@ -794,14 +827,14 @@ int mozart_bt_avk_do_pause(void)
 	mozart_smartui_bt_toggle(false);
 
 	mozart_module_mutex_lock();
-	self->player_state = player_state_pause;
-
-	if (__mozart_module_is_run(self))
+	if (self->state == module_state_run) {
 		ret = 1;
-	else if (__mozart_module_is_start(self))
+		self->player_state = player_state_pause;
+	} else if (__mozart_module_is_start(self)) {
 		ret = 0;
-	else
+	} else {
 		ret = -1;
+	}
 	mozart_module_mutex_unlock();
 
 	pr_debug("ret = %d\n", ret);

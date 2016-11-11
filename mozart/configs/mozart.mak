@@ -1,7 +1,7 @@
 target := mozart
 mozart_DIR := $(TOPDIR)/src/mozart
 
-mozart_DEPENDENCIES := libaiserver libaispeech
+mozart_DEPENDENCIES := libaiserver libaispeech updater
 
 TARGETS += mozart
 TARGETS1 += mozart

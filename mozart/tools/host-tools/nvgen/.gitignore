@@ -1,0 +1,4 @@
+*.o
+nvgen
+nvparser
+nv.img
