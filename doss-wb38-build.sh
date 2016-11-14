@@ -16,7 +16,7 @@ fi
 
 if [ "$1" = "" ]; then
 	cd ${TOP_DIR}
-	source ./copy_data.sh mozart wb38
+	source ./copy_data.sh mozart
 fi
 
 cd ${TOP_DIR}/firmware
