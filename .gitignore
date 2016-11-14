@@ -13,14 +13,8 @@ cscope.*
 *.stamp_host_installed
 *._*
 *.sh~
-*build.sh
 
-
-/update/*
-/version/*
-/*.sh
-
-
+/firmware
 
 mozart/src/mozart/mozart
 mozart/src/sd_updater/update
