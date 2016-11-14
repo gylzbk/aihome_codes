@@ -1,10 +1,17 @@
 #!/bin/bash
 
-TOP_DIR=$(pwd)
+TOP_DIR1=$(pwd)
 
-UBOOT_DIR=${TOP_DIR}/uboot-doss
-KERNEL_DIR=${TOP_DIR}/kernel-3.0.8-doss
-MOZART_DIR=${TOP_DIR}/mozart
+if [ "$make_img" = "1" ]; then
+	UBOOT_DIR=${TOP_DIR}/uboot-doss
+	KERNEL_DIR=${TOP_DIR}/kernel-3.0.8-doss
+	MOZART_DIR=${TOP_DIR}/mozart
+else
+	UBOOT_DIR=${TOP_DIR1}
+	KERNEL_DIR=${TOP_DIR1}
+	MOZART_DIR=${TOP_DIR1}
+fi
+
 
 if [ "$1" = "uboot" ]; then
 	cd ${UBOOT_DIR}
@@ -56,10 +63,10 @@ if [ "$1" = "mozart" ]; then
 		make -j4
 	fi
 
-	cp  ${MOZART_DIR}/output/target/nv.img	 ${TOP_DIR}/firmware/img
-	cp  ${MOZART_DIR}/output/target/usrdata.jffs2	 ${TOP_DIR}/firmware/img
-	cp  ${MOZART_DIR}/output/target/updater.cramfs ${TOP_DIR}/firmware/img
-	cp  ${MOZART_DIR}/output/target/appfs.cramfs	 ${TOP_DIR}/firmware/img
+	cp  ./output/target/nv.img		../firmware/img
+	cp  ./output/target/usrdata.jffs2	../firmware/img
+	cp  ./output/target/updater.cramfs	../firmware/img
+	cp  ./output/target/appfs.cramfs	../firmware/img
 fi
 
 echo "------------------------------"
