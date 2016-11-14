@@ -85,7 +85,7 @@ static bt_aec_resample_init_data bt_aec_rdata = {
 	.aec_resample_data_cback = NULL,
 };
 #endif
-//static bool bt_avk_init;
+static bool bt_avk_init;
 /*******************************************************************************
  * Function
  *******************************************************************************/
@@ -242,14 +242,12 @@ static void mozart_avk_resample_data_callback(avk_callback_msg *avk_msg)
 #endif
 }
 
-int is_bt_avk_running = false;
-
 static void *bt_avk_display_handler(void *args)
 {
 	pthread_detach(pthread_self());
 	int i, col_num, data[100];
 
-	while (is_bt_avk_running) {
+	while (1) {
 		if (avk_data_stage == avk_data_stage_display) {
 			col_num = mozart_smartui_bt_get_play_col_num();
 			mozart_bt_avk_compute_height((short *)avk_data, (int *)data);
@@ -426,8 +424,7 @@ static void *thr_fn(void *args)
 #error "Not supported bt module found."
 #endif
 
-	mozart_bluetooth_set_visibility(true, true);
-//	mozart_bluetooth_set_visibility(false, false);
+	mozart_bluetooth_set_visibility(false, false);
 
 #if (SUPPORT_BSA_AVK_RESAMPLE == 1)
 #if (SUPPORT_BSA_AEC_RESAMPLE == 1)
@@ -494,16 +491,10 @@ static int start_bt(void)
 	pthread_t p_tid;
 	pthread_t bt_avk_display_thread;
 
-	is_bt_avk_running = true;
-	printf("------------------------------start bt\n\n\n");
-#if 0
 	if (!bt_avk_init) {
 		system("/usr/fs/etc/init.d/S04bsa.sh start");
 		bt_avk_init = true;
 	}
-#endif
-
-	system("/usr/fs/etc/init.d/S04bsa.sh start");
 
 #if (SUPPORT_WEBRTC == 1)
 	bt_ac.aec_init = ingenic_apm_init;
@@ -533,8 +524,6 @@ static int start_bt(void)
 
 static int stop_bt(void)
 {
-
-	printf("------------------------------stop bt\n\n\n");
 #if 0
 	system("bt_disable");
 #else
@@ -543,10 +532,7 @@ static int stop_bt(void)
 	mozart_bluetooth_hs_stop_service();
 	mozart_bluetooth_avk_stop_service();
 	mozart_bluetooth_uninit();
-
-	is_bt_avk_running = false;
-	usleep(10*1000);
-	system("/usr/fs/etc/init.d/S04bsa.sh stop");
+	/* system("/usr/fs/etc/init.d/S04bsa.sh stop"); */
 #endif
 
 	return 0;
@@ -579,8 +565,8 @@ static int bt_avk_module_start(struct mozart_module_struct *self)
 {
 	int ret, timeout = 5;
 
-	mozart_bt_avk_init_fft();
-	start_bt();
+//	mozart_speech_shutdown();
+	mozart_bluetooth_set_visibility(true, true);
 	mozart_smartui_bt_start();
 
 	if (self->module_change)
@@ -619,7 +605,6 @@ static int bt_avk_module_stop(struct mozart_module_struct *self)
 	mozart_bluetooth_disconnect(USE_HS_AVK);
 	mozart_bluetooth_set_visibility(false, false);
 
-	stop_bt();
 	//mozart_speech_startup(VOICE_WAKEUP);
 
 	return 0;
@@ -815,8 +800,8 @@ int mozart_bt_avk_startup(void)
 		pr_err("mozart_module_register fail\n");
 		return -1;
 	}
-	//mozart_bt_avk_init_fft( );
-	//start_bt();
+	mozart_bt_avk_init_fft( );
+	start_bt();
 
 	return 0;
 }
