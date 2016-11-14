@@ -9,9 +9,24 @@ create_dir()
 
 rebuild_usrdata()
 {
-    flash_erase -j /dev/mtd1 0 19
-    mount -t USRDATAFS /dev/mtdblock1 /usr/data/
+    flash_erase -j /dev/mtd2 0 0
+    mount -t USRDATAFS /dev/mtdblock2 /usr/data/
     cp /usr/share/data/* usr/data/ -a
+}
+
+mount_usrdata()
+{
+    echo "Mounting /usr/data as rw filesystem..."
+    mount -t USRDATAFS /dev/mtdblock2 /usr/data/
+    if [ $? -ne 0 ]; then
+        rebuild_usrdata
+    fi
+}
+
+mount_usrfs()
+{
+	echo "Mounting /usr/fs as app filesystem..."
+	mount -t USRFSFS /dev/mtdblock5 /usr/fs
 }
 
 echo "Setting hostname ..."
@@ -24,25 +39,24 @@ create_dir /dev/shm
 create_dir /dev/input
 mount -a
 
+create_dir /lib/modules/`uname -r`
+
 mknod /dev/null c 1 3
 mknod /dev/zero c 1 5
 mknod /dev/console c 5 1
+
+ifconfig lo up
 
 echo "Starting mdev ..."
 echo /sbin/mdev > /proc/sys/kernel/hotplug
 mdev -s
 
-echo "Mounting /usr/data as rw filesystem..."
-mount -t USRDATAFS /dev/mtdblock1 /usr/data/
-if [ $? -ne 0 ]; then
-    rebuild_usrdata
+if [ 1 == YesOrNo ]; then
+	mount_usrdata
 fi
 
-ota_state
-OTA=$?
-if [ UPDATE_LEGACY -eq 0 -o $OTA -eq 0 ]; then
-    echo "Mounting /usr/fs as app filesystem..."
-    mount -t USRFSFS /dev/mtdblock4 /usr/fs
+if ! updater -c; then
+	mount_usrfs
 fi
 
 create_dir /var/run/wpa_supplicant

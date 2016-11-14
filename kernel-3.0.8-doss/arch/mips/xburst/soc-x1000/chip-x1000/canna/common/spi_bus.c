@@ -8,10 +8,12 @@
 
 
 #if defined(CONFIG_MTD_JZ_SPI_NORFLASH)|| defined(CONFIG_MTD_JZ_SFC_NORFLASH)
-#define BOOTLOADER_SIZE     0x60000  /* 384k */
+#define BOOTLOADER_SIZE     0x40000  /* 256k */
 #define BOOTLOADER_OFFSET   0  /* 0k */
+#define NV_SIZE     0x20000  /* 128k */
+#define NV_OFFSET   BOOTLOADER_OFFSET + BOOTLOADER_SIZE /* 256k */
 #define JIFFS2_SIZE     0xa0000  /* 640k */
-#define JIFFS2_OFFSET   BOOTLOADER_SIZE  /* 384k */
+#define JIFFS2_OFFSET   NV_SIZE + NV_OFFSET /* 384k */
 #define KERNEL_SIZE     0x300000  /* 3M */
 #define KERNEL_OFFSET   JIFFS2_OFFSET +  JIFFS2_SIZE /* 1M */
 #define UPDATAFS_SIZE   0x480000  /* 4.5M */
@@ -24,6 +26,11 @@ static struct mtd_partition jz_mtd_partition1[] = {
                 .name =     "bootloader",
                 .offset =   BOOTLOADER_OFFSET,
                 .size =     BOOTLOADER_SIZE,
+        },
+        {
+                .name =     "nv",
+                .offset =   NV_OFFSET,
+                .size =     NV_SIZE,
         },
         {
                 .name =     "usrdata",
@@ -46,6 +53,54 @@ static struct mtd_partition jz_mtd_partition1[] = {
                 .size =     USERFS_SIZE,
         },
 };
+
+#define NOR32M_BOOTLOADER_SIZE     0x40000  /* 256k */
+#define NOR32M_BOOTLOADER_OFFSET   0  /* 0k */
+#define NOR32M_NV_SIZE     0x20000  /* 128k */
+#define NOR32M_NV_OFFSET   NOR32M_BOOTLOADER_OFFSET + NOR32M_BOOTLOADER_SIZE /* 256k */
+#define NOR32M_JIFFS2_SIZE     0xa0000  /* 640k */
+#define NOR32M_JIFFS2_OFFSET   NOR32M_NV_OFFSET + NOR32M_NV_SIZE /* 384k */
+#define NOR32M_KERNEL_SIZE     0x300000  /* 3M */
+#define NOR32M_KERNEL_OFFSET   NOR32M_JIFFS2_OFFSET +  NOR32M_JIFFS2_SIZE /* 1M */
+#define NOR32M_UPDATAFS_SIZE   0xc80000  /* 12.5M */
+#define NOR32M_UPDATAFS_OFFSET NOR32M_KERNEL_OFFSET +  NOR32M_KERNEL_SIZE /* 4M */
+#define NOR32M_USERFS_SIZE     0xf80000  /* 15.5M */
+#define NOR32M_USERFS_OFFSET   NOR32M_UPDATAFS_OFFSET + NOR32M_UPDATAFS_SIZE /* 16.5M */
+
+static struct mtd_partition jz_mtd_spinor_32m_partition[] = {
+        {
+                .name =     "bootloader",
+                .offset =   NOR32M_BOOTLOADER_OFFSET,
+                .size =     NOR32M_BOOTLOADER_SIZE,
+        },
+        {
+                .name =     "nv",
+                .offset =   NOR32M_NV_OFFSET,
+                .size =     NOR32M_NV_SIZE,
+        },
+        {
+                .name =     "usrdata",
+                .offset =   NOR32M_JIFFS2_OFFSET,
+                .size =     NOR32M_JIFFS2_SIZE,
+        },
+        {
+                .name =     "kernel",
+                .offset =   NOR32M_KERNEL_OFFSET,
+                .size =     NOR32M_KERNEL_SIZE,
+        },
+        {
+                .name =     "updatafs",
+                .offset =   NOR32M_UPDATAFS_OFFSET,
+                .size =     NOR32M_UPDATAFS_SIZE,
+        },
+        {
+                .name =     "userfs",
+                .offset =   NOR32M_USERFS_OFFSET,
+                .size =     NOR32M_USERFS_SIZE,
+        },
+};
+
+
 
 #endif
 
@@ -348,8 +403,8 @@ struct spi_nor_platform_data spi_nor_pdata[] = {
 
 		.st_regnum	= 3,
 #if defined(CONFIG_MTD_JZ_SPI_NORFLASH) || defined(CONFIG_MTD_JZ_SFC_NORFLASH)
-		.mtd_partition	= jz_mtd_partition1,
-		.num_partition_info = ARRAY_SIZE(jz_mtd_partition1),
+		.mtd_partition	= jz_mtd_spinor_32m_partition,
+		.num_partition_info = ARRAY_SIZE(jz_mtd_spinor_32m_partition),
 #endif
 #ifdef CONFIG_SPI_QUAD
 		.quad_mode = &flash_quad_mode[3],

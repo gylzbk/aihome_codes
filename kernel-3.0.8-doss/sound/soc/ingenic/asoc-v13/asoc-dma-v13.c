@@ -261,11 +261,8 @@ static int jz_asoc_dma_prepare_and_submit(struct snd_pcm_substream *substream)
 static int jz_pcm_prepare(struct snd_pcm_substream *substream)
 {
 	struct jz_pcm_runtime_data *prtd = substream->runtime->private_data;
-	if (atomic_read(&prtd->stopped_pending))
-		printk("prepare wait dma stopping\n");
 	while(atomic_read(&prtd->stopped_pending))
-		msleep(10);
-	printk("prepare wait dma stopping ok\n");
+		;
 	return 0;
 }
 

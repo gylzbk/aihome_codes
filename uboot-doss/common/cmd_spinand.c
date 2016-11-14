@@ -10,6 +10,7 @@
 #include <command.h>
 #include <nand.h>
 #define X_COMMAND_LENGTH 128
+
 int do_spinand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	char *cmd;
@@ -19,7 +20,8 @@ int do_spinand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 	cmd = argv[1];
 
-	if(argc != 5){
+	if(argc != 5)
+	{
 		printf("ERROR: argv error,please check the param of cmd !!!\n");
 		return CMD_RET_USAGE;
 	}
@@ -51,7 +53,7 @@ void spi_nand_init(void)
 	struct mtd_info *mtd;
 	mtd = &nand_info[0];
 
-	jz_spi_nand_init(NULL);
+	jz_spi_nand_init();
 
 	chip =mtd->priv;
 	chip->scan_bbt(mtd);

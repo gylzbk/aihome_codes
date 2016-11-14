@@ -4,6 +4,7 @@
 /mnt/sdcard			d	755	0	0       -       -       -       -       -
 /mnt/cgroup			d	755	0	0       -       -       -       -       -
 /usr/fs 			d	755	0	0       -       -       -       -       -
+/lib/modules                    d       755     0       0       -       -       -       -       -
 
 /dev/null			c	666	0	0	1	3	0	0	-
 /dev/zero			c	666	0	0	1	5	0	0	-

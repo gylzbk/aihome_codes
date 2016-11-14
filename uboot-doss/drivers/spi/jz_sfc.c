@@ -1024,14 +1024,7 @@ static void nv_map_area_addr(unsigned int *base_addr)
 
 unsigned int get_update_flag()
 {
-	unsigned nv_buf[4];
-	int count = 16;
-	unsigned int src_addr, update_flag;
-	nv_map_area_addr((unsigned int)&src_addr);
-	sfc_nor_read(src_addr, count, nv_buf);
-	update_flag = nv_buf[3];
-
-	return update_flag;
+	return 0;
 }
 
 int get_battery_flag(void)

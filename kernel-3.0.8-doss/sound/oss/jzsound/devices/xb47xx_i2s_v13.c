@@ -115,7 +115,7 @@ static int codec_ctrl(struct codec_info *cur_codec, unsigned int cmd, unsigned l
 
 int i2s_register_codec(char *name, void *codec_ctl,unsigned long codec_clk,enum codec_mode mode)
 {	/*to be modify*/
-	struct codec_info *tmp = kmalloc(sizeof(struct codec_info), GFP_KERNEL);
+	struct codec_info *tmp = kcalloc(1, sizeof(struct codec_info), GFP_KERNEL);
 	if ((name != NULL) && (codec_ctl != NULL)) {
 		memcpy(tmp->name, name, sizeof(tmp->name));
 		tmp->codec_ctl = codec_ctl;
@@ -576,12 +576,14 @@ static void i2s_set_trigger(struct i2s_device * i2s_dev, int mode)
 
 static int i2s_enable(struct i2s_device * i2s_dev, int mode)
 {
+#ifndef CONFIG_AKM4951_WB38_MUTE
 	unsigned long replay_rate = DEFAULT_REPLAY_SAMPLERATE;
 	unsigned long record_rate = DEFAULT_RECORD_SAMPLERATE;
 	unsigned long replay_format = 16;
 	unsigned long record_format = 16;
 	int replay_channel = DEFAULT_REPLAY_CHANNEL;
 	int record_channel = DEFAULT_RECORD_CHANNEL;
+#endif
 	struct dsp_pipe *dp_other = NULL;
 	struct codec_info *cur_codec = i2s_dev->cur_codec;
 	if (!cur_codec)
@@ -589,20 +591,26 @@ static int i2s_enable(struct i2s_device * i2s_dev, int mode)
 
 	if (mode & CODEC_WMODE) {
 		dp_other = cur_codec->dsp_endpoints->in_endpoint;
+#ifndef CONFIG_AKM4951_WB38_MUTE
 		i2s_set_fmt(i2s_dev, &replay_format,mode);
 		i2s_set_channel(i2s_dev, &replay_channel,mode);
 		i2s_set_rate(i2s_dev, &replay_rate,mode);
+#endif
 		/* just for anti pop if underrun happened when replaying */
 		__i2s_play_lastsample(i2s_dev);
 	}
 	if (mode & CODEC_RMODE) {
 		dp_other = cur_codec->dsp_endpoints->out_endpoint;
+#ifndef CONFIG_AKM4951_WB38_MUTE
 		i2s_set_fmt(i2s_dev, &record_format,mode);
 		i2s_set_channel(i2s_dev, &record_channel,mode);
 		i2s_set_rate(i2s_dev, &record_rate,mode);
 		i2s_set_filter(i2s_dev, mode,record_channel);
+#endif
 	}
+#ifndef CONFIG_AKM4951_WB38_MUTE
 	i2s_set_trigger(i2s_dev, mode);
+#endif
 
 	if (!dp_other->is_used) {
 		__i2s_select_i2s(i2s_dev);
@@ -840,6 +848,10 @@ static long i2s_ioctl_2(struct snd_dev_data *ddata, unsigned int cmd, unsigned l
 	struct codec_info *cur_codec = i2s_dev->cur_codec;
 
 	switch(cmd) {
+		case SND_DSP_FLUSH_WORK:
+			/* wait for previous i2s_work_queue finish */
+          	flush_work_sync(&i2s_dev->i2s_work);
+			break;
 		case SND_DSP_GET_REPLAY_RATE:
 			/* wait for do_ioctl_work operation finish */
 			flush_work_sync(&i2s_dev->i2s_work);
@@ -1166,15 +1178,17 @@ static int i2s_init_pipe_2(struct dsp_pipe *dp, enum dma_data_direction directio
 	dp->dma_config.src_addr_width = DMA_SLAVE_BUSWIDTH_2_BYTES;
 	dp->dma_config.dst_addr_width = DMA_SLAVE_BUSWIDTH_2_BYTES;
 	dp->dma_type = JZDMA_REQ_I2S0;
-	dp->fragsize = FRAGSIZE_L;
-	dp->fragcnt = FRAGCNT_B;
 
 	if (direction == DMA_TO_DEVICE) {
+		dp->fragsize = FRAGSIZE_M;
+		dp->fragcnt = FRAGCNT_H;
 		dp->dma_config.src_maxburst = 64;
 		dp->dma_config.dst_maxburst = 64;
 		dp->dma_config.dst_addr = iobase + AICDR;
 		dp->dma_config.src_addr = 0;
 	} else if (direction == DMA_FROM_DEVICE) {
+		dp->fragsize = FRAGSIZE_M;
+		dp->fragcnt = FRAGCNT_B;
 		dp->dma_config.src_maxburst = 32;
 		dp->dma_config.dst_maxburst = 32;
 		dp->dma_config.src_addr = iobase + AICDR;

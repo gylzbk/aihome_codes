@@ -940,6 +940,10 @@ static long i2s_ioctl_2(struct snd_dev_data *ddata, unsigned int cmd, unsigned l
 	struct codec_info *cur_codec = i2s_dev->cur_codec;
 
 	switch(cmd) {
+		case SND_DSP_FLUSH_WORK:
+			/* wait for previous i2s_work_queue finish */
+          	flush_work_sync(&i2s_dev->i2s_work);
+			break;
 		case SND_DSP_GET_REPLAY_RATE:
 			/* wait for do_ioctl_work operation finish */
 			flush_work_sync(&i2s_dev->i2s_work);

@@ -143,6 +143,12 @@ if JZ_EXTERNAL_CODEC_V13 #external codec
         help
                 Say "Y" to switch akm4951 to AEC mode
 
+	config AKM4951_WB38_MUTE
+        bool "only for wb-38 mute"
+	depends on AKM4951_AEC_MODE
+        help
+                Say "Y" to choose wb38 mute
+
 	config AKM4345_EXTERNAL_CODEC
         bool "akm4345 external codec"
         help

@@ -64,15 +64,6 @@ int __weak cleanup_before_linux (void)
 void __noreturn jump_to_image_linux(void *arg)
 {
 	debug("Entering kernel arg pointer: 0x%p\n", arg);
-#if defined (CONFIG_GET_WIFI_MAC)
-	char *wifi_mac_str = NULL;
-	unsigned int mac_addr[4] = {};
-#endif
-#ifdef CONFIG_GET_BAT_PARAM
-	char *bat_param_str = NULL;
-	unsigned char *bat_str = "4400";
-	unsigned char buf[3];
-#endif
 	static u32 *param_addr = NULL;
 	typedef void (*image_entry_arg_t)(int, char **, void *)
 		__attribute__ ((noreturn));
@@ -80,22 +71,6 @@ void __noreturn jump_to_image_linux(void *arg)
 	debug("Entering kernel arg pointer: 0x%p\n", arg);
 	image_entry_arg_t image_entry =
 		(image_entry_arg_t) spl_image.entry_point;
-
-#if defined (CONFIG_GET_WIFI_MAC)
-	memset(mac_addr, 0 , sizeof(mac_addr));
-	sfc_nor_load(WIFI_MAC_READ_ADDR, WIFI_MAC_READ_COUNT, mac_addr);
-	wifi_mac_str = strstr(arg, "wifi_mac");
-	if (wifi_mac_str != NULL)
-		memcpy(wifi_mac_str + 9, mac_addr, WIFI_MAC_READ_COUNT);
-#endif
-#ifdef CONFIG_GET_BAT_PARAM
-	sfc_nor_load(BAT_PARAM_READ_ADDR, BAT_PARAM_READ_COUNT, buf);
-	bat_param_str = strstr(arg, "bat");
-	/* [0x69, 0xaa, 0x55] new battery's flag in nv */
-	if((bat_param_str != NULL) && (buf[0] == 0x69) && (buf[1] == 0xaa)
-			&& (buf[2] ==0x55))
-		memcpy(bat_param_str + 4, bat_str, 4);
-#endif
 	cleanup_before_linux();
 	param_addr = (u32 *)CONFIG_PARAM_BASE;
 	param_addr[0] = 0;
