@@ -1504,7 +1504,7 @@ static void *aitalk_running_func(void *args)
 				pr_debug("[%s:%d] json_tokener_parse c error: %s\n", __func__,__LINE__, cmd);
 			}
 		}
-		usleep(1000);
+	//	usleep(1000);
 	}
 	is_aitalk_run= false;
 	return NULL;
