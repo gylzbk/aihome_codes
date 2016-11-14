@@ -1298,6 +1298,11 @@ static void dwc2_ep0_handle_out_interrupt(struct dwc2_ep *dep) {
 		doepint.b.ahberr = 0;
 	}
 
+	if (doepint.b.outtknepdis) {
+		CLEAR_OUT_EP0_INTR(outtknepdis);
+		doepint.b.outtknepdis = 0;
+	}
+
 	/* Setup Phase Done*/
 	if (doepint.b.setup || doepint.b.back2backsetup) {
 		deptsiz0_data_t	doeptsiz;

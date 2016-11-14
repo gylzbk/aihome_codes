@@ -31,7 +31,8 @@ int bcm_ap6255_manual_sysfs_init(struct device *dev);
 #ifndef CONFIG_NAND
 #ifdef CONFIG_JZMMC_V12_MMC0
 static struct card_gpio tf_gpio = {
-	.cd				= {GPIO_SD0_CD_N,   LOW_ENABLE},
+	.cd				= {-1,   -1},
+//	.cd				= {GPIO_SD0_CD_N,   LOW_ENABLE},
 	.wp				= {-1,	-1},
 	.pwr				= {-1,	-1},
 	.rst				= {-1,  -1},
@@ -39,7 +40,7 @@ static struct card_gpio tf_gpio = {
 /* common pdata for both tf_card and sdio wifi on fpga board */
 
 struct jzmmc_platform_data tf_pdata = {
-	.removal  			= REMOVABLE,
+	.removal  			= NONREMOVABLE,
 	.sdio_clk			= 0,
 	.ocr_avail			= MMC_VDD_32_33 | MMC_VDD_33_34,
 #ifdef MSC0_PORTA_1BIT

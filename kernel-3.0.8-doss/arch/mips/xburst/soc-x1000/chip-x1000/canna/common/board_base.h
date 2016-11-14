@@ -14,6 +14,11 @@ extern struct platform_device akm4345_spi_device;
 extern struct akm4345_platform_data akm4345_spi_data;
 #endif
 
+#ifdef CONFIG_AKM4951_EXTERNAL_CODEC
+extern struct snd_codec_data akm4951_codec_data;
+extern struct platform_device akm4951_codec_device;
+#endif
+
 #ifdef CONFIG_JZMMC_V12_MMC0
 extern struct jzmmc_platform_data tf_pdata;
 #endif
@@ -38,11 +43,13 @@ extern struct platform_device jz_i2c0_device;
 extern struct i2c_board_info jz_i2c0_devs[];
 extern int jz_i2c0_devs_size;
 #endif
+
 #if (defined(CONFIG_SOFT_I2C1_GPIO_V12_JZ) || defined(CONFIG_I2C1_V12_JZ))
 extern struct platform_device jz_i2c1_device;
 extern struct i2c_board_info jz_i2c1_devs[];
 extern int jz_i2c1_devs_size;
 #endif
+
 #if (defined(CONFIG_SOFT_I2C2_GPIO_V12_JZ) || defined(CONFIG_I2C2_V12_JZ))
 extern struct platform_device jz_i2c2_device;
 extern struct i2c_board_info jz_i2c2_devs[];
@@ -113,6 +120,12 @@ extern struct jzfb_platform_data jzfb_pdata;
 #endif
 #ifdef CONFIG_LCD_XRM2002903
 extern struct platform_device xrm2002903_device;
+#endif
+#ifdef CONFIG_LCD_FRD240A3602B
+extern struct platform_device frd240a3602b_device;
+#endif
+#ifdef CONFIG_LCD_FRD20024N
+extern struct platform_device frd240a3602b_device;
 #endif
 /* end of LCD driver */
 

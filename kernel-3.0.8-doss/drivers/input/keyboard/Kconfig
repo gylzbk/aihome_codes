@@ -282,6 +282,12 @@ config GPIO_INTERPULLUP_ENABLE
           For example,
           This option applies to Halley V2.0 Board
 
+config DOSS_WB38_INDEPENDENT_KEY
+	tristate "ENABLE INDEPENDENT KEY FOR DOSS-WB38"
+	depends on KEYBOARD_JZGPIO
+	help
+	  choose the independent key for doss-wb38
+
 config TM57PE20A_TOUCH
 	tristate "TM57PE20A TOUCH BUTTON"
 	depends on GENERIC_GPIO

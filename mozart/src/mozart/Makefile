@@ -32,18 +32,18 @@ SRCS += modules/mozart_prompt_tone.c modules/mozart_net.c modules/mozart_linein.
 SRCS += mozart_misc.c 
 
 # common opts.
-CFLAGS = -fPIC -Wall -g -O2 -I. -I$(MOLIB_DIR)/usr/include  -I$(MOLIB_DIR)/usr/include/mozart -I$(MOLIB_UPDATER_DIR)/usr/include -I$(MOZART_DIR)/usr/include -I$(DIR_CUR)/include/
+CFLAGS = -fPIC -Wall -g -O2 -I. -I$(MOLIB_DIR)/usr/include  -I$(MOLIB_DIR)/usr/include/mozart -I$(MOLIB_UPDATER_DIR)/usr/include -I$(MOZART_UPDATER_DIR)/usr/include -I$(MOZART_DIR)/usr/include -I$(DIR_CUR)/include/
 CFLAGS += -rdynamic -fasynchronous-unwind-tables -Wall -Werror
 #CFLAGS += -DFIXED_VOLUME
 #CFLAGS += -DMOZART_RELEASE
 CFLAGS += -DMOZART_RELEASE_NAME
 
-LDFLAGS = -g -lpthread -lstdc++ -L$(MOLIB_DIR)/usr/lib -L$(MOLIB_UPDATER_DIR)/usr/lib -L$(MOZART_DIR)/usr/lib
+LDFLAGS = -g -lpthread -lstdc++ -L$(MOLIB_DIR)/usr/lib -L$(MOLIB_UPDATER_DIR)/usr/lib -L$(MOZART_DIR)/usr/lib -L$(MOZART_UPDATER_DIR)/usr/lib
 LDFLAGS += -Wl,-rpath-link,$(MOLIB_DIR)/usr/lib:$(MOLIB_UPDATER_DIR)/usr/lib:$(MOZART_DIR)/usr/lib
 
 # basic depends.
 LDFLAGS += -levent -lpower -lwifi -lvolume -ltips -lsharememory -lini -lutils -lpthread -lplayer -lresample  
-LDFLAGS += -lwifi -ltips -lutils -lplayer -lvolume -ljson-c -llinklist -lcurl -lssl -lcrypto -lz -lrt 
+LDFLAGS += -lwifi -ltips -lutils -lplayer -lvolume -ljson-c -llinklist -lcurl -lssl -lcrypto -lz -lrt -lupdater
 
 
 ifeq ("$(VR)","0")
@@ -141,7 +141,7 @@ endif
 
 ifneq ($(UPDATE_LEGACY),1)
     SRCS += mozart_update.c mozart_nvrw.c
-    SRCS += modules/mozart_update_control.c
+    SRCS += modules/mozart_update_control1.c
 else
     $(info update legacy deployed!!!)
     SRCS += mozart_update_legacy.c

@@ -1,3 +1,4 @@
-update
-wr_flag
+*.o
+*.a
+libupdater.so
 updater

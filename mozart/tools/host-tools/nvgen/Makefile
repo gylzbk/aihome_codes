@@ -1,35 +1,42 @@
-# NV Image generator Makefile
-
 CC = gcc
-INSTALL = install
+CFLAGS = -m32 -Wall -I. -I$(MOLIB_UPDATER_DIR)/usr/include
+LDFLAGS = -m32 -lpthread -L$(MOLIB_UPDATER_DIR)/usr/lib -lini_x86
 
 DESTDIR =
 PREFIX = /usr
 LIBDIR = $(PREFIX)/lib
-SBINDIR = $(PREFIX)/sbin
+BINDIR = $(PREFIX)/bin
 INCDIR = $(PREFIX)/include
 TESTDIR = $(PREFIX)/test
 
+INSTALL    = install
+
 SRCS = nvgen.c
-HEADER = nv_wr.h
+OBJS = $(patsubst %.c, %.c.o, $(SRCS))
 
-CFLAGS = -m32 -Wall -Werror
+all:nvgen nvparser
 
-all: nvgen
+%.c.o:%.c
+	$(CC) $(CFLAGS) -c $^ -o $@
 
-nvgen: $(SRCS) $(HEADER)
-	$(CC) $(CFLAGS) $< -o $@
+nvgen: nvgen.c.o
+	$(CC) $? $(LDFLAGS) -o $@
 
-install: nvgen
-	$(INSTALL) -d $(DESTDIR)$(SBINDIR)
-	$(INSTALL) -m 755 nvgen $(DESTDIR)$(SBINDIR)
+nvparser: nvparser.c.o
+	$(CC) $? $(LDFLAGS) -o $@
 
-uninstall:
-	-rm -rf $(DESTDIR)$(SBINDIR)/nvgen
+install:$(TARGETS)
+	$(INSTALL) -d $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 755 nvgen $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 755 nvparser $(DESTDIR)$(BINDIR)
 
 clean:
-	@-rm nvgen
+	-rm -rf nvgen nvparser *.o
 
 distclean: clean
 
-.PHONY: all nvgen install uninstall clean distclean
+uninstall:
+	rm -rf $(DESTDIR)$(BINDIR)/nvgen
+	rm -rf $(DESTDIR)$(BINDIR)/nvparser
+
+.PHONY:all clean install uninstall nvgen nvparser

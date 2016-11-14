@@ -62,6 +62,89 @@ static void codec_get_format_cap(unsigned long *format)
 
 /* Below is akm4951 registers value from 0x02 to 0x4F */
 unsigned char akm4951_registers[][2] = {
+#if 1
+// AKM_Register AK4951 80
+{ 0x00 ,0xC7 },
+{ 0x01 ,0xBC },
+{ 0x02 ,0x00 },
+{ 0x03 ,0x00 },
+{ 0x04 ,0x04 },
+{ 0x05 ,0x7B },
+{ 0x06 ,0x0F },
+{ 0x07 ,0x00 },
+{ 0x08 ,0x00 },
+{ 0x09 ,0x00 },
+{ 0x0A ,0x60 },
+{ 0x0B ,0x00 },
+{ 0x0C ,0x91 },
+{ 0x0D ,0x91 },
+{ 0x0E ,0x91 },
+{ 0x0F ,0xA0 },
+{ 0x10 ,0x80 },
+{ 0x11 ,0x80 },
+{ 0x12 ,0x00 },
+{ 0x13 ,0x18 },
+{ 0x14 ,0x18 },
+{ 0x15 ,0x06 },
+{ 0x16 ,0x00 },
+{ 0x17 ,0x00 },
+{ 0x18 ,0x00 },
+{ 0x19 ,0x00 },
+{ 0x1A ,0x0C },
+{ 0x1B ,0x04 },
+{ 0x1C ,0x21 },
+{ 0x1D ,0x07 },
+{ 0x1E ,0xB0 },
+{ 0x1F ,0x1F },
+{ 0x20 ,0x9F },
+{ 0x21 ,0x20 },
+{ 0x22 ,0x2F },
+{ 0x23 ,0x13 },
+{ 0x24 ,0x5D },
+{ 0x25 ,0x06 },
+{ 0x26 ,0xA6 },
+{ 0x27 ,0x0C },
+{ 0x28 ,0x86 },
+{ 0x29 ,0x2D },
+{ 0x2A ,0x1D },
+{ 0x2B ,0x0B },
+{ 0x2C ,0x72 },
+{ 0x2D ,0xE7 },
+{ 0x2E ,0x95 },
+{ 0x2F ,0xF9 },
+{ 0x30 ,0x0F },
+{ 0x31 ,0xC1 },
+{ 0x32 ,0x4F },
+{ 0x33 ,0x00 },
+{ 0x34 ,0xC1 },
+{ 0x35 ,0x3E },
+{ 0x36 ,0x3C },
+{ 0x37 ,0xE1 },
+{ 0x38 ,0xCC },
+{ 0x39 ,0x00 },
+{ 0x3A ,0xBB },
+{ 0x3B ,0x3C },
+{ 0x3C ,0x30 },
+{ 0x3D ,0xE3 },
+{ 0x3E ,0x0E },
+{ 0x3F ,0x09 },
+{ 0x40 ,0xEA },
+{ 0x41 ,0x10 },
+{ 0x42 ,0x36 },
+{ 0x43 ,0x04 },
+{ 0x44 ,0x9E },
+{ 0x45 ,0x0C },
+{ 0x46 ,0x00 },
+{ 0x47 ,0x00 },
+{ 0x48 ,0x7A },
+{ 0x49 ,0x12 },
+{ 0x4A ,0x91 },
+{ 0x4B ,0x0E },
+{ 0x4C ,0xCE },
+{ 0x4D ,0xFD },
+{ 0x4E ,0x43 },
+{ 0x4F ,0x1A },
+#else
 	{ 0x02 ,0x00 },
 	{ 0x03 ,0x00 },
 	{ 0x04 ,0x04 },
@@ -141,6 +224,7 @@ unsigned char akm4951_registers[][2] = {
 	{ 0x4D ,0xE7 },
 	{ 0x4E ,0xD4 },
 	{ 0x4F ,0xE0 },
+#endif
 };
 
 static int akm4951_i2c_write_regs(unsigned char reg, unsigned char* data, unsigned int len)
@@ -226,10 +310,11 @@ static void gpio_disable_spk_en(void)
 			gpio_direction_output(codec_platform_data->gpio_spk_en.gpio , 1);
 		}
 	}
+	
 }
 
 static int codec_set_replay_rate(unsigned long *rate)
-{
+{	
 	int i = 0;
 	unsigned char data = 0x0;
 	unsigned long mrate[9] = {
@@ -256,15 +341,16 @@ static int codec_set_replay_rate(unsigned long *rate)
 	}
 
 	user_replay_rate = *rate;
-	gpio_disable_spk_en();
-	msleep(50);
+	//gpio_disable_spk_en();
+	//msleep(50);
 	akm4951_i2c_read_reg(0x06, &data, 1);
 	data &= 0xf0;
 	data |= reg[i];
 	akm4951_i2c_write_regs(0x06, &data, 1);
 	msleep(50);            //This delay is to wait for akm4951 i2s clk stable.
-	if (user_replay_volume)
-		gpio_enable_spk_en();
+	//if (user_replay_volume)
+		//gpio_enable_spk_en();
+	
 	return 0;
 }
 
@@ -301,8 +387,10 @@ static int codec_set_device(enum snd_device_t device)
 			akm4951_i2c_write_regs(0x00, &data, 1);
 			msleep(5);
 			codec_set_replay_rate(&user_replay_rate);
-			if (user_replay_volume && user_replay_state)
+			if (user_replay_volume && user_replay_state) {
 				gpio_enable_spk_en();
+				mdelay(150);
+			}
 			break;
 		case SND_DEVICE_LINEIN_RECORD:
 			user_linein_state = 1;
@@ -324,6 +412,7 @@ static int codec_set_device(enum snd_device_t device)
 			msleep(5);
 			if (user_replay_volume) {
 				gpio_enable_spk_en();
+				mdelay(150);
 #ifdef CONFIG_PRODUCT_X1000_ASLMOM
 				/* This is only for aslmom board battery power detection */
 				jz_notifier_call(NOTEFY_PROI_NORMAL, JZ_POST_HIBERNATION, NULL);
@@ -444,7 +533,7 @@ static int dump_codec_regs(void)
 
 static int codec_set_replay_volume(int *val)
 {
-	char data = 0x0;
+	unsigned char data = 0x0;
 	/* get current volume */
 	if (*val < 0) {
 		*val = user_replay_volume;
@@ -454,12 +543,14 @@ static int codec_set_replay_volume(int *val)
 
 	user_replay_volume = *val;
 	if (*val) {
-#ifdef CONFIG_PRODUCT_X1000_ASLMOM
+#if defined(CONFIG_PRODUCT_X1000_ASLMOM) || defined(CONFIG_PRODUCT_X1000_CANNA)
 		/* use -2dB ~ -42dB */
-		data = (100 - *val)*(30+ (100 - *val) /2) /100 + 28;
+		//data = (100 - *val)*(30+ (100 - *val) /2) /100 + 28;
+		
+		data = (100 - *val)*(30+ (100 - *val) /2) /100 + 60;
 #else
 		/* use 0dB ~ -50dB */
-		data = 100 - *val + 24;
+		data = 100 - *val + 44;
 #endif
 		akm4951_i2c_write_regs(0x13, &data, 1);
 		akm4951_i2c_write_regs(0x14, &data, 1);
@@ -584,14 +675,16 @@ static int jzcodec_ctl(unsigned int cmd, unsigned long arg)
 		case CODEC_ANTI_POP:
 			if (arg & CODEC_RMODE)
 				break;
-
+#ifndef CONFIG_AKM4951_WB38_MUTE
 			if (user_replay_volume) {
 				gpio_enable_spk_en();
+				mdelay(125);
 #ifdef CONFIG_PRODUCT_X1000_ASLMOM
 				/* This is only for aslmom board battery power detection */
 				jz_notifier_call(NOTEFY_PROI_NORMAL, JZ_POST_HIBERNATION, NULL);
 #endif
 			}
+#endif
 			user_replay_state = 1;
 			break;
 
@@ -607,6 +700,16 @@ static int jzcodec_ctl(unsigned int cmd, unsigned long arg)
 
 		case CODEC_SET_REPLAY_RATE:
 			ret = codec_set_replay_rate((unsigned long*)arg);
+#ifdef CONFIG_AKM4951_WB38_MUTE
+			if (user_replay_volume) {
+				gpio_enable_spk_en();
+				mdelay(135);
+#ifdef CONFIG_PRODUCT_X1000_ASLMOM
+				/* This is only for aslmom board battery power detection */
+				jz_notifier_call(NOTEFY_PROI_NORMAL, JZ_POST_HIBERNATION, NULL);
+#endif
+			}
+#endif
 			break;
 
 		case CODEC_SET_RECORD_RATE:

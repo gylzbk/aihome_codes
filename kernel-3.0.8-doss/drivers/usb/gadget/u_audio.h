@@ -28,6 +28,12 @@
  * function which provides control and stream interfaces.
  */
 
+#define MIC_SATE            96000
+#define MIC_CH              2
+#define SPK_SATE            48000
+#define SPK_CH              2
+
+
 struct gaudio_snd_dev {
 	struct gaudio			*card;
 	struct file			*filp;
@@ -50,7 +56,54 @@ struct gaudio {
 	/* TODO */
 };
 
-int gaudio_setup(struct gaudio *card);
+struct f_audio_buf {
+	char *buf;
+	unsigned int actual;
+	struct list_head list;
+};
+
+struct f_audio {
+	struct gaudio			card;
+
+	/* endpoints handle full and/or high speeds */
+	struct usb_ep			*out_ep;
+	struct usb_endpoint_descriptor	*out_desc;
+
+	struct usb_ep			*in_ep;
+	struct usb_endpoint_descriptor	*in_desc;
+
+
+	spinlock_t			lock;
+	struct f_audio_buf *copy_buf;
+	struct work_struct playback_work;
+	struct list_head play_queue;
+
+	int in_online;
+	int out_online;
+	/* abort record */
+	spinlock_t audio_list_lock;
+	struct list_head idle_reqs;
+	struct list_head audio_data_list;
+	struct list_head out_reqs_list;
+	atomic_t  interface_conn;
+	volatile u8  mic_disconn;
+
+	wait_queue_head_t online_wq;
+	wait_queue_head_t write_wq;
+	wait_queue_head_t read_wq;
+	atomic_t open_excl;
+	atomic_t write_excl;
+	atomic_t read_excl;
+	struct usb_request * cur_req;
+
+	/* Control Set command */
+	struct list_head cs;
+	u8 set_cmd;
+	struct usb_audio_control *set_con;
+};
+
+int gaudio_setup(struct f_audio *);
 void gaudio_cleanup(void);
+#define CONFIG_ANDROID
 
 #endif /* __U_AUDIO_H */

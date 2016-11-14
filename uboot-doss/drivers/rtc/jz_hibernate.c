@@ -32,7 +32,12 @@
 #include <linux/compiler.h>
 #include "jz47xx_rtc.h"
 
+#ifdef CONFIG_PMU_AXP173
 extern int axp173_power_off(void);
+#endif
+#ifdef CONFIG_PMU_CW2015
+extern int cw2015_power_off(void);
+#endif
 
 static unsigned int jzrtc_readl(int offset)
 {
@@ -97,7 +102,13 @@ void jz_hibernate(void)
 	/* Put CPU to hibernate mode */
 	jzrtc_writel(RTC_HCR, 0x1);
 
+#ifdef CONFIG_PMU_AXP173
 	axp173_power_off();
+#endif
+
+#ifdef CONFIG_PMU_CW2015
+	cw2015_power_off();
+#endif
 
         while(1)
 		printf("%s:We should NOT come here.%08x\n",__func__, jzrtc_readl(RTC_HCR));

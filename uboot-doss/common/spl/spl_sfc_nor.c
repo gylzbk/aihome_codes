@@ -7,10 +7,21 @@
 #include <asm/arch/sfc.h>
 #include <asm/arch/spi.h>
 #include <asm/arch/clk.h>
-#ifdef CONFIG_ASLMOM_BOARD
-#include <asm/arch/rtc.h>
-#include <asm/arch/gpio.h>
-#endif
+#include <asm/nvrw_interface.h>
+#include <linux/compiler.h>
+
+/*
+ * Weak default function for board specific boot type.
+ * Some boards/platforms might not need it, so just provide
+ * an empty stub here.
+ *
+ * @return return 0 on default, return 1 on boot uboot, return 2 on boot kernel
+ */
+__weak int spl_get_boot_type(void)
+{
+	return 0;
+}
+
 static uint32_t jz_sfc_readl(unsigned int offset)
 {
 	return readl(SFC_BASE + offset);
@@ -45,7 +56,6 @@ static void sfc_set_read_reg(unsigned int cmd, unsigned int addr,
 		unsigned int addr_plus, unsigned int addr_len, unsigned int data_en)
 {
 	volatile unsigned int tmp;
-	unsigned int timeout = 0xffff;
 
 	tmp = jz_sfc_readl(SFC_GLB);
 	tmp &= ~PHASE_NUM_MSK;
@@ -133,7 +143,7 @@ static int sfc_read(unsigned int addr, unsigned int addr_plus,
 		return 0;
 }
 
-void sfc_init()
+void sfc_init(void)
 {
 	unsigned int i;
 	volatile unsigned int tmp;
@@ -168,12 +178,8 @@ void sfc_init()
 
 void sfc_nor_load(unsigned int src_addr, unsigned int count,unsigned int dst_addr)
 {
-	int i,j;
-	unsigned char *data;
-	unsigned int temp;
-	int sfc_mode = 0;
 	int ret = 0;
-	unsigned int spl_len = 0,words_of_spl = 0;
+	unsigned int words_of_spl = 0;
 	int addr_len = 3;
 
 	if ((count % 4) == 0) {
@@ -192,11 +198,11 @@ void sfc_nor_load(unsigned int src_addr, unsigned int count,unsigned int dst_add
 	return ;
 }
 
-void spl_load_kernel(struct image_header *header)
+void spl_load_kernel(struct image_header *header, long offset)
 {
-	sfc_nor_load(CONFIG_SPL_OS_OFFSET, sizeof(struct image_header), CONFIG_SYS_TEXT_BASE);
+	sfc_nor_load(offset, sizeof(struct image_header), CONFIG_SYS_TEXT_BASE);
 	spl_parse_image_header(header);
-	sfc_nor_load(CONFIG_SPL_OS_OFFSET, spl_image.size, spl_image.load_addr);
+	sfc_nor_load(offset, spl_image.size, spl_image.load_addr);
 }
 
 void spl_load_uboot(struct image_header *header)
@@ -205,21 +211,17 @@ void spl_load_uboot(struct image_header *header)
 	sfc_nor_load(CONFIG_UBOOT_OFFSET, CONFIG_SYS_MONITOR_LEN,CONFIG_SYS_TEXT_BASE);
 }
 
-#define NV_AREA_BASE_ADDR 0x48400
-
-void spl_sfc_nor_load_image(void)
+char *spl_sfc_nor_load_image(void)
 {
-	struct image_header *header;
+	/* 0: default; 1: boot uboot; 2: boot kernel */
+	int boot_type;
+
+	char *cmdargs = NULL;
+	struct image_header *header = (struct image_header *)CONFIG_SYS_TEXT_BASE;
+
 #ifdef CONFIG_SPL_OS_BOOT
-	unsigned nv_buf[4];
-	int count = 16;
-	unsigned int src_addr, updata_flag;
+	nvinfo_t *nvinfo = (nvinfo_t *)CONFIG_SPL_NV_BASE;
 #endif
-#ifdef CONFIG_ASLMOM_BOARD
-	//set PB(8),USB_DETE PIN as input
-	gpio_port_direction_input(1, 8);
-#endif
-	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE);
 
 	/*the sfc clk is 1/2 ssi clk */
 	clk_set_rate(SSI,70000000);
@@ -228,49 +230,54 @@ void spl_sfc_nor_load_image(void)
 	jz_sfc_writel(1 << 2,SFC_TRIG);
 
 	sfc_init();
-#ifdef CONFIG_SPL_OS_BOOT
-#ifdef CONFIG_NOR_SPL_BOOT_OS /* norflash spl boot kernel */
-	spl_load_kernel(header);
-	return ;
-#endif //CONFIG_NOR_SPL_BOOT_OS
-	sfc_nor_load(NV_AREA_BASE_ADDR, count, nv_buf);
-	updata_flag = nv_buf[3];
 
-	if ((updata_flag & 0x3) != 0x3) {
-#ifdef CONFIG_ASLMOM_BOARD
-		int usb_insert;
-		int low_power;
-		int rsr = cpm_inl(CPM_RSR);
-		int hspr = readl(RTC_BASE + RTC_HSPR);
-
-		usb_insert = !gpio_get_value(40);
-		low_power = low_power_detect();
-
-		if (rsr & CPM_RSR_WR) {
-			/* reboot */
-			if (hspr == 0x50574f46)
-				spl_load_uboot(header);
-			/* low power */
-			else if (low_power)
-				spl_load_uboot(header);
-			else
-				spl_load_kernel(header);
-		} else if (usb_insert) {
-			/* usb insert */
-			spl_load_uboot(header);
-		} else if (low_power) {
-			/* low power */
-			spl_load_uboot(header);
-		} else
-			spl_load_kernel(header);
-#else
-		spl_load_kernel(header);
-#endif
-	} else
-#endif
-	{
+	boot_type = spl_get_boot_type();
+	if (boot_type == 1) {
 		spl_load_uboot(header);
+	} else if (boot_type == 2) {
+		spl_load_kernel(header, CONFIG_SPL_OS_OFFSET);
+		cmdargs = CONFIG_SYS_SPL_ARGS_ADDR;
+	} else if (boot_type == 0) {
+#ifdef CONFIG_SPL_OS_BOOT
+		sfc_nor_load(NV_AREA_BASE_ADDR, sizeof(nvinfo_t), nvinfo);
+		if ((nvinfo->magic[0] == 'O') &&
+			(nvinfo->magic[1] == 'T') &&
+			(nvinfo->magic[2] == 'A') &&
+			(nvinfo->magic[3] == '\0')) {
+			debug("nvinfo->magic, nvinfo->update_flag=%d, nvinfo->update_process: %d.\n",
+				  nvinfo->magic, nvinfo->update_flag, nvinfo->update_process);
+		} else {
+			/* if magic not valid, force to nonupdate status */
+			printf("Invalid nv area.\n");
+			nvinfo->update_flag = FLAG_NONUPDATE;
+		}
+		if (nvinfo->update_flag == FLAG_NONUPDATE) {
+			spl_load_kernel(header, CONFIG_SPL_OS_OFFSET);
+			cmdargs = CONFIG_SYS_SPL_ARGS_ADDR;
+		} else if (nvinfo->update_flag == FLAG_UPDATE) {
+			switch (nvinfo->update_process) {
+			case PROCESS_2:
+				debug("update, process: %d, load kernel from 0x%x\n",
+					  nvinfo->update_process, CONFIG_SPL_OTA_OS_OFFSET);
+				spl_load_kernel(header, CONFIG_SPL_OTA_OS_OFFSET);
+				cmdargs = CONFIG_SYS_SPL_OTA_ARGS_ADDR;
+				break;
+			case PROCESS_1:
+			case PROCESS_3:
+			case PROCESS_DONE:
+				debug("update, process: %d, load kernel from 0x%x\n",
+					  nvinfo->update_process, CONFIG_SPL_OS_OFFSET);
+				spl_load_kernel(header, CONFIG_SPL_OS_OFFSET);
+				cmdargs = CONFIG_SYS_SPL_ARGS_ADDR;
+				break;
+			}
+		} else {
+			debug("Invalid update flag: %d.\n", nvinfo->update_flag);
+		}
+#else
+		spl_load_uboot(header);
+#endif
 	}
 
-	return ;
+	return cmdargs;
 }
