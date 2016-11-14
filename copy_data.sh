@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-TOP_DIR1=$(pwd)
+TOP_DIR1=$(pwd) 
 
 uboot_flag=0
 kernel_flag=0
@@ -15,21 +15,20 @@ fi
 if [ ${TOP_DIR1##*/} = "mozart" ]; then
 	mozart_flag=1
 fi
-
-if [ ${uboot_flag} = "0" -a ${mozart_flag} = "0" -a ${mozart_flag} = "0" ]; then
+if [ ${uboot_flag} = 0 -a ${kernel_flag} = 0 -a ${mozart_flag} = 0 ]; then
 	make_img=1	
 	TOP_DIR=${TOP_DIR1}
+else
+	PRE_DIR=$(dirname $TOP_DIR1)
+	UBOOT_DIR=${PRE_DIR}/uboot-doss
+	KERNEL_DIR=${PRE_DIR}/kernel-3.0.8-doss
+	MOZART_DIR=${PRE_DIR}/mozart
 fi
 
 if [ "$make_img" = "1" ]; then
 	UBOOT_DIR=${TOP_DIR}/uboot-doss
 	KERNEL_DIR=${TOP_DIR}/kernel-3.0.8-doss
 	MOZART_DIR=${TOP_DIR}/mozart
-else
-
-	UBOOT_DIR=${TOP_DIR1}
-	KERNEL_DIR=${TOP_DIR1}
-	MOZART_DIR=${TOP_DIR1}
 fi
 
 if [ "$1" = "uboot" ]; then
