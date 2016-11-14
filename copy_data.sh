@@ -25,7 +25,7 @@ if [ "$1" = "uboot" ]; then
 		make doss_1825_zImage_sfc_nor -j4
 	fi
 
-	cp ${UBOOT_DIR}/u-boot-with-spl.bin ${TOP_DIR}/firmware/img
+	cp ./u-boot-with-spl.bin ../firmware/img
 fi
 
 if [ "$1" = "kernel" ]; then
@@ -38,8 +38,8 @@ if [ "$1" = "kernel" ]; then
 		make zImage -j4
 	fi
 	
-	cp ${KERNEL_DIR}/arch/mips/boot/compressed/zImage ${TOP_DIR}/firmware/img
-	cp ${KERNEL_DIR}/arch/mips/boot/compressed/zImage ${MOZART_DIR}/tools/host-tools/update_pack/images/
+	cp ./arch/mips/boot/compressed/zImage ../firmware/img
+	cp ./arch/mips/boot/compressed/zImage ../mozart/tools/host-tools/update_pack/images/
 fi
 
 if [ "$1" = "mozart" ]; then
