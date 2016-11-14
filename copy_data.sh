@@ -2,16 +2,35 @@
 
 TOP_DIR1=$(pwd)
 
+uboot_flag=0
+kernel_flag=0
+mozart_flag=0
+
+if [ ${TOP_DIR1##*/} = "uboot-doss" ]; then
+	uboot_flag=1
+fi
+if [ ${TOP_DIR1##*/} = "kernel-3.0.8-doss" ]; then
+	kernel_flag=1
+fi
+if [ ${TOP_DIR1##*/} = "mozart" ]; then
+	mozart_flag=1
+fi
+
+if [ ${uboot_flag} = "0" -a ${mozart_flag} = "0" -a ${mozart_flag} = "0" ]; then
+	make_img=1	
+	TOP_DIR=${TOP_DIR1}
+fi
+
 if [ "$make_img" = "1" ]; then
 	UBOOT_DIR=${TOP_DIR}/uboot-doss
 	KERNEL_DIR=${TOP_DIR}/kernel-3.0.8-doss
 	MOZART_DIR=${TOP_DIR}/mozart
 else
+
 	UBOOT_DIR=${TOP_DIR1}
 	KERNEL_DIR=${TOP_DIR1}
 	MOZART_DIR=${TOP_DIR1}
 fi
-
 
 if [ "$1" = "uboot" ]; then
 	cd ${UBOOT_DIR}
@@ -73,4 +92,4 @@ echo "------------------------------"
 date
 echo "successful ok                 "
 echo "------------------------------"
-echo 
+
