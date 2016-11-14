@@ -1,6 +1,7 @@
 #!/bin/bash
 
-TOP_DIR=$(pwd)
+export TOP_DIR=$(pwd)
+export make_img=1
 
 source ${TOP_DIR}/mozart/configs/version.mk
 

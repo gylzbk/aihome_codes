@@ -1,10 +1,36 @@
 #!/bin/bash
 
-TOP_DIR=$(pwd)
+TOP_DIR1=$(pwd)
 
-UBOOT_DIR=${TOP_DIR}/uboot-doss
-KERNEL_DIR=${TOP_DIR}/kernel-3.0.8-doss
-MOZART_DIR=${TOP_DIR}/mozart
+uboot_flag=0
+kernel_flag=0
+mozart_flag=0
+
+if [ ${TOP_DIR1##*/} = "uboot-doss" ]; then
+	uboot_flag=1
+fi
+if [ ${TOP_DIR1##*/} = "kernel-3.0.8-doss" ]; then
+	kernel_flag=1
+fi
+if [ ${TOP_DIR1##*/} = "mozart" ]; then
+	mozart_flag=1
+fi
+
+if [ ${uboot_flag} = "0" -a ${mozart_flag} = "0" -a ${mozart_flag} = "0" ]; then
+	make_img=1	
+	TOP_DIR=${TOP_DIR1}
+fi
+
+if [ "$make_img" = "1" ]; then
+	UBOOT_DIR=${TOP_DIR}/uboot-doss
+	KERNEL_DIR=${TOP_DIR}/kernel-3.0.8-doss
+	MOZART_DIR=${TOP_DIR}/mozart
+else
+
+	UBOOT_DIR=${TOP_DIR1}
+	KERNEL_DIR=${TOP_DIR1}
+	MOZART_DIR=${TOP_DIR1}
+fi
 
 if [ "$1" = "uboot" ]; then
 	cd ${UBOOT_DIR}
@@ -18,7 +44,7 @@ if [ "$1" = "uboot" ]; then
 		make doss_1825_zImage_sfc_nor -j4
 	fi
 
-	cp ${UBOOT_DIR}/u-boot-with-spl.bin ${TOP_DIR}/firmware/img
+	cp ./u-boot-with-spl.bin ../firmware/img
 fi
 
 if [ "$1" = "kernel" ]; then
@@ -31,8 +57,8 @@ if [ "$1" = "kernel" ]; then
 		make zImage -j4
 	fi
 	
-	cp ${KERNEL_DIR}/arch/mips/boot/compressed/zImage ${TOP_DIR}/firmware/img
-	cp ${KERNEL_DIR}/arch/mips/boot/compressed/zImage ${MOZART_DIR}/tools/host-tools/update_pack/images/
+	cp ./arch/mips/boot/compressed/zImage ../firmware/img
+	cp ./arch/mips/boot/compressed/zImage ../mozart/tools/host-tools/update_pack/images/
 fi
 
 if [ "$1" = "mozart" ]; then
@@ -56,14 +82,14 @@ if [ "$1" = "mozart" ]; then
 		make -j4
 	fi
 
-	cp  ${MOZART_DIR}/output/target/nv.img	 ${TOP_DIR}/firmware/img
-	cp  ${MOZART_DIR}/output/target/usrdata.jffs2	 ${TOP_DIR}/firmware/img
-	cp  ${MOZART_DIR}/output/target/updater.cramfs ${TOP_DIR}/firmware/img
-	cp  ${MOZART_DIR}/output/target/appfs.cramfs	 ${TOP_DIR}/firmware/img
+	cp  ./output/target/nv.img		../firmware/img
+	cp  ./output/target/usrdata.jffs2	../firmware/img
+	cp  ./output/target/updater.cramfs	../firmware/img
+	cp  ./output/target/appfs.cramfs	../firmware/img
 fi
 
 echo "------------------------------"
 date
 echo "successful ok                 "
 echo "------------------------------"
-echo 
+
