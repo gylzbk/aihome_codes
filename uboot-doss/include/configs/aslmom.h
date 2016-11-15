@@ -130,7 +130,12 @@
 /**
  * Boot arguments definitions.
  */
+#if defined CONFIG_64MB_LPDDR
+#define BOOTARGS_COMMON "console=ttyS2,57600n8 consoleblank=0 mem=64M "
+#else
 #define BOOTARGS_COMMON "console=ttyS2,57600n8 consoleblank=0 mem=32M "
+#endif
+
 #if defined(CONFIG_SPL_NOR_SUPPORT) || defined(CONFIG_SPL_SFC_SUPPORT)
 	#if defined(CONFIG_SPL_SFC_SUPPORT)
 		#if defined(CONFIG_SPL_SFC_NOR)
