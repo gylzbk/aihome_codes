@@ -234,7 +234,9 @@ int main(int argc, char **argv)
 
 	while (1) {
 		sleep(20);
+	#if (SUPPORT_MEMORY == MEMORY_32M)
 		system("echo 3 > /proc/sys/vm/drop_caches");
+	#endif
 		if (!is_system_error){
 			system("echo 3 > /dev/watchdog");
 		}

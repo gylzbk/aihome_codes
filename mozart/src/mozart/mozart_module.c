@@ -465,7 +465,9 @@ void mozart_module_next_module(void)
 		pr_debug("%s\n", module->name);
 		func(module);
 	}
-	system("echo 3 > /proc/sys/vm/drop_caches");
+	#if (SUPPORT_MEMORY == MEMORY_32M)
+		system("echo 3 > /proc/sys/vm/drop_caches");
+	#endif
 }
 
 void mozart_module_disconnect_handler(void)

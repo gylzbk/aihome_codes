@@ -412,6 +412,22 @@ board_wb38_config: board_type_define_config
 	@echo "#define AP_NAME DEVICE_NAME" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 
+# memory config in config.mak and config.h
+#       32M: 
+#   	64M: 
+memory_type_define_config:
+	@echo "/*--------------------------MEMORY */" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define MEMORY_32M 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define MEMORY_64M 1" >> $(MOZART_DIR)/usr/include/mozart_config.h
+memory_32m_config:
+	@echo "SUPPORT_MEMORY=MEMORY_64M" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_MEMORY MEMORY_64M" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(TOPDIR)/configs/config.mk
+memory_64m_config:
+	@echo "SUPPORT_MEMORY=MEMORY_64M" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_MEMORY MEMORY_64M" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(TOPDIR)/configs/config.mk
+
 
 # networking type @yuanze.zhang 160907
 # ATALK_AIRKISS : 0
@@ -876,7 +892,8 @@ ds1825_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare produc
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
 		cgi_disable_config elife_disable_config \
-		board_ds1825_config netowrk_atalk_airkiss_config aispeech_enable_config\
+		board_ds1825_config memory_type_define_config memory_64m_config \ 
+		netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
 		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
@@ -888,7 +905,8 @@ ds1825_aispeech_elife_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare 
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
 		cgi_enable_config elife_enable_config \
-		board_ds1825_config netowrk_atalk_airkiss_config aispeech_enable_config\
+		board_ds1825_config memory_type_define_config memory_64m_config \
+		netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
 		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
@@ -900,9 +918,10 @@ wb38_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
 		cgi_disable_config elife_disable_config \
-		board_wb38_config netowrk_atalk_airkiss_config aispeech_enable_config\
+		board_wb38_config memory_type_define_config memory_64m_config \
+		netowrk_atalk_airkiss_config aispeech_enable_config \
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
-		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
+		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config \
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
 	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
 
@@ -912,7 +931,8 @@ wb38_aispeech_elife_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare pr
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
 		cgi_disable_config elife_enable_config \
-		board_wb38_config netowrk_atalk_airkiss_config aispeech_enable_config\
+		board_wb38_config memory_type_define_config memory_64m_config \
+		netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
 		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
@@ -924,7 +944,8 @@ public_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare produc
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
 		cgi_disable_config elife_disable_config \
-		board_public_config netowrk_atalk_airkiss_config aispeech_enable_config\
+		board_public_config memory_type_define_config memory_32m_config \
+		netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
 		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config

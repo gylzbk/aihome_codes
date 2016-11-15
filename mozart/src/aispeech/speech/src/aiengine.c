@@ -344,7 +344,9 @@ int ai_status_aecing(void){
 			break;
 		}
 	}
-	system("echo 3 > /proc/sys/vm/drop_caches");
+	#if (SUPPORT_MEMORY == MEMORY_32M)
+		system("echo 3 > /proc/sys/vm/drop_caches");
+	#endif
 	ai_to_mozart();
 	if (aitalk_cloudplayer_is_playing()){
 	//	DEBUG("aitalk   is playing..! %d \n", recog.is_control_play_music);
@@ -388,7 +390,9 @@ int ai_status_aecing(void){
 int ai_status_seming(void){
 	int ret = 0;
 	int vol = 0;
-	system("echo 3 > /proc/sys/vm/drop_caches");
+	#if (SUPPORT_MEMORY == MEMORY_32M)
+		system("echo 3 > /proc/sys/vm/drop_caches");
+	#endif
 #if AI_CONTROL_MOZART
 	vol = mozart_volume_get();
 	if (vol == 0){
@@ -615,7 +619,9 @@ int ai_set_enable(bool enable){
 			usleep(10000);
 			ai_aitalk_send(aitalk_send_current_music(false));	//*/
 			usleep(10000);
+		#if (SUPPORT_MEMORY == MEMORY_32M)
 			system("echo 3 > /proc/sys/vm/drop_caches");
+		#endif
 		//	if (ai_flag.is_init){
 		//		ai_server_restart();
 		//		ai_song_recommend_auto();
@@ -631,7 +637,9 @@ int ai_set_enable(bool enable){
 			}
 			recog.key_record_stop = false;
 			ai_song_list_set_enable(false);
+		#if (SUPPORT_MEMORY == MEMORY_32M)
 			system("echo 3 > /proc/sys/vm/drop_caches");
+		#endif
 		}
 	}
 	return 0;
@@ -884,8 +892,11 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 		ai_speech_set_status(VR_SPEECH_NULL);
 	}	//*/
 
+	DEBUG("+++++++++++++++++++++++++++++++++++ ai_speech_startup start!...\n");
 	if(ai_flag.is_init != true){
+	#if (SUPPORT_MEMORY == MEMORY_32M)
 		system("echo 3 > /proc/sys/vm/drop_caches");
+	#endif
 		if(ai_init()== -1){
 			PERROR("AI init error!...\n");
 			goto exit_error;
@@ -911,7 +922,7 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 	}
 	ai_speech_set_status(VR_SPEECH_INIT);
 exit_error:
-	DEBUG("mozart_vr_speech_startup finish.\n");
+	DEBUG("------------------------------------ ai_speech_startup finish!...\n");
 //	sem_post(&sem_ai_startup);
 	return 0;
 }
