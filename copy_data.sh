@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-TOP_DIR1=$(pwd)
+TOP_DIR1=$(pwd) 
 
 uboot_flag=0
 kernel_flag=0
@@ -15,25 +15,27 @@ fi
 if [ ${TOP_DIR1##*/} = "mozart" ]; then
 	mozart_flag=1
 fi
-
-if [ ${uboot_flag} = "0" -a ${mozart_flag} = "0" -a ${mozart_flag} = "0" ]; then
+if [ ${uboot_flag} = 0 -a ${kernel_flag} = 0 -a ${mozart_flag} = 0 ]; then
 	make_img=1	
 	TOP_DIR=${TOP_DIR1}
+else
+	PRE_DIR=$(dirname $TOP_DIR1)
+	UBOOT_DIR=${PRE_DIR}/uboot-doss
+	KERNEL_DIR=${PRE_DIR}/kernel-3.0.8-doss
+	MOZART_DIR=${PRE_DIR}/mozart
 fi
 
 if [ "$make_img" = "1" ]; then
 	UBOOT_DIR=${TOP_DIR}/uboot-doss
 	KERNEL_DIR=${TOP_DIR}/kernel-3.0.8-doss
 	MOZART_DIR=${TOP_DIR}/mozart
-else
-
-	UBOOT_DIR=${TOP_DIR1}
-	KERNEL_DIR=${TOP_DIR1}
-	MOZART_DIR=${TOP_DIR1}
 fi
 
 if [ "$1" = "uboot" ]; then
 	cd ${UBOOT_DIR}
+	rm ./u-boot-with-spl.bin
+	rm ../firmware/img/u-boot-with-spl.bin
+	
 	if [ "$2" = "" ]; then
 		make -j4
 	elif [ "$2" = "wb38" ]; then
@@ -49,6 +51,10 @@ fi
 
 if [ "$1" = "kernel" ]; then
 	cd ${KERNEL_DIR}
+	rm ./arch/mips/boot/compressed/zImage
+	rm ../firmware/img/zImage
+	rm ../mozart/tools/host-tools/update_pack/images/zImage
+
 	if [ "$2" = "" ]; then
 		make zImage -j4
 	elif [ "$2" = "wb38" ]; then
@@ -63,6 +69,15 @@ fi
 
 if [ "$1" = "mozart" ]; then
 	cd ${MOZART_DIR}
+	rm ../firmware/img/nv.img
+	rm ../firmware/img/usrdata.jffs2
+	rm ../firmware/img/updater.cramfs
+	rm ../firmware/img/appfs.cramfs
+	rm  ./output/target/nv.img
+	rm  ./output/target/usrdata.jffs2
+	rm  ./output/target/updater.cramfs
+	rm  ./output/target/appfs.cramfs
+
 	if [ "$2" = "" ]; then
 		make mozart-clean
 		make libaispeech-clean
