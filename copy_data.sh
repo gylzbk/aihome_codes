@@ -40,12 +40,13 @@ if [ "$1" = "uboot" ]; then
 		make -j4
 	elif [ "$2" = "wb38" ]; then
 		make distclean
-		make doss_wb38_zImage_sfc_nor -j4
+		make doss_wb38_zImage_sfc_nor_32M -j4
 	elif [ "$2" = "1825" ]; then
 		make distclean
 		make doss_1825_zImage_sfc_nor -j4
 	fi
 
+	sleep 1
 	cp ./u-boot-with-spl.bin ../firmware/img
 fi
 
@@ -61,8 +62,13 @@ if [ "$1" = "kernel" ]; then
 		make distclean
 		make doss_wb38_defconfig
 		make zImage -j4
+	elif [ "$2" = "1825" ]; then
+		make distclean
+		make doss_1825_oss_defconfig 
+		make zImage -j4
 	fi
 	
+	sleep 1
 	cp ./arch/mips/boot/compressed/zImage ../firmware/img
 	cp ./arch/mips/boot/compressed/zImage ../mozart/tools/host-tools/update_pack/images/
 fi
@@ -97,6 +103,7 @@ if [ "$1" = "mozart" ]; then
 		make -j4
 	fi
 
+	sleep 1
 	cp  ./output/target/nv.img		../firmware/img
 	cp  ./output/target/usrdata.jffs2	../firmware/img
 	cp  ./output/target/updater.cramfs	../firmware/img
