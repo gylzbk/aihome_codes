@@ -382,6 +382,8 @@ ifeq ("$(SUPPORT_CUT_CONTINUE)","1")
 	-rm -f $(UPDATERFS_DIR)/usr/bin/{linuxrw}
 endif
 
+
+
 # tone
 ifeq ("$(SUPPORT_ATALK)","1")
 	-rm -rf $(UPDATERFS_DIR)/usr/share/vr/tone/*.mp3
@@ -443,6 +445,19 @@ else                                # mplayer_float(default)
 	mv  $(APPFS_DIR)/usr/bin/mplayer-float $(APPFS_DIR)/usr/bin/mplayer
 	rm $(APPFS_DIR)/usr/bin/mplayer-fixed
 endif
+endif
+
+# ui
+# wb38 
+	-rm $(APPFS_DIR)/usr/share/ui/
+ifeq ("$(SUPPORT_BOARD)","board_wb38")
+	mv $(APPFS_DIR)/usr/share/ui_wb38 $(APPFS_DIR)/usr/share/ui
+	-rm -rf $(APPFS_DIR)/usr/share/ui_ds1825/
+endif
+ # ds1825 
+ifeq ("$(SUPPORT_BOARD)","board_ds1825")
+	mv $(APPFS_DIR)/usr/share/ui_ds1825/ $(APPFS_DIR)/usr/share/ui/
+	-rm -rf $(APPFS_DIR)/usr/share/ui_wb38/
 endif
 
 

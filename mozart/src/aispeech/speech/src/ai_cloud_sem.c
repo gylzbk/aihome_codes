@@ -54,9 +54,9 @@ int _semantic_callback(const void *usrdata, const char *id, int type,
 	cJSON *recordId = NULL;
 	cJSON *error_j = NULL;
 	cJSON *errId_j = NULL;
-  //  if(strstr((char *)message, "input")){
-//	    DEBUG("sem: size = %d\n%s\n",size,(char *)message);
-  //  }
+//    if(strstr((char *)message, "input")){
+//	   	 DEBUG("%.*s\n",size,(char *)message);
+//    }
     out = cJSON_Parse((char*) message);
     if (!out)
     {
@@ -118,9 +118,12 @@ int _semantic_callback(const void *usrdata, const char *id, int type,
     error_j = cJSON_GetObjectItem(out, "error");
     if (error_j)
     {
+#if 0
 		char *error_s = cJSON_Print(error_j);
 		DEBUG("CLOUD SEM Error: \n%s\n", error_s);
 		free(error_s);
+#endif
+
  		errId_j = cJSON_GetObjectItem(out, "errId");
 		if (errId_j){
 			recog.error_id = errId_j->valueint;
