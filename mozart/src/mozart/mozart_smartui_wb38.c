@@ -16,7 +16,8 @@
 
 #include "mozart_module.h"
 
-#define SMARTUI_PATH "/mnt/sdcard/ui/"
+#define SMARTUI_PATH "/usr/fs/usr/share/ui/"
+//#define SMARTUI_PATH "/mnt/sdcard/ui/"
 
 #define SUPPORY_REFRESH_PIC
 
@@ -362,7 +363,7 @@ static int mozart_smartui_build_bt_hs_view(void)
 		.right = 176,
 		.bottom = 160 + 16,
 		.layer = top_layer,
-		.align = center_align,	
+		.align = center_align,
 		.bottom_view = &bt_hs_background_imageview->v,
 	};
 
@@ -1944,7 +1945,7 @@ void *create_refresh_pic_func(void *arg)
 		smartui_imageview_clear(refresh_asr_recong_icon_imageview);
 
 		gstop_refresh_flag_end = 1;
-		
+
 		usleep(1 * 1000);
 	}
 	g_refresh_pic_stop = 0;
@@ -2015,7 +2016,7 @@ void mozart_smartui_start_refreash_pic(refresh_pic_type_t pic_type)
 
 	gstop_refresh_flag_end = 0;
 	gstop_refresh_flag = 0;
-	
+
 	sem_post(&sem_refresh_pic);
 	usleep(10 * 1000);
 }

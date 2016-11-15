@@ -12,8 +12,8 @@
 
 #include "mozart_module.h"
 
-//#define SMARTUI_PATH "/usr/fs/usr/share/ui/"
-#define SMARTUI_PATH "/mnt/sdcard/ui/"
+#define SMARTUI_PATH "/usr/fs/usr/share/ui/"
+//#define SMARTUI_PATH "/mnt/sdcard/ui/"
 #define HZK16 16
 
 #ifndef MOZART_RELEASE
