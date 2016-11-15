@@ -725,7 +725,7 @@ static void mozart_event_misc(mozart_event event)
 		} else if (!strcasecmp(event.event.misc.type, "paused")) {
 			mozart_bt_avk_do_pause();
 		} else if (!strcasecmp(event.event.misc.type, "stopped")) {
-			;
+			mozart_bt_avk_do_pause();
 		} else if (!strcasecmp(event.event.misc.type, "track_change")) {
 			mozart_bluetooth_avk_send_get_element_att_cmd();
 		} else if (!strcasecmp(event.event.misc.type, "play_pos")) {

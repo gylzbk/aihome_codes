@@ -1397,7 +1397,7 @@ void mozart_smartui_bt_play(void)
 		smartui_imageview_display(global_background_imageview,	SMARTUI_PATH"bt_play.bmp");
 
 		for (i = 0; i < bt_barview_col_num && i < 100; i++)
-			data[i] = 100;
+			data[i] = 3;
 		data[i] = -1;
 
 		smartui_barview_display(bt_barview, data);
