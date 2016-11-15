@@ -40,7 +40,7 @@ if [ "$1" = "uboot" ]; then
 		make -j4
 	elif [ "$2" = "wb38" ]; then
 		make distclean
-		make doss_wb38_zImage_sfc_nor -j4
+		make doss_wb38_zImage_sfc_nor_32M -j4
 	elif [ "$2" = "1825" ]; then
 		make distclean
 		make doss_1825_zImage_sfc_nor -j4
@@ -60,6 +60,10 @@ if [ "$1" = "kernel" ]; then
 	elif [ "$2" = "wb38" ]; then
 		make distclean
 		make doss_wb38_defconfig
+		make zImage -j4
+	elif [ "$2" = "1825" ]; then
+		make distclean
+		make ds1825_oss_defconfig 
 		make zImage -j4
 	fi
 	
