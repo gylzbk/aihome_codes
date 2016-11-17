@@ -35,7 +35,7 @@ static const char *semantic_text_param =
 static bool is_wait_callback = false;
 static bool is_working = false;
 
-extern struct aiengine *agn;
+extern struct aiengine *agn_text;
 
 int _semantic_text_callback(const void *usrdata, const char *id, int type,
                                         const void *message, int size)
@@ -152,15 +152,15 @@ int ai_cloud_sem_text(char *text){
     _param = cJSON_PrintUnformatted(param_js);
 	is_working = true;
 	is_wait_callback = true;
-    if(aiengine_start(agn,_param, uuid, _semantic_text_callback, NULL) != 0)
+    if(aiengine_start(agn_text,_param, uuid, _semantic_text_callback, NULL) != 0)
     {
         PERROR("ERROR:    failed!\n");
-		aiengine_cancel(agn);
+		aiengine_cancel(agn_text);
 		error = -1;
         goto exit_error;
     }
 	if (_wait_end()){
-		aiengine_cancel(agn);
+		aiengine_cancel(agn_text);
 		PERROR("ERROR:    timeout!\n");
 		error = -1;
         goto exit_error;

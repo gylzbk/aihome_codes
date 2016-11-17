@@ -138,7 +138,7 @@ extern ini_aiengine_s aiengine_ini;
 
 extern void * aec_init(void);
 extern int ai_aec(echo_wakeup_t *ew);
-extern int ai_cloud_tts(struct aiengine *agn, char *SynTxt);
+extern int ai_cloud_tts(struct aiengine *agn_text, char *SynTxt);
 
 
 extern const char *aiSlotDomain[RECOG_DOMAIN_MAX];

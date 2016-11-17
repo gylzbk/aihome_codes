@@ -179,7 +179,7 @@ int ai_cloud_sem(struct aiengine *agn)
     int loop = 0;
     int ret = 0;
 	int buf_count = 0;
-	ai_mutex_lock();
+//	ai_mutex_lock();
 	ai_sem_flag.state = SEM_STATUS_START;
 	ai_sem_flag.error = false;
 	ai_sem_flag.set_end = false;
@@ -299,7 +299,7 @@ OUT:
 	new_semantic_param = NULL;
 	ai_sem_flag.set_end = false;
 	ai_sem_flag.state = SEM_STATUS_IDEL;
-	ai_mutex_unlock();
+//	ai_mutex_unlock();
     return ai_sem_flag.result;
 }
 
