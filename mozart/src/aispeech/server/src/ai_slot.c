@@ -158,7 +158,7 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 	cJSON *url_32 = NULL;
 
 	ai_slot_recog_free(recog);
-#if 0
+#if 1
 	char* c_json = cJSON_Print(sem_json);
 	printf("\n%s\n",c_json);
 	free(c_json);

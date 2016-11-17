@@ -792,8 +792,8 @@ void *ai_run(void *arg){
 					recog.status = AIENGINE_STATUS_AEC;
 					break;	//*/
 			}
-			printf("*");
-			usleep(10000);
+		//	printf("*");
+			usleep(1000);
 		}
 	//printf(">");
 		usleep(10000);
