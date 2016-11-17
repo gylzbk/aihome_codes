@@ -163,7 +163,7 @@ static inline int initall(void)
 	if (mozart_path_is_mount("/mnt/sdcard"))
 		mozart_localplayer_scan();
 
-	mozart_volume_set(60, BT_CALL_VOLUME);
+	mozart_volume_set(70, BT_CALL_VOLUME);
 	mozart_volume_set(40, BT_MUSIC_VOLUME);
 	mozart_volume_set(60, MUSIC_VOLUME);
 
