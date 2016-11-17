@@ -299,10 +299,24 @@ int mozart_aitalk_stop(void){
 /*******************************************************************************
  * handler
  *******************************************************************************/
-static bool vendor_is_valid(json_object *cmd)
+static bool aitalk_is_valid(json_object *cmd)
 {
-	return true;//aitalk_cloudplayer_monitor_is_valid();
+	return __mozart_aitalk_cloudplayer_is_run();
 }
+
+#if 0
+static bool module_is_attach(json_object *cmd)
+{
+	bool is_attach;
+	return true;
+//-------------------------------- not checkout:
+	mozart_module_mutex_lock();
+	is_attach = __mozart_module_is_attach();
+	mozart_module_mutex_unlock();
+
+	return is_attach;
+}
+#endif
 
 static int wakeup_handler(json_object *cmd)
 {
@@ -734,7 +748,7 @@ static int play_voice_prompt_handler(json_object *cmd)
 
 	mozart_module_mutex_lock();
 
-	if (!__mozart_aitalk_cloudplayer_is_run() || !vendor_is_valid(NULL)) {
+	if (!__mozart_aitalk_cloudplayer_is_run()){// || !vendor_is_valid(NULL)) {
 		pr_debug("[Warning] %s: Don't play %s\n", __func__, url);
 	} else {
 		if (!strncmp(url, "file://", 7))
@@ -918,54 +932,46 @@ static int get_volume_handler(json_object *cmd)
 	}
 }
 
-static bool module_is_attach(json_object *cmd)
-{
-	bool is_attach;
-	return true;
-//-------------------------------- not checkout:
-	mozart_module_mutex_lock();
-	is_attach = __mozart_module_is_attach();
-	mozart_module_mutex_unlock();
-
-	return is_attach;
-}
-
 static struct aitalk_method methods[] = {
 	{
 		.name = "wakeup",
 		.handler = wakeup_handler,
-		.is_valid = vendor_is_valid,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "play",
 		.handler = play_handler,
-		.is_valid = vendor_is_valid,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "play_tts",
 		.handler = play_tts_handler,
-		.is_valid = vendor_is_valid,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "stop",
 		.handler = stop_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "pause",
 		.handler = pause_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "resume",
 		.handler = resume_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "pause_toggle",
 		.handler = pause_toggle_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "set_volume",
 		.handler = set_volume_handler,
-		.is_valid = module_is_attach,
+		.is_valid = aitalk_is_valid,
 	},
 /*	{
 		.name = "play_music",
@@ -974,23 +980,30 @@ static struct aitalk_method methods[] = {
 	{
 		.name = "next_music",
 		.handler = next_music_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "current_music",
 		.handler = current_music_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "previous_music",
 		.handler = previous_music_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "exit",
 		.handler = exit_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "error",
 		.handler = error_handler,
+		.is_valid = aitalk_is_valid,
 	},
+/*----------------------------------------*/
+
 	{
 		.name = "play_voice_prompt",
 		.handler = play_voice_prompt_handler,
