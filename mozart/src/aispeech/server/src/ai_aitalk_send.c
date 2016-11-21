@@ -58,7 +58,7 @@ char *send_obj(char *method,json_object *obj)
 	}
 
 	s = json_object_to_json_string(o);
-//	pr_debug("<<<< %s\n", s);
+	pr_debug("<<<< %s\n", s);
 	if (s){
 		free(aitalk_pipe_buf);
 		aitalk_pipe_buf = NULL;
@@ -244,7 +244,7 @@ int ai_aitalk_send(char *data){
 //	aitalk_pipe_buf = NULL;
 //	aitalk_pipe_buf = strdup(data);
 
-	sem_post(&sem_ai_send);
+//	sem_post(&sem_ai_send);
 	return 0;
 }
 

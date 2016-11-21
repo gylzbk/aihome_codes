@@ -47,6 +47,7 @@ int _semantic_text_callback(const void *usrdata, const char *id, int type,
 	cJSON *param = NULL;
 	cJSON *error_j = NULL;
 	cJSON *errId_j = NULL;
+//	DEBUG("%.*s\n",size,(char *)message);
     out = cJSON_Parse((char*) message);
     if (!out)
     {

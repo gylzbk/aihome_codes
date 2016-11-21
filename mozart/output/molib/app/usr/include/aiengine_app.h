@@ -22,6 +22,7 @@
 #define AI_CONTROL_MOZART 1
 
 #define AI_CONTROL_MOZART_ATALK 1
+#define VALGRIND_TEST 0
 
 extern int asr_mode_cfg;
 extern int fd_dsp_rd;

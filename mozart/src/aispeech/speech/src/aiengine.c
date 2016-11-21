@@ -41,6 +41,7 @@ static const char *version =
 //		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
 //		\"server\": \"ws://112.80.39.95:8009\"\
 
+#if (VALGRIND_TEST == 0)
 static const char *ew_cfg =
 "\
 {\
@@ -115,6 +116,81 @@ static const char *agn_text_cfg =
     }\
 }";
 
+#else
+static const char *ew_cfg =
+"\
+{\
+    \"luaPath\": \"./bin/luabin.lub\",\
+    \"appKey\": \"14327742440003c5\",\
+    \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
+    \"provision\": \"./bin/aiengine-2.8.8-14327742440003c5.provision\",\
+    \"serialNumber\": \"/usr/data/serialNumber\",\
+    \"prof\": {\
+        \"enable\": 0,\
+        \"output\": \"/mnt/sdcard/a.log\"\
+    },\
+    \"vad\":{\
+        \"enable\": 1,\
+        \"res\": \"./bin/vad.aihome.v0.5.20160324.bin\",\
+        \"speechLowSeek\": 70,\
+        \"sampleRate\": 16000,\
+        \"pauseTime\":700,\
+        \"strip\": 1\
+    },\
+    \"native\": {\
+        \"cn.dnn\": {\
+            \"resBinPath\": \"./bin/wakeup_aihome_aispeech_nhxl_20161019.bin\"\
+        },\
+        \"cn.echo\": {\
+            \"frameLen\": 512,\
+            \"filterLen\": 2048,\
+            \"rate\": 16000\
+        }\
+    }\
+}";
+
+static const char *agn_cfg =
+"\
+{\
+    \"luaPath\": \"./bin/luabin.lub\",\
+    \"appKey\": \"14327742440003c5\",\
+    \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
+    \"provision\": \"./bin/aiengine-2.8.8-14327742440003c5.provision\",\
+    \"serialNumber\": \"/usr/data/serialNumber\",\
+    \"prof\": {\
+        \"enable\": 0,\
+        \"output\": \"/mnt/sdcard/a.log\"\
+    },\
+    \"vad\":{\
+        \"enable\": 1,\
+        \"res\": \"./bin/vad.aihome.v0.5.20160324.bin\",\
+        \"speechLowSeek\": 70,\
+        \"sampleRate\": 16000,\
+        \"pauseTime\":700,\
+        \"strip\": 1\
+    },\
+    \"cloud\": {\
+		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
+    }\
+}";
+
+static const char *agn_text_cfg =
+"\
+{\
+    \"luaPath\": \"./bin/luabin.lub\",\
+    \"appKey\": \"14327742440003c5\",\
+    \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
+    \"provision\": \"./bin/aiengine-2.8.8-14327742440003c5.provision\",\
+    \"serialNumber\": \"/usr/data/serialNumber\",\
+    \"prof\": {\
+        \"enable\": 0,\
+        \"output\": \"/mnt/sdcard/a.log\"\
+    },\
+    \"cloud\": {\
+		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
+    }\
+}";
+#endif
 
 ai_status_s ai_flag;
 vr_info recog;
@@ -418,7 +494,7 @@ int ai_status_aecing(void){
 int ai_status_seming(void){
 	int ret = 0;
 	int vol = 0;
-	#if (SUPPORT_MEMORY == MEMORY_32M)
+	#if !VALGRIND_TEST
 		system("echo 3 > /proc/sys/vm/drop_caches");
 	#endif
 #if AI_CONTROL_MOZART
@@ -607,7 +683,11 @@ int ai_init(void){
 	music_list_alloc(&global_music, 20);
 
 	/*file operate init*/
+#if VALGRIND_TEST
+	int fd = file_create("./music_list.json");
+#else
 	int fd = file_create("/usr/data/music_list.json");
+#endif
 	if (fd == -1) {
 		print("error\n\n");
 		retvalue = -1;
@@ -805,7 +885,6 @@ exit_error:
 	//	ai_to_mozart();
 	}
 	ai_exit();
-	pthread_exit(&error);
 }
 
 int ai_exit(void){

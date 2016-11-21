@@ -300,6 +300,7 @@ void ai_song_list_exit(void){
 	ai_song_list.is_working = false;
 	ai_song_list.is_running = false;
 	ai_cloud_sem_text_stop();
+	_clean_list();
 	_free_all();
 }
 
@@ -342,6 +343,9 @@ void ai_song_list_renew_artist(char *artist){
 	}
 }
 
+void ai_song_disable_auto_send(void){
+	ai_song_list.is_send_music = false;
+}
 
 /***************************************/
 // push one song
