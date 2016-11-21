@@ -244,7 +244,7 @@ int ai_aitalk_send(char *data){
 //	aitalk_pipe_buf = NULL;
 //	aitalk_pipe_buf = strdup(data);
 
-//	sem_post(&sem_ai_send);
+	sem_post(&sem_ai_send);
 	return 0;
 }
 
