@@ -92,6 +92,7 @@ int ai_play_music_order(int order)
 	music = ai_music_list_play_order(order);
 	//pr_debug("url %s\n",url);
 	if ((music)&&(music->url)){
+		ai_song_disable_auto_send();
 		ai_aitalk_send(aitalk_send_play_url(music));
 		return 0;
 	}

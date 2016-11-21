@@ -163,7 +163,7 @@ static inline int initall(void)
 	if (mozart_path_is_mount("/mnt/sdcard"))
 		mozart_localplayer_scan();
 
-	mozart_volume_set(60, BT_CALL_VOLUME);
+	mozart_volume_set(70, BT_CALL_VOLUME);
 	mozart_volume_set(40, BT_MUSIC_VOLUME);
 	mozart_volume_set(60, MUSIC_VOLUME);
 
@@ -234,9 +234,9 @@ int main(int argc, char **argv)
 
 	while (1) {
 		sleep(20);
-	#if (SUPPORT_MEMORY == MEMORY_32M)
+//	#if (SUPPORT_MEMORY == MEMORY_32M)
 		system("echo 3 > /proc/sys/vm/drop_caches");
-	#endif
+//	#endif
 		if (!is_system_error){
 			system("echo 3 > /dev/watchdog");
 		}

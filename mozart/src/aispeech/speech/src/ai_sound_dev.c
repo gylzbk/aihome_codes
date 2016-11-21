@@ -21,6 +21,21 @@
 /* #define AEC_FILE_DEBUG */
 #define AEC_AKM4951
 
+#if VALGRIND_TEST
+#include <sys/time.h>
+#include <time.h>
+
+long int _get_time()
+{
+    long int at = 0;
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    at = now.tv_sec * 1000 + now.tv_nsec / 1000000;
+    return at;
+}
+
+#endif
+
 int fddmic[2] = {-1};
 int fdplay[2] = {-1};
 int fd_dsp_rp = -1;
@@ -82,6 +97,31 @@ void pipe_close(void)
 	}
 }
 
+#if VALGRIND_TEST
+int sound_device_init_near(int val)
+{
+	fd_dsp_rd = open("wakeup.wav", O_RDONLY);
+	if (fd_dsp_rd < 0) {
+		perror("open wakeup.wav -read failed");
+		exit(0);
+	}
+	return 0;
+}
+
+int sound_device_init_far(void)
+{
+	int val = 0;
+	int status;
+	fd_dsp_rp = -1;
+
+	fd_dsp_rp = open("noise.wav", O_RDONLY);
+	if (fd_dsp_rp < 0) {
+		perror("open noise.wav -read failed");
+		exit(0);
+	}
+	return 0;
+}
+#else
 int sound_device_init_near(int val)
 {
 	int status;
@@ -191,6 +231,7 @@ error_quit:
 finish_quit:
 	return 0;
 }
+#endif
 
 int sound_device_init(int vol)
 {
@@ -208,7 +249,33 @@ int sound_device_init(int vol)
 
 	return 0;
 }
+#if VALGRIND_TEST
+int sound_aec_enable(void)
+{
+	return 0;
+	char buftmp[AEC_SIZE] = {0};
+	/*real wakeup speech*/
+	int ret = read(fd_dsp_rp, buftmp, AEC_SIZE);
+	if (ret != 0) {
+		printf("first read dsp0 but not ready\n");
+		perror("read");
+		exit(0);
+	}
+	/*noise aispeeh*/
+	ret = read(fd_dsp_rd, buftmp, AEC_SIZE);
+	if (ret != 0) {
+		printf("first read dsp3 but not ready\n");
+		perror("read");
+		exit(0);
+	}
+	return 0;
+}
 
+int sound_aec_disable(void)
+{
+	return 0;
+}
+#else
 int sound_aec_enable(void)
 {
 	int aec_able = 1;
@@ -257,6 +324,7 @@ int sound_aec_disable(void)
 	else
 		return 0;
 }
+#endif
 
 void *dmic_read(void *args)
 {
@@ -265,6 +333,10 @@ void *dmic_read(void *args)
 	char bufdmic[AEC_SIZE] = {0};
 	DEBUG("-------------------> Start dmic_read\n");
 	while (AEC_WAKEUP_TID1_EXIT!=ai_aec_flag.state) {
+#if VALGRIND_TEST
+		long int time_one, time_two;
+        	time_one = _get_time();
+#endif
 		status = read(fd_dsp_rd, bufdmic, AEC_SIZE);
 		if (status != AEC_SIZE) {
 			ai_aec_flag.error = true;
@@ -281,6 +353,13 @@ void *dmic_read(void *args)
 				goto result;
 			}
 		}
+#if VALGRIND_TEST
+		time_two = _get_time();
+		long int time_diff_us = time_two - time_one;
+		long int sleep_time = 100000 - time_diff_us;
+		//printf("%s feed data size: %d, sleep_time: %ld\n", __func__, status, sleep_time);
+		usleep(sleep_time);
+#endif
 	}
 result:
 	if (fddmic[1] >= 0) {
@@ -316,7 +395,10 @@ void *loopback_read(void *args)
 	}
 	DEBUG("--------------------> Start loopback_read\n");
 	while (AEC_WAKEUP_TID2_EXIT != ai_aec_flag.state) {
-
+#if VALGRIND_TEST
+		long int time_one, time_two;
+        	time_one = _get_time();
+#endif
 		status = read(fd_dsp_rp, bufloop_tmp, AEC_SIZE * 6);
 		if (status != AEC_SIZE * 6) {
 			ai_aec_flag.error = true;
@@ -346,6 +428,14 @@ void *loopback_read(void *args)
 				goto result;
 			}
 		}
+#if VALGRIND_TEST
+		time_two = _get_time();
+		long int time_diff_us = time_two - time_one;
+		long int sleep_time = 100000 - time_diff_us;
+		//printf("%s feed data size: %d, sleep_time: %ld\n", __func__, status, sleep_time);
+		usleep(sleep_time);
+#endif
+
 	}
 result:
 	if (fdplay[1] >= 0) {

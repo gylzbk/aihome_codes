@@ -10,6 +10,8 @@
 
 char *global_app_name = NULL;
 char *save_path = NULL;
+char *app_name = NULL;
+
 
 const static char *signal_str[] = {
 	[1] = "SIGHUP",       [2] = "SIGINT",       [3] = "SIGQUIT",      [4] = "SIGILL",      [5] = "SIGTRAP",
@@ -29,18 +31,19 @@ const static char *signal_str[] = {
 
 static void sig_handler(int signo)
 {
-	char cmd[64] = {};
+//	char cmd[64] = {};
 
 	printf("\n\n[%s: %d] mozart crashed by signal %s.\n", __func__, __LINE__, signal_str[signo]);
 
-	if (signo == SIGSEGV || signo == SIGBUS ||
+/*	if (signo == SIGSEGV || signo == SIGBUS ||
 	    signo == SIGTRAP || signo == SIGABRT) {
 		sprintf(cmd, "cat /proc/%d/maps", getpid());
 		printf("Process maps:\n");
 		system(cmd);
-	}
+	}//*/
 
 	free(save_path);
+	free(app_name);
 	free(global_app_name);
 	exit(-1);
 }
@@ -48,7 +51,7 @@ static void sig_handler(int signo)
 int main(int argc, char **argv){
 	if (argc < 3){
 		printf("please input as: \n");
-		printf(" monitor -b /mnt/sdcard/ \n");
+		printf(" monitor mozart /mnt/sdcard/ \n");
 		return -1;
 	}
 
@@ -62,13 +65,27 @@ int main(int argc, char **argv){
 	signal(SIGABRT, sig_handler);
 	signal(SIGPIPE, SIG_IGN);
 
-	save_path = strdup(argv[2]);
-	char cmd [128] = {0}; 
+	app_name = argv[1];
+
+	save_path = argv[2];
+	char cmd [128] = {0};
+
+	memset(cmd,0,128);
+	sprintf(cmd,"rm %s/%s.log", save_path, app_name);
+	system(cmd);
+	sleep(1);
+	memset(cmd,0,128);
+	sprintf(cmd,"touch %s/%s.log", save_path, app_name);
+	system(cmd);
+	sleep(1);
 
 	while (1) {
-		sleep(5);
-		system("date  >> /mnt/sdcard/mem.log");
-		sprintf(cmd,"ps wwl | grep mozart | grep -v grep | tr -s ' ' | cut -d' ' -f6  >> %s/mem.log", save_path);
+		sleep(10);
+		memset(cmd,0,128);
+		sprintf(cmd,"date     >> %s/%s.log", save_path, app_name);
+		system(cmd);
+		memset(cmd,0,128);
+		sprintf(cmd,"ps wwl | grep %s | grep -v grep | tr -s ' ' | cut -d' ' -f6  >> %s/%s.log", app_name, save_path, app_name);
 		system(cmd);
 	}
 	return 0;

@@ -43,10 +43,9 @@ int ai_aitalk_sem_init(void){
 
 char *send_obj(char *method,json_object *obj)
 {
-	json_object *o;
-	const char *s;
-	free(pjson);
-	pjson =   NULL;
+	json_object *o = NULL;
+	const char *s = NULL;
+
 	o = json_object_new_object();
 	if (method) {
 		/* notification */
@@ -59,9 +58,11 @@ char *send_obj(char *method,json_object *obj)
 	}
 
 	s = json_object_to_json_string(o);
-//	pr_debug("<<<< %s\n", s);
+	pr_debug("<<<< %s\n", s);
 	if (s){
-		pjson = strdup(s);
+		free(aitalk_pipe_buf);
+		aitalk_pipe_buf = NULL;
+		aitalk_pipe_buf = strdup(s);
 	}
 	if (o){
 		json_object_put(o);
@@ -72,7 +73,7 @@ char *send_obj(char *method,json_object *obj)
 		}
 	}
 exit_err:
-	return pjson;
+	return aitalk_pipe_buf;
 }
 
 
@@ -239,9 +240,9 @@ int ai_aitalk_send(char *data){
 		return -1;
 	}
 	DEBUG("==> %s\n",data);
-	free(aitalk_pipe_buf);
-	aitalk_pipe_buf = NULL;
-	aitalk_pipe_buf = strdup(data);
+//	free(aitalk_pipe_buf);
+//	aitalk_pipe_buf = NULL;
+//	aitalk_pipe_buf = strdup(data);
 
 	sem_post(&sem_ai_send);
 	return 0;
@@ -256,8 +257,6 @@ int ai_aitalk_send_stop(void){
 	usleep(1000);
 	free(aitalk_pipe_buf);
 	aitalk_pipe_buf = NULL;
-	free(pjson);
-	pjson =   NULL;
 	return 0;
 }
 

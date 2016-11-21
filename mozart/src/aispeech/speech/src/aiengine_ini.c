@@ -7,13 +7,17 @@
 #include <unistd.h>
 #include "aiengine_app.h"
 #include "aiengine_ini.h"
-
+#define GET_MOZART_INI 0
 void aiengine_init_get_config(ini_aiengine_s *ini){
 	char buf[32] = {0};
 	int time = 0;
 	int ret = 0;
 	//------------------------------ record time
 	ini->asr.record_time = 80;			//default 8s
+	ini->asr.wait_time = 10000;			// default	10s
+	ini->sds.is_multi = true;			//
+	ini->server.is_auto_play= true;			//
+#if GET_MOZART_INI
 	if (mozart_ini_getkey("/usr/data/aiengine.ini", "asr", "record_time", buf)){
 		PERROR("failed to parse /usr/data/aiengine.ini, set default asr record time to 8 s.\n");
 	}
@@ -27,7 +31,7 @@ void aiengine_init_get_config(ini_aiengine_s *ini){
 		}
 	}
 	//------------------------------ wait result time
-	ini->asr.wait_time = 10000;			// default	10s
+	
 	if (mozart_ini_getkey("/usr/data/aiengine.ini", "asr", "wait_time", buf)){
 		PERROR("failed to parse /usr/data/aiengine.ini, set default asr wait time to 10 s.\n");
 	}
@@ -43,7 +47,7 @@ void aiengine_init_get_config(ini_aiengine_s *ini){
 
 
 	//------------------------------ sds multi
-	ini->sds.is_multi = true;			//
+	
 	if (mozart_ini_getkey("/usr/data/aiengine.ini", "sds", "sds_multi", buf)){
 		PERROR("failed to parse /usr/data/aiengine.ini, set default sds is_multi = 1.\n");
 	}
@@ -58,7 +62,7 @@ void aiengine_init_get_config(ini_aiengine_s *ini){
 	}//*/
 
 	//------------------------------ server auto play
-	ini->server.is_auto_play= true;			//
+
 	if (mozart_ini_getkey("/usr/data/aiengine.ini", "server", "auto_play", buf)){
 		PERROR("failed to parse /usr/data/aiengine.ini, set default is_auto_play = 1.\n");
 	}
@@ -71,6 +75,7 @@ void aiengine_init_get_config(ini_aiengine_s *ini){
 		}
 		DEBUG("set auto_play to %d .\n", ret);
 	}//*/
+#endif
 }
 
 
