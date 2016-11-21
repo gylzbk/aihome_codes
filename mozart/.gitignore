@@ -18,3 +18,4 @@ tools/host-tools/nvgen/nvgen
 
 tools/device-tools/app-config/cgi/app_elife_get_info
 tools/device-tools/app-config/cgi/app_elife_register
+/src/monitor/monitor
