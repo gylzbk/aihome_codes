@@ -6,6 +6,7 @@
 #include <asm/arch/clk.h>
 #include <asm/arch/base.h>
 #include <asm/arch/sfc.h>
+#include <asm/nvrw_interface.h>
 //#include <asm/arch/spi.h>
 int mode = 0;
 int flag = 0;
@@ -220,6 +221,46 @@ static int sfc_nand_read_data(unsigned int *data, unsigned int length)
 	return 0;
 }
 
+static int sfc_nand_write_data(unsigned int *data, unsigned int length)
+{
+        unsigned int tmp_len = 0;
+        unsigned int fifo_num = 0;
+        unsigned int i;
+        unsigned int reg_tmp = 0;
+        unsigned int  len = (length + 3) / 4 ;
+
+        while(1){
+                reg_tmp = jz_sfc_readl(SFC_SR);
+                if (reg_tmp & TRAN_REQ) {
+                        jz_sfc_writel(CLR_TREQ,SFC_SCR);
+                        if ((len - tmp_len) > THRESHOLD)
+                                fifo_num = THRESHOLD;
+                        else {
+                                fifo_num = len - tmp_len;
+                        }
+
+                        for (i = 0; i < fifo_num; i++) {
+                                jz_sfc_writel(*data,SFC_DR);
+                                data++;
+                                tmp_len++;
+                        }
+                }
+                if (tmp_len == len)
+                        break;
+        }
+
+        reg_tmp = jz_sfc_readl(SFC_SR);
+        while (!(reg_tmp & END)){
+                reg_tmp = jz_sfc_readl(SFC_SR);
+        }
+
+        if ((jz_sfc_readl(SFC_SR)) & END)
+                jz_sfc_writel(CLR_END,SFC_SCR);
+
+
+        return 0;
+}
+
 static void get_sfcnand_base_param(int *pagesize)
 {
 	unsigned char *spl_flag = (unsigned char *)0xF4001000;
@@ -288,6 +329,26 @@ void sfc_nand_load(long offs,long size,void *dst)
 	return ;
 }
 
+static void sfc_nand_set_feature(void)
+{
+        unsigned char cmd[8];
+        unsigned int x=0;
+        /* disable write protect */
+        unsigned int add;
+        cmd[0]=0x1f;//set feature
+        add=0xa0;
+
+        sfc_send_cmd(&cmd[0],1,add,1,0,1,1);
+        sfc_nand_write_data(&x,1);
+
+	/* enable ECC */
+        cmd[0]=0x1f;//get feature
+        add=0xb0;
+        x=0x10;
+        sfc_send_cmd(&cmd[0],1,add,1,0,1,1);
+        sfc_nand_write_data(&x,1);
+}
+
 static void sfc_init(void)
 {
 	//clk_set_rate(SSI, 24000000);
@@ -326,34 +387,59 @@ static void gpio_as_sfc(void)
 	writel(0x3c << 26,GPIO_PXPAT0C(0));
 }
 
-void spl_load_kernel(struct image_header *header)
+#ifdef CONFIG_SPL_OS_BOOT
+void spl_load_kernel(struct image_header *header, long offset)
 {
-	sfc_nand_load(CONFIG_SPL_OS_OFFSET, sizeof(struct image_header), CONFIG_SYS_TEXT_BASE);
+	sfc_nand_load(offset, sizeof(struct image_header), CONFIG_SYS_TEXT_BASE);
 	spl_parse_image_header(header);
-	sfc_nand_load(CONFIG_SPL_OS_OFFSET, spl_image.size, spl_image.load_addr);
+	sfc_nand_load(offset, spl_image.size, spl_image.load_addr);
 }
+#endif
 
 void spl_load_uboot(struct image_header *header)
 {
 	spl_parse_image_header(header);
-	sfc_nand_load(CONFIG_UBOOT_OFFSET,CONFIG_SYS_MONITOR_LEN,(void *)CONFIG_SYS_TEXT_BASE);
+	sfc_nand_load(CONFIG_UBOOT_OFFSET, CONFIG_SYS_MONITOR_LEN, (void *)CONFIG_SYS_TEXT_BASE);
 }
 
-void spl_sfc_nand_load_image(void)
+char *spl_sfc_nand_load_image(void)
 {
+	char *cmdargs = NULL;
 	struct image_header *header;
 	char cmd[5] = {0};
 	char idcode[5] = {0};
 	unsigned int i=0;
 	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE);
+#ifdef CONFIG_SPL_OS_BOOT
+	nvinfo_t *nvinfo = CONFIG_SPL_NV_BASE;
+#endif
 
 	sfc_init();
+	sfc_nand_set_feature();
 #ifdef CONFIG_SPL_OS_BOOT
-	spl_load_kernel(header);
-	return ;
-#endif
+	sfc_nand_load(NV_AREA_BASE_ADDR, sizeof(nvinfo_t), nvinfo);
+	if ((nvinfo->magic[0] == 'O') &&
+		(nvinfo->magic[1] == 'T') &&
+		(nvinfo->magic[2] == 'A') &&
+		(nvinfo->magic[3] == '\0')) {
+		debug("nvinfo->magic, nvinfo->update_flag=%d, nvinfo->update_process: %d.\n",
+			  nvinfo->magic, nvinfo->update_flag, nvinfo->update_process);
+	} else {
+		/* if magic not valid, force to nonupdate status */
+		nvinfo->update_flag = FLAG_NONUPDATE;
+	}
+	if (nvinfo->update_flag == FLAG_NONUPDATE) {
+		spl_load_kernel(header, CONFIG_SPL_OS_OFFSET);
+		cmdargs = CONFIG_SYS_SPL_ARGS_ADDR;
+	} else if (nvinfo->update_flag == FLAG_UPDATE) {
+		spl_load_kernel(header, CONFIG_SPL_OTA_OS_OFFSET);
+		cmdargs = CONFIG_SYS_SPL_OTA_ARGS_ADDR;
+	} else {
+		debug("Invalid update flag: %d.\n", nvinfo->update_flag);
+	}
+#else
 	spl_load_uboot(header);
-
-	return ;
+#endif
+	return cmdargs;
 }
 

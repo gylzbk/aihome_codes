@@ -1,11 +1,10 @@
 #ifndef __AI_SLOT_H_
 #define __AI_SLOT_H_
 
-#include "aiengine.h"
+#include "aiengine_app.h"
 #include "vr-speech_interface.h"
 #include "cJSON.h"
 
-#define SUPPORT_ELIFE 0
 /**
  * @ =========================================================================
  *   音乐 识别返回结果  定义.

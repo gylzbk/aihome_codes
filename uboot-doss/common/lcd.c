@@ -482,9 +482,18 @@ void lcd_clear_black(void)
 #endif
 }
 
-#define START_COL 327 
-#define START_ROW 102
+#if CONFIG_VIDEO_FRD240A3602B
+ #define START_COL 327 
+ #define START_ROW 102
+ #define LINE_LEN 65
+#endif
+
+#ifdef CONFIG_VIDEO_FRD20024N
+#define START_COL 60
+#define START_ROW 60
 #define LINE_LEN 65
+#endif
+
 void lcd_display_bat_line(int line,int color)
 {
 	int *lcdbase_p ;
@@ -610,7 +619,6 @@ void lcd_clear(void)
 	/* Paint the logo and retrieve LCD base address */
 	debug("[LCD] Drawing the logo...\n");
 	
-#ifdef CONFIG_ASLMOM_BOARD
 	int hspr = readl(RTC_BASE + RTC_HSPR);
 
 	if ((get_update_flag() & 0x3) != 0x3) {
@@ -621,9 +629,6 @@ void lcd_clear(void)
 		gpio_set_value(88,1);
 		lcd_puts_xy(80,0,"updating");	
 	}
-#else
-	lcd_console_address = lcd_logo();
-#endif
 	console_col = 0;
 	console_row = 0;
 	lcd_sync();
@@ -1335,7 +1340,12 @@ static void *lcd_logo(void)
 #if defined(CONFIG_RLE_LCD_LOGO) && !defined(CONFIG_LCD_INFO_BELOW_LOGO)
 	rle_plot(RLE_LOGO_DEFAULT_ADDR, lcd_base);
 #else
+#ifdef CONFIG_VIDEO_FRD240A3602B
 	bitmap_plot(320, 80);
+#endif
+#ifdef CONFIG_VIDEO_FRD20024N
+	bitmap_plot(212, 36);
+#endif
 #endif
 	flush_cache_all();
 #ifdef CONFIG_LCD_INFO

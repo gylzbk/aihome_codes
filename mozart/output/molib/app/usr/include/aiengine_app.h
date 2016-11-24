@@ -9,6 +9,7 @@
 #include "cJSON.h"
 #include "echo_wakeup.h"
 #include "aiengine.h"
+#include "aiengine_ini.h"
 #include "ai_error.h"
 #include "ai_server.h"
 #include "vr-speech_interface.h"
@@ -21,16 +22,25 @@
 #define AI_CONTROL_MOZART 1
 
 #define AI_CONTROL_MOZART_ATALK 1
+#define VALGRIND_TEST 0
 
 extern int asr_mode_cfg;
 extern int fd_dsp_rd;
 
+#define __DEBUG__
+#ifdef __DEBUG__
+#define DEBUG(format, ...) printf("[%s : %s : %d] ",__FILE__,__func__,__LINE__); printf(format, ##__VA_ARGS__);
+#else
+#define DEBUG(format, ...)
+#endif
+#define PERROR(format, ...) printf("[%s : %s : %d] ",__FILE__,__func__,__LINE__); printf(format, ##__VA_ARGS__);
+
+#define AI_LOG_ENABLE 1
 
 extern pthread_mutex_t ai_lock;
 #define ai_mutex_lock(lock)				\
 	do {								\
 		int i = 0;			\
-		DEBUG("++++++++++++++++++++++++++++++++ ai lock\n");\
 		while (pthread_mutex_trylock(&ai_lock)) {			\
 			if (i++ >= 100) {				\
 				PERROR("####dead lock####\n");	\
@@ -42,10 +52,13 @@ extern pthread_mutex_t ai_lock;
 
 #define ai_mutex_unlock(lock) 	\
 	do {								\
-		DEBUG("--------------------------------- ai unlock\n");\
 		pthread_mutex_unlock(&ai_lock);\
 	} while (0)
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 enum AEC_STATUS_TYEP
 {
@@ -90,6 +103,8 @@ typedef struct ai_status_s{
 	int mode_cfg;
 	bool is_play_music;
 	int asr_mode_cfg;
+	int asr_record_time;
+	int asr_wait_time;
 //	echo_wakeup_t *ew;
 //	struct aiengine *agn;
 //	pthread_mutex_t mutex_lock;
@@ -116,24 +131,15 @@ typedef struct ai_aec_flag_t{
 }ai_aec_flag_t;
 extern  ai_aec_flag_t ai_aec_flag;
 
-struct aiengine * aiengine_new(const char *cfg);
-int aiengine_delete(struct aiengine *engine);
-int aiengine_start(struct aiengine *engine, const char *param, char id[64], aiengine_callback callback, const void *usrdata);
-int aiengine_feed(struct aiengine *engine, const void *data, int size);
-int aiengine_stop(struct aiengine *engine);
-//int aiengine_cancel(struct aiengine *engine, struct mic_record * record_info);
-int aiengine_cancel(struct aiengine *engine);
-int aiengine_echo(struct aiengine *engine, const void *rec, const void *play, int size, int flag);
-
-
 #define RECORD_BUFSZ                (3200)
 #define TMP_BUFFER_SZ               (1024)
 //#define STR_BUFFER_SZ               (2048)
 
+extern ini_aiengine_s aiengine_ini;
 
 extern void * aec_init(void);
 extern int ai_aec(echo_wakeup_t *ew);
-extern int ai_cloud_tts(struct aiengine *agn, char *SynTxt);
+extern int ai_cloud_tts(struct aiengine *agn_text, char *SynTxt);
 
 
 extern const char *aiSlotDomain[RECOG_DOMAIN_MAX];

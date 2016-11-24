@@ -16,7 +16,8 @@
 
 #include "mozart_module.h"
 
-#define SMARTUI_PATH "/mnt/sdcard/ui/"
+#define SMARTUI_PATH "/usr/fs/usr/share/ui/"
+//#define SMARTUI_PATH "/mnt/sdcard/ui/"
 
 #define SUPPORY_REFRESH_PIC
 
@@ -362,7 +363,7 @@ static int mozart_smartui_build_bt_hs_view(void)
 		.right = 176,
 		.bottom = 160 + 16,
 		.layer = top_layer,
-		.align = center_align,	
+		.align = center_align,
 		.bottom_view = &bt_hs_background_imageview->v,
 	};
 
@@ -1396,7 +1397,7 @@ void mozart_smartui_bt_play(void)
 		smartui_imageview_display(global_background_imageview,	SMARTUI_PATH"bt_play.bmp");
 
 		for (i = 0; i < bt_barview_col_num && i < 100; i++)
-			data[i] = 100;
+			data[i] = 3;
 		data[i] = -1;
 
 		smartui_barview_display(bt_barview, data);
@@ -1898,7 +1899,7 @@ void *create_refresh_pic_func(void *arg)
 
 			mozart_smartui_build_refresh_pic_view(REFRESH_PIC_ASR_RECONG);
 			//smartui_textview_clear(refresh_asr_textview);
-			smartui_textview_display(refresh_asr_textview, "识别中");
+			smartui_textview_display(refresh_asr_textview, "处理中");
 		}
 		break;
 		case REFRESH_PIC_MAX :
@@ -1944,7 +1945,7 @@ void *create_refresh_pic_func(void *arg)
 		smartui_imageview_clear(refresh_asr_recong_icon_imageview);
 
 		gstop_refresh_flag_end = 1;
-		
+
 		usleep(1 * 1000);
 	}
 	g_refresh_pic_stop = 0;
@@ -2015,7 +2016,7 @@ void mozart_smartui_start_refreash_pic(refresh_pic_type_t pic_type)
 
 	gstop_refresh_flag_end = 0;
 	gstop_refresh_flag = 0;
-	
+
 	sem_post(&sem_refresh_pic);
 	usleep(10 * 1000);
 }

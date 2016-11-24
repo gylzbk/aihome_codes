@@ -7,6 +7,13 @@
 #include "cJSON.h"
 #include "aiengine_app.h"
 
+#if VALGRIND_TEST
+#include <sys/time.h>
+#include <time.h>
+
+extern long int _get_time();
+#endif
+
 extern int fd_dsp_rd;
 
 ai_sem_flag_t ai_sem_flag;
@@ -44,7 +51,7 @@ static char* ai_cloudsem_get_lbs_city(void);
 //static int ai_add_lbs_city_to_sem_param(char *lbs_city);
 static int ai_add_sds_info_to_sem_param(void);
 
-int _semantic_callback(void *usrdata, const char *id, int type,
+int _semantic_callback(const void *usrdata, const char *id, int type,
                                         const void *message, int size)
 {
 	//cJSON *nbest;
@@ -54,9 +61,10 @@ int _semantic_callback(void *usrdata, const char *id, int type,
 	cJSON *recordId = NULL;
 	cJSON *error_j = NULL;
 	cJSON *errId_j = NULL;
-  //  if(strstr((char *)message, "input")){
-	//    DEBUG("sem: size = %d\n%s\n",size,(char *)message);
-  //  }
+	cJSON *result_t = NULL;
+//    if(strstr((char *)message, "input")){
+//	   	 DEBUG("%.*s\n",size,(char *)message);
+//    }
     out = cJSON_Parse((char*) message);
     if (!out)
     {
@@ -75,18 +83,52 @@ int _semantic_callback(void *usrdata, const char *id, int type,
     }
 	recordId = cJSON_GetObjectItem(out, "recordId");
 	if(recordId){
-		DEBUG("recordId: %s\n", recordId->valuestring);
+//		DEBUG("recordId: %s\n", recordId->valuestring);
 		free(recog.recordId);
 		recog.recordId = NULL;
 		recog.recordId = strdup(recordId->valuestring);
 	}		//*/
-
     result = cJSON_GetObjectItem(out, "result");
-    if (result)
-    {
-#ifdef SYN_TOO_LONG
-    gettimeofday(&t_sem_end,NULL);
-#endif
+    if (result)  {
+		#if VALGRIND_TEST
+		char *slot = slot_test();
+		if (slot){
+	//		printf(slot);
+			result_t = cJSON_Parse((char*) slot);
+			if (result_t) {
+				if(ai_slot_resolve(&recog,result_t) == -1){
+					ai_sem_error_count++;
+					if (ai_sem_error_count == 1){
+						recog.error_type = AI_ERROR_SEM_FAIL_1;
+						recog.status    = AIENGINE_STATUS_ERROR;
+						goto exit_error;
+					}
+					else if (ai_sem_error_count == 2){
+						recog.error_type = AI_ERROR_SEM_FAIL_2;
+						recog.status    =AIENGINE_STATUS_ERROR;
+						goto exit_error;
+					}
+					else{
+						ai_sem_error_count = 0;
+						recog.error_type = AI_ERROR_SEM_FAIL_3;
+						recog.status    =AIENGINE_STATUS_ERROR;
+						goto exit_error;
+					}
+					PERROR("Error json!\n");
+					ai_sem_flag.state = SEM_STATUS_FAIL;
+					goto exit_error;
+				}	//*/
+				ai_sem_error_count =0;
+				ai_sem_flag.state = SEM_STATUS_SUCCESS;
+
+				cJSON_Delete(result_t);
+ 		    }
+			free(slot);
+		}
+		//	recog.status = AIENGINE_STATUS_SEM_STATUS_SUCCESS;
+	//	}
+	#else
+
 		if(ai_slot_resolve(&recog,result) == -1){
 			ai_sem_error_count++;
 			if (ai_sem_error_count == 1){
@@ -113,17 +155,22 @@ int _semantic_callback(void *usrdata, const char *id, int type,
 		ai_sem_flag.state = SEM_STATUS_SUCCESS;
 			//	recog.status = AIENGINE_STATUS_SEM_STATUS_SUCCESS;
 		//	}
+	#endif
     }
 
     error_j = cJSON_GetObjectItem(out, "error");
     if (error_j)
     {
-	//	char *error_s = cJSON_Print(error_j);
-	//	DEBUG("CLOUD SEM Error: \n%s\n", error_s);
-	//	free(error_s);
+#if 0
+		char *error_s = cJSON_Print(error_j);
+		DEBUG("CLOUD SEM Error: \n%s\n", error_s);
+		free(error_s);
+#endif
+
  		errId_j = cJSON_GetObjectItem(out, "errId");
 		if (errId_j){
 			recog.error_id = errId_j->valueint;
+    	    PERROR("CLOUD SEM Error ID = %d\n", recog.error_id);
 		}
 		recog.status = AIENGINE_STATUS_ERROR;
 		ai_sem_flag.state = SEM_STATUS_FAIL;
@@ -175,7 +222,7 @@ int ai_cloud_sem(struct aiengine *agn)
     int loop = 0;
     int ret = 0;
 	int buf_count = 0;
-	ai_mutex_lock();
+//	ai_mutex_lock();
 	ai_sem_flag.state = SEM_STATUS_START;
 	ai_sem_flag.error = false;
 	ai_sem_flag.set_end = false;
@@ -226,7 +273,12 @@ int ai_cloud_sem(struct aiengine *agn)
     ai_sem_flag.state = SEM_STATUS_START;
 //	printf("%d,%d,%d\n",ai_sem_flag.state,ai_sem_flag.set_end,ai_sem_flag.speak_end);
     while((ai_sem_flag.state == SEM_STATUS_START)      && !ai_sem_flag.set_end && !ai_sem_flag.speak_end) {
-
+#if VALGRIND_TEST
+	    long int time_one, time_two;
+	    time_one = _get_time();
+		int tmp = 0;
+		memset(buf, 0, RECORD_BUFSZ);
+#endif
 		ret = read(fd_dsp_rd, buf, RECORD_BUFSZ);
         if(ret < 0)
         {
@@ -235,6 +287,13 @@ int ai_cloud_sem(struct aiengine *agn)
             PERROR("mozart_record failed\n");
             break;
         }
+#if VALGRIND_TEST
+		time_two = _get_time();
+		long int time_diff_us = time_two - time_one;
+		long int sleep_time = 100000 - time_diff_us;
+		//printf("%s feed data size: %d, sleep_time: %ld\n", __func__, ret, sleep_time);
+		usleep(sleep_time);
+#endif
         ret = aiengine_feed(agn, buf, ret);
         if (ret < 0)
         {
@@ -243,7 +302,7 @@ int ai_cloud_sem(struct aiengine *agn)
             PERROR("engine feed failed.\n");
             break;
         }
-		if (++buf_count > 230){
+		if (++buf_count > aiengine_ini.asr.record_time){
 		//	ai_sem_flag.result = SEM_EXIT;
 		//	PERROR("Time out for record.\n");
 			break;
@@ -264,7 +323,7 @@ int ai_cloud_sem(struct aiengine *agn)
 	//----------------- wake server return unturl timeout.
     while((ai_sem_flag.state == SEM_STATUS_START)       && !ai_sem_flag.set_end) {
         usleep(1000);
-        if(++loop>15000)		//	15000 * 1ms = 15s
+        if(++loop>aiengine_ini.asr.wait_time)
         {
             PERROR("No result found, Time out\n");
             ai_sem_flag.state = SEM_STATUS_FAIL;
@@ -295,7 +354,7 @@ OUT:
 	new_semantic_param = NULL;
 	ai_sem_flag.set_end = false;
 	ai_sem_flag.state = SEM_STATUS_IDEL;
-	ai_mutex_unlock();
+//	ai_mutex_unlock();
     return ai_sem_flag.result;
 }
 

@@ -20,14 +20,21 @@ ai_aec_flag_t ai_aec_flag;
 
 static const char *param = "{"
 "   \"request\": {"
-"       \"env\": \"words=你好小乐;\""
+//"       \"env\": \"words=\u4f60\u597d\u5c0f\u4e50;thresh=0.1;\""
 "   }"
 "}";
 
-int _wakeup_aec_callback(const void *usrdata, const char *id,
-                            int type,const void *message, int size)
+
+int _wakeup_aec_callback(const void *usrdata, int type, const void *message, int bytes)
 {
-    //printf("resp data: %.*s\n", size, (char *) message);
+
+	 //printf("resp data: %.*s\n", bytes, (char *) message);
+    if(type)
+    {
+     	 DEBUG("=======>唤醒成功<=======\n");
+		ai_aec_flag.state = AEC_WAKEUP;
+    }
+/*    //printf("resp data: %.*s\n", size, (char *) message);
     cJSON *out = NULL;
 	out = cJSON_Parse((char*) message);
     if (!out)
@@ -52,6 +59,8 @@ int _wakeup_aec_callback(const void *usrdata, const char *id,
     {
         cJSON_Delete(out);
     }
+
+    //*/
     return 0;
 }
 
@@ -75,7 +84,7 @@ void  ai_aec_stop(void){
 	}
 }
 
-#if 0 //def AEC_FILE_DEBUG
+#ifdef AEC_FILE_DEBUG
 	int record_count;
 	int fdr = -1;
 	int fdp = -1;

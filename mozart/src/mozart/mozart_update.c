@@ -124,7 +124,6 @@ static int update_check_version(float remote, float current)
 
 static void *update_check_func(void *data)
 {
-	pthread_detach(pthread_self());
 	struct nv_info info;
 	float current_ver, new_ver;
 	int retval;

@@ -1178,7 +1178,7 @@ static void dwc2_handle_wakeup_detected_intr(struct dwc2 *dwc) {
 
 			/* Clear the Remote Wakeup Signaling */
 			dctl.d32 = dwc_readl(&dwc->dev_if.dev_global_regs->dctl);
-			dctl.b.rmtwkupsig = 1;
+			dctl.b.rmtwkupsig = 0;
 			dwc_writel(dctl.d32, &dwc->dev_if.dev_global_regs->dctl);
 			dwc2_gadget_resume(dwc);
 		} else {

@@ -12,8 +12,8 @@
 
 #include "mozart_module.h"
 
-//#define SMARTUI_PATH "/usr/fs/usr/share/ui/"
-#define SMARTUI_PATH "/mnt/sdcard/ui/"
+#define SMARTUI_PATH "/usr/fs/usr/share/ui/"
+//#define SMARTUI_PATH "/mnt/sdcard/ui/"
 #define HZK16 16
 
 #ifndef MOZART_RELEASE
@@ -1083,7 +1083,7 @@ void mozart_smartui_asr_recognize(void)
 	mozart_smartui_build_asr_view();
 	smartui_imageview_display(asr_background_imageview,  SMARTUI_PATH"asr.bmp");
 	smartui_imageview_display(asr_icon_imageview,  SMARTUI_PATH"asr_success.bmp");
-	smartui_textview_display(asr_prompt_textview, "语音识别中");
+	smartui_textview_display(asr_prompt_textview, "处理中");
 	mozart_smartui_sync();
 
 	pthread_mutex_unlock(&mutex);

@@ -4,6 +4,7 @@
 struct jz_gpio_code {
 	unsigned int shortpress_code;
 	unsigned int longpress_code;
+	unsigned int key_combi_code;
 };
 
 struct jz_gpio_keys_button {
@@ -19,6 +20,7 @@ struct jz_gpio_keys_button {
 	int longpress_interval;	/* long press key code interval in msecs. No long/short check by it is 0 */
 	bool can_disable;
 	int value;		/* axis value for EV_ABS */
+	int key_combi_interval;
 };
 
 struct jz_gpio_keys_platform_data {

@@ -5,7 +5,7 @@ STRIP := mipsel-linux-strip
 AR = mipsel-linux-ar
 CC = mipsel-linux-gcc
 CFLAGS := -g -fPIC -O2 -Werror -I$(MOLIB_DIR)/usr/include  -I$(MOLIB_UPDATER_DIR)/usr/include
-CFLAGS += -I$(MOLIB_DIR)/usr/include -I$(MOLIB_DIR)/usr/include/mozart
+CFLAGS += -I$(MOLIB_DIR)/usr/include -I$(MOLIB_DIR)/usr/include/mozart -I$(MOZART_DIR)/usr/include 
 CFLAGS += -I$(MOLIB_DIR)/include -I$(MOLIB_DIR)/include/curl -I$(MOLIB_DIR)/include/tingfm
 LDFLAGS := -shared -lm -lpthread -L$(MOLIB_DIR)/usr/lib -L$(MOLIB_UPDATER_DIR)/usr/lib \
 	  -lini \
@@ -32,7 +32,7 @@ DIR_SRC_VR := $(DIR_CUR)/src
 DIR_INCLUDE := $(DIR_CUR)/include
 
 SRCS := ./src/ai_sound_dev.c ./src/ai_aec_local.c ./src/ai_cloud_sem.c ./src/ai_cloud_sem_text.c ./src/ai_cloud_syn.c 
-SRCS += ./src/aiengine.c
+SRCS += ./src/aiengine.c  ./src/aiengine_ini.c
 RESOURCE = aihome
 CFLAGS += -I$(DIR_SRC_VR)
 

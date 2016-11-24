@@ -14,6 +14,7 @@
 #include <netinet/in.h>
 #include <linux/soundcard.h>
 
+#include "ai_server.h"
 #include "ai_slot.h"
 #include "ai_error.h"
 #include "cJSON.h"
@@ -56,6 +57,10 @@ int ai_slot_recog_free(vr_info *recog){
 	recog->object = NULL;
 	free(recog->operation);
 	recog->operation = NULL;
+	free(recog->semantics);
+	recog->semantics= NULL;
+	free(recog->scene);
+	recog->scene = NULL;
 	free(recog->device);
 	recog->device = NULL;
 	free(recog->location);
@@ -120,6 +125,7 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 	cJSON *state = NULL;
 	cJSON *param_json = NULL;
 	cJSON *operation = NULL;
+	cJSON *scene = NULL;
 	cJSON *device = NULL;
 	cJSON *location = NULL;
 	cJSON *object = NULL;
@@ -150,19 +156,13 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 	cJSON *artist = NULL;
 	cJSON *url_64 = NULL;
 	cJSON *url_32 = NULL;
-/*	if (sem_param == NULL){
-		ret = -1;
-		PERROR("sem_param = NULL\n");
-		goto exit_error;
-	}
-	sem_json = cJSON_Parse((char*) sem_param);
-	if (sem_json == NULL){
-		ret = -1;
-		PERROR("sem_json = NULL\n");
-		goto exit_error;
-	}	//*/
 
 	ai_slot_recog_free(recog);
+#if 1
+	char* c_json = cJSON_Print(sem_json);
+	printf("\n%s\n",c_json);
+	free(c_json);
+#endif
 	//	--------------------------------------------------- input
 	input = cJSON_GetObjectItem(sem_json, "input");
 	if (input){
@@ -174,6 +174,7 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 	//	------------------------------------------------- semantics
 	semantics = cJSON_GetObjectItem(sem_json, "semantics");
 	if(semantics){
+		recog->semantics = cJSON_PrintUnformatted(semantics);
 		//	------------------------------------------------- request
 		request = cJSON_GetObjectItem(semantics, "request");
 		if(request){
@@ -194,6 +195,14 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 						if(operation->valuestring){
 							free(recog->operation);
 							recog->operation = strdup(operation->valuestring);
+						}
+					}
+				//	------------------------------------------------- scene
+					scene = cJSON_GetObjectItem(param_json, "模式");
+					if(scene){
+						if(scene->valuestring){
+							free(recog->scene);
+							recog->scene = strdup(scene->valuestring);
 						}
 					}
 				//	------------------------------------------------- device
@@ -452,11 +461,8 @@ int ai_slot_resolve(vr_info *recog,cJSON *sem_json){
 	if(data){
 		dbdata = cJSON_GetObjectItem(data, "dbdata");
 		if(dbdata){
-			DEBUG("PASS\n");
 			if(recog->domain == RECOG_DOMAIN_WEATHER){
-				DEBUG("PASS\n");
 				int number = cJSON_GetArraySize(dbdata);
-				DEBUG("number = %d\n",number);
 				if (number ==1){
 					dbdata_i = cJSON_GetArrayItem(dbdata, 0);
 					area = cJSON_GetObjectItem(dbdata_i, "area");
@@ -596,6 +602,7 @@ exit_slot:
 	DEBUG("domain : %s\n", aiSlotDomain[recog->domain]);
 	DEBUG("state : %s\n", aiSlotState[recog->state]);
 	DEBUG("operation : %s\n", recog->operation);
+	DEBUG("scene : %s\n", recog->scene);
 	DEBUG("device : %s\n", recog->device);
 	DEBUG("location : %s\n", recog->location);
 	DEBUG("object : %s\n", recog->object);

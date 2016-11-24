@@ -10,7 +10,7 @@
 
 #include "vr-speech_interface.h"
 #include "ai_slot.h"
-
+#include "ai_server.h"
 #if 0
 #define MUSIC_LIST_MAX 10
 #define MUSIC_LIST_SAVE_URL 0

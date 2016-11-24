@@ -12,7 +12,10 @@
 #include "aiengine.h"
 #include "aiengine_app.h"
 #include "ai_slot.h"
+#include "ai_server.h"
 #include "baselib.h"
+
+#include "ini_interface.h"
 
 music_obj *global_music;
 struct op *global_op;
@@ -38,14 +41,14 @@ static const char *version =
 //		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
 //		\"server\": \"ws://112.80.39.95:8009\"\
 
-#if 1
+#if (VALGRIND_TEST == 0)
 static const char *ew_cfg =
 "\
 {\
     \"luaPath\": \"/usr/fs/usr/share/vr/bin/luabin.lub\",\
     \"appKey\": \"14327742440003c5\",\
     \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
-    \"provision\": \"/usr/fs/usr/share/vr/bin/prov-jz-2.7.8-mac.file-20201031\",\
+    \"provision\": \"/usr/fs/usr/share/vr/bin/aiengine-2.8.8-14327742440003c5.provision\",\
     \"serialNumber\": \"/usr/data/serialNumber\",\
     \"prof\": {\
         \"enable\": 0,\
@@ -53,7 +56,7 @@ static const char *ew_cfg =
     },\
     \"vad\":{\
         \"enable\": 1,\
-        \"res\": \"/usr/fs/usr/share/vr/bin/vad.aihome.0.3.1027.bin\",\
+        \"res\": \"/usr/fs/usr/share/vr/bin/vad.aihome.v0.5.20160324.bin\",\
         \"speechLowSeek\": 70,\
         \"sampleRate\": 16000,\
         \"pauseTime\":700,\
@@ -61,7 +64,7 @@ static const char *ew_cfg =
     },\
     \"native\": {\
         \"cn.dnn\": {\
-            \"resBinPath\": \"/usr/fs/usr/share/vr/bin/aihome.1030.bin\"\
+            \"resBinPath\": \"/usr/fs/usr/share/vr/bin/wakeup_aihome_aispeech_nhxl_20161019.bin\"\
         },\
         \"cn.echo\": {\
             \"frameLen\": 512,\
@@ -77,7 +80,7 @@ static const char *agn_cfg =
     \"luaPath\": \"/usr/fs/usr/share/vr/bin/luabin.lub\",\
     \"appKey\": \"14327742440003c5\",\
     \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
-    \"provision\": \"/usr/fs/usr/share/vr/bin/prov-jz-2.7.8-mac.file-20201031\",\
+    \"provision\": \"/usr/fs/usr/share/vr/bin/aiengine-2.8.8-14327742440003c5.provision\",\
     \"serialNumber\": \"/usr/data/serialNumber\",\
     \"prof\": {\
         \"enable\": 0,\
@@ -85,7 +88,7 @@ static const char *agn_cfg =
     },\
     \"vad\":{\
         \"enable\": 1,\
-        \"res\": \"/usr/fs/usr/share/vr/bin/vad.aihome.0.3.1027.bin\",\
+        \"res\": \"/usr/fs/usr/share/vr/bin/vad.aihome.v0.5.20160324.bin\",\
         \"speechLowSeek\": 70,\
         \"sampleRate\": 16000,\
         \"pauseTime\":700,\
@@ -96,14 +99,31 @@ static const char *agn_cfg =
     }\
 }";
 
+static const char *agn_text_cfg =
+"\
+{\
+    \"luaPath\": \"/usr/fs/usr/share/vr/bin/luabin.lub\",\
+    \"appKey\": \"14327742440003c5\",\
+    \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
+    \"provision\": \"/usr/fs/usr/share/vr/bin/aiengine-2.8.8-14327742440003c5.provision\",\
+    \"serialNumber\": \"/usr/data/serialNumber\",\
+    \"prof\": {\
+        \"enable\": 0,\
+        \"output\": \"/mnt/sdcard/a.log\"\
+    },\
+    \"cloud\": {\
+		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
+    }\
+}";
+
 #else
-static const char *cfg =
+static const char *ew_cfg =
 "\
 {\
     \"luaPath\": \"./bin/luabin.lub\",\
     \"appKey\": \"14327742440003c5\",\
     \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
-    \"provision\": \"./bin/prov-jz-2.7.8-mac.file-20201031\",\
+    \"provision\": \"./bin/aiengine-2.8.8-14327742440003c5.provision\",\
     \"serialNumber\": \"/usr/data/serialNumber\",\
     \"prof\": {\
         \"enable\": 0,\
@@ -111,7 +131,39 @@ static const char *cfg =
     },\
     \"vad\":{\
         \"enable\": 1,\
-        \"res\": \"./bin/vad.aihome.0.3.1027.bin\",\
+        \"res\": \"./bin/vad.aihome.v0.5.20160324.bin\",\
+        \"speechLowSeek\": 70,\
+        \"sampleRate\": 16000,\
+        \"pauseTime\":700,\
+        \"strip\": 1\
+    },\
+    \"native\": {\
+        \"cn.dnn\": {\
+            \"resBinPath\": \"./bin/wakeup_aihome_aispeech_nhxl_20161019.bin\"\
+        },\
+        \"cn.echo\": {\
+            \"frameLen\": 512,\
+            \"filterLen\": 2048,\
+            \"rate\": 16000\
+        }\
+    }\
+}";
+
+static const char *agn_cfg =
+"\
+{\
+    \"luaPath\": \"./bin/luabin.lub\",\
+    \"appKey\": \"14327742440003c5\",\
+    \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
+    \"provision\": \"./bin/aiengine-2.8.8-14327742440003c5.provision\",\
+    \"serialNumber\": \"/usr/data/serialNumber\",\
+    \"prof\": {\
+        \"enable\": 0,\
+        \"output\": \"/mnt/sdcard/a.log\"\
+    },\
+    \"vad\":{\
+        \"enable\": 1,\
+        \"res\": \"./bin/vad.aihome.v0.5.20160324.bin\",\
         \"speechLowSeek\": 70,\
         \"sampleRate\": 16000,\
         \"pauseTime\":700,\
@@ -119,16 +171,23 @@ static const char *cfg =
     },\
     \"cloud\": {\
 		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
+    }\
+}";
+
+static const char *agn_text_cfg =
+"\
+{\
+    \"luaPath\": \"./bin/luabin.lub\",\
+    \"appKey\": \"14327742440003c5\",\
+    \"secretKey\": \"59db7351b3790ec75c776f6881b35d7e\",\
+    \"provision\": \"./bin/aiengine-2.8.8-14327742440003c5.provision\",\
+    \"serialNumber\": \"/usr/data/serialNumber\",\
+    \"prof\": {\
+        \"enable\": 0,\
+        \"output\": \"/mnt/sdcard/a.log\"\
     },\
-    \"native\": {\
-        \"cn.dnn\": {\
-            \"resBinPath\": \"./bin/aihome.1030.bin\"\
-        },\
-        \"cn.echo\": {\
-            \"frameLen\": 512,\
-            \"filterLen\": 2048,\
-            \"rate\": 16000\
-        }\
+    \"cloud\": {\
+		\"server\": \"ws://s-test.api.aispeech.com:10000\"\
     }\
 }";
 #endif
@@ -139,8 +198,9 @@ pthread_mutex_t ai_lock = PTHREAD_MUTEX_INITIALIZER;
 
 struct timeval t_debug;
 struct aiengine *agn = NULL;
+struct aiengine *agn_text = NULL;
 echo_wakeup_t *ew = NULL;
-
+ini_aiengine_s aiengine_ini;
 
 
 #ifdef SYN_TOO_LONG
@@ -181,8 +241,7 @@ int ai_tts_play_time(void){
 	printf("tts_play: %12d\n",time);
 //	ai_time_reset();
 	return 0;
-}
-	//*/
+}//*/
 int ai_sem_time(char *data){
 	if (data == NULL)
 		return -1;
@@ -191,7 +250,6 @@ int ai_sem_time(char *data){
 	time_subtract(&time,t_sem_start,t_sem_end);
 	printf("sem: %6d\n",time);
 	if ((recog.recordId)){//&&(time > 1500)){
-		DEBUG("LOG-SEM: : rID:%s, t:%6d, sem:%s\n",recog.recordId,time,data);//*/
 		ai_log_add(LOG_DEBUG,"SEM: rID: %s , t: %6d , sem: %s",recog.recordId,time,data);//*/
 	}
 	return 0;
@@ -219,7 +277,6 @@ int ai_tts_time(char *data){
 	time_subtract(&time,t_tts_start,t_tts_end);
 	printf("tts: %6d\n",time);
 	if ((recog.recordId)){//&&(time > 1500)){
-		DEBUG("LOG-TTS: rID:%s, t:%6d, tts:%s\n",recog.recordId,time,data);//*/
 		ai_log_add(LOG_DEBUG,"TTS: rID: %s , t: %6d, tts: %s",recog.recordId,time,data);//*/
 	}
 	return 0;
@@ -243,6 +300,11 @@ int ai_recog_free(void){
 	recog.object = NULL;
 	free(recog.operation);
 	recog.operation = NULL;
+	free(recog.semantics);
+	recog.semantics = NULL;
+
+	free(recog.scene);
+	recog.scene = NULL;
 	free(recog.device);
 	recog.device = NULL;
  	free(recog.location);
@@ -355,6 +417,14 @@ int ai_aiengine_init(void)
 	}
 	error = 0;
 
+	/* create AIEngine */
+	agn_text = (struct aiengine *)aiengine_new(agn_text_cfg);
+	if(NULL == agn_text)
+	{
+		PERROR("create aiengine text error. \n");
+		goto exit_error;
+	}
+
 	/* create echo wakeup engine */
 	ew = echo_wakeup_new(ew_cfg);
 	if(NULL == ew)
@@ -365,14 +435,25 @@ int ai_aiengine_init(void)
 //	is_aiengine_init= true;
 
 exit_error:
+	DEBUG("finish\n", buf);
 	return error;//*/
 }
 
 
 int ai_status_aecing(void){
+	int count  = 0;
+/*	while(ai_song_list.is_getting == true){
+		usleep(10*000);
+		if(count++ > 1000){
+			break;
+		}
+	}//*/
+	#if (SUPPORT_MEMORY == MEMORY_32M)
+		system("echo 3 > /proc/sys/vm/drop_caches");
+	#endif
 	ai_to_mozart();
 	if (aitalk_cloudplayer_is_playing()){
-		DEBUG("aitalk   is playing..! %d \n", recog.is_control_play_music);
+	//	DEBUG("aitalk   is playing..! %d \n", recog.is_control_play_music);
 		if(recog.is_control_play_music == false){
 			usleep(10000);
 			ai_aitalk_send(aitalk_send_resume(false));	//*/
@@ -389,17 +470,16 @@ int ai_status_aecing(void){
 	ai_recog_free();
 	if (ai_aec(ew) == 0){
 		if(ai_flag.is_running){
-			if(ai_song_list.is_getting == true){
-				ai_aitalk_send(aitalk_send_error("error_server_busy"));
-			//	mozart_prompt_tone_key_sync("error_server_busy",false);
-				recog.status = AIENGINE_STATUS_AEC;
-			}
-			else{
+	//		if(ai_song_list.is_getting == true){
+	//			ai_aitalk_send(aitalk_send_error("error_server_busy"));
+	//			recog.status = AIENGINE_STATUS_AEC;
+	//		}
+	//		else{
 				#if AI_CONTROL_MOZART	  // remove tone when wakeup
 					mozart_key_ignore_set(true);
 				#endif
 				recog.status = AIENGINE_STATUS_SEM;
-			}
+	//		}
 		}
 		return 0;
 	}
@@ -414,6 +494,9 @@ int ai_status_aecing(void){
 int ai_status_seming(void){
 	int ret = 0;
 	int vol = 0;
+	#if !VALGRIND_TEST
+		system("echo 3 > /proc/sys/vm/drop_caches");
+	#endif
 #if AI_CONTROL_MOZART
 	vol = mozart_volume_get();
 	if (vol == 0){
@@ -467,6 +550,7 @@ int ai_status_process(void){
 		PERROR("Error ID = %d\n",recog.error_id);
 		recog.error_type = ai_error_get_id(recog.error_id);
 		recog.status = AIENGINE_STATUS_ERROR;
+		recog.error_id = 0;
 	}
 }
 
@@ -511,7 +595,8 @@ int ai_status_error(void){
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_SYSTEM:
-		ai_aitalk_send(aitalk_send_error("error_system"));
+		ai_aitalk_send(aitalk_send_error("error_server_busy"));
+		sleep(2);
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_NO_VOICE:
@@ -520,6 +605,7 @@ int ai_status_error(void){
 		break;
 	case  AI_ERROR_SERVER_BUSY:
 		ai_aitalk_send(aitalk_send_error("error_server_busy"));
+		sleep(2);
 		recog.status = AIENGINE_STATUS_AEC;
 		break;
 	case  AI_ERROR_NET_SLOW:
@@ -551,6 +637,8 @@ int ai_init_data(void){
 	recog.output = NULL;
 	recog.object = NULL;
 	recog.operation = NULL;
+	recog.semantics = NULL;
+	recog.scene= NULL;
 	recog.device= NULL;
 	recog.location= NULL;
 	recog.volume = NULL;
@@ -581,6 +669,7 @@ int ai_init_data(void){
 int ai_init(void){
 	int retvalue = 1;
 	int err = 0;
+	aiengine_init_get_config(&aiengine_ini);
 	ai_init_data();
 	ai_flag.is_running = false;
 	if (ai_aiengine_init() == -1){
@@ -594,7 +683,11 @@ int ai_init(void){
 	music_list_alloc(&global_music, 20);
 
 	/*file operate init*/
+#if VALGRIND_TEST
+	int fd = file_create("./music_list.json");
+#else
 	int fd = file_create("/usr/data/music_list.json");
+#endif
 	if (fd == -1) {
 		print("error\n\n");
 		retvalue = -1;
@@ -622,8 +715,9 @@ exit_error:
 }
 
 int ai_set_enable(bool enable){
+	DEBUG("+++++++++++++++++++++++++++++++++++++++++++++ set ai enable  ...\n");
 	if(enable == true){
-		DEBUG("=========================== start aiengine ...\n");
+		DEBUG("start aiengine ...\n");
 	//	if (is_aiengine_init == false){
 	//		recog.status =AIENGINE_STATUS_STOP;
 	//	}else{
@@ -634,6 +728,9 @@ int ai_set_enable(bool enable){
 			usleep(10000);
 			ai_aitalk_send(aitalk_send_current_music(false));	//*/
 			usleep(10000);
+		#if (SUPPORT_MEMORY == MEMORY_32M)
+			system("echo 3 > /proc/sys/vm/drop_caches");
+		#endif
 		//	if (ai_flag.is_init){
 		//		ai_server_restart();
 		//		ai_song_recommend_auto();
@@ -642,15 +739,19 @@ int ai_set_enable(bool enable){
 	}
 	else{
 		if (ai_flag.is_running){
-			DEBUG("=========================== stop aiengine ...\n");
+			DEBUG("stop aiengine ...\n");
 			ai_flag.is_running = false;
 			if (ai_flag.is_init){
 				ai_aiengine_exit();
 			}
 			recog.key_record_stop = false;
 			ai_song_list_set_enable(false);
+		#if (SUPPORT_MEMORY == MEMORY_32M)
+			system("echo 3 > /proc/sys/vm/drop_caches");
+		#endif
 		}
 	}
+	DEBUG("--------------------------------------------- set ai enable ...\n");
 	return 0;
 }
 
@@ -677,6 +778,10 @@ int ai_aiengine_delete(void){
 			aiengine_delete(agn);
 			agn = NULL;
 		}
+		if (agn_text){
+			aiengine_delete(agn_text);
+			agn_text = NULL;
+		}
 	}
 	ai_flag.is_init = false;
 	ai_server_exit();
@@ -685,7 +790,7 @@ int ai_aiengine_delete(void){
 
 
 int ai_aiengine_exit(void){
-	DEBUG("aiengine exit!...\n");
+	DEBUG("+++++++++++++++++++++++++++++++++ai exit ...\n");
 	ai_flag.is_running = false;
 	ai_aec_stop();
 	ai_cloud_sem_stop();
@@ -702,7 +807,7 @@ int ai_aiengine_exit(void){
 
 	recog.status = AIENGINE_STATUS_INIT;
 	ai_server_exit();
-	DEBUG("aiengine exit finished     !...\n");
+	DEBUG("---------------------------------ai exit ...\n");
 	return 0;
 //	is_aiengine_init = false;
 }
@@ -767,8 +872,8 @@ void *ai_run(void *arg){
 					recog.status = AIENGINE_STATUS_AEC;
 					break;	//*/
 			}
-			printf("*");
-			usleep(10000);
+		//	printf("*");
+			usleep(1000);
 		}
 	//printf(">");
 		usleep(10000);
@@ -780,7 +885,6 @@ exit_error:
 	//	ai_to_mozart();
 	}
 	ai_exit();
-	pthread_exit(&error);
 }
 
 int ai_exit(void){
@@ -797,7 +901,7 @@ int ai_exit(void){
 int ai_tts(char *data,int enable_stop){
 #if 1
 //	printf("TTS: %s\n",data);
-	if (ai_cloud_tts(agn,data) == -1){
+	if (ai_cloud_tts(agn_text,data) == -1){
 		return -1;
 	}
 #ifdef SYN_TOO_LONG
@@ -831,52 +935,28 @@ int ai_tts(char *data,int enable_stop){
 }
 
 int ai_key_record_wakeup(void){
-	int count = 0;
-	DEBUG("ai_key_record_wakeup start...\n");
-	//if ((ai_flag.is_running)&&(ai_flag.is_init)){
-	//	if(recog.status == AIENGINE_STATUS_AEC){
-			ai_aec_stop();
-		//	while(recog.status == AIENGINE_STATUS_AEC){
-		//		usleep(1000); // wake 15s to deal
-		//		count ++;
-		//		if (count > 5000){
-		//			break;
-		//		}
-		//	}
-	//	}
-	//}
+	DEBUG("+++++++++++++++++++++++++++++++++ key_wakeup ...\n");
+	ai_aec_stop();
+	DEBUG("--------------------------------- key_wakeup ...\n");
 }
 
 int ai_key_record_stop(void){
 	int count = 0;
-	DEBUG("ai_key_record_stop start...\n");
+	DEBUG("+++++++++++++++++++++++++++++++++ key_stop ...\n");
 	if ((ai_flag.is_running)&&(ai_flag.is_init)){
 		switch(recog.status){
 			case AIENGINE_STATUS_SEM:
 				recog.key_record_stop = true;
 				ai_cloud_sem_stop();
-		/*		while((recog.status == AIENGINE_STATUS_SEM)){
-					usleep(1000); // wake 15s to deal
-					count ++;
-					if (count > 5000){
-						break;
-					}
-				}//*/
 				break;
 			case AIENGINE_STATUS_PROCESS:
 				recog.key_record_stop = true;
-		/*		while((recog.status == AIENGINE_STATUS_PROCESS)){
-					usleep(1000); // wake 15s to deal
-					count ++;
-					if (count > 5000){
-						break;
-					}
-				}//*/
 				break;	//*/
 			default:
 				break;	//*/
 		}
 	}
+	DEBUG("--------------------------------- key_stop ...\n");
 	return 0;
 }
 
@@ -900,8 +980,12 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 		ai_aiengine_exit();
 		ai_speech_set_status(VR_SPEECH_NULL);
 	}	//*/
-	if(ai_flag.is_init != true){
 
+	DEBUG("+++++++++++++++++++++++++++++++++++          startup  !...\n");
+	if(ai_flag.is_init != true){
+	#if (SUPPORT_MEMORY == MEMORY_32M)
+		system("echo 3 > /proc/sys/vm/drop_caches");
+	#endif
 		if(ai_init()== -1){
 			PERROR("AI init error!...\n");
 			goto exit_error;
@@ -927,7 +1011,7 @@ int ai_speech_startup(int wakeup_mode, mozart_vr_speech_callback callback)
 	}
 	ai_speech_set_status(VR_SPEECH_INIT);
 exit_error:
-	DEBUG("mozart_vr_speech_startup finish.\n");
+	DEBUG("------------------------------------   startup!...\n");
 //	sem_post(&sem_ai_startup);
 	return 0;
 }
@@ -935,7 +1019,7 @@ exit_error:
 int ai_speech_shutdown(void){
 //	sem_wait(&sem_ai_startup);
 	int status = ai_speech_get_status();
-	DEBUG("vr speech shutdown!...\n");
+	DEBUG("++++++++++++++++++++++++++++++++++++++++         ai shutdown!...\n");
 	switch (status){
 		case VR_SPEECH_NULL:
 			DEBUG("vr_speech is not startup!\n");
@@ -953,7 +1037,7 @@ int ai_speech_shutdown(void){
 			break;
 	}
 
-	DEBUG("vr speech shutdown finish!...\n");
+	DEBUG("------------------------------------   ai shutdown!...\n");
 //	sem_post(&sem_ai_startup);
 	return 0;
 }

@@ -1,20 +1,10 @@
 #ifndef __AISPEECH__ECHO_WAKEUP_ECHO_WAKEUP_H_INCLUDED__
 #define __AISPEECH__ECHO_WAKEUP_ECHO_WAKEUP_H_INCLUDED__
-
-typedef int (*echo_wakeup_handler_f)(const void *usrdata, const char *id, int type, const void *message,
+//#define DEBUG_AUDIO
+typedef int (*echo_wakeup_handler_f)(const void *usrdata, int type, const void *message,
                                      int bytes);
 
-typedef struct echo_wakeup {
-    void *echo;
-    void *wakeup;
-
-    void *wakeup_cfg;
-    void *buffer_echo;
-    void *buffer_ref;
-
-    void *usrdata;
-    echo_wakeup_handler_f h;
-} echo_wakeup_t;
+typedef struct echo_wakeup echo_wakeup_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,3 +23,4 @@ int echo_wakeup_end(echo_wakeup_t *ew);
 }
 #endif
 #endif //__AISPEECH__ECHO_WAKEUP_ECHO_WAKEUP_H_INCLUDED__
+

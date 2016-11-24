@@ -39,6 +39,7 @@ int do_sfcnand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 	return CMD_RET_SUCCESS;
 }
+
 U_BOOT_CMD(sfcnand, 5, 1, do_sfcnand,
 		"sfcnand    - SFC_NAND sub-system\n",
 		"sfcnand read from(offs) size dst_addr\n"
@@ -49,7 +50,7 @@ void sfc_nand_init(void)
 	struct mtd_info *mtd;
 	mtd = &nand_info[0];
 
-	jz_sfc_nand_init(0,NULL);
+	jz_sfc_nand_init();
 
 	chip =mtd->priv;
 	chip->scan_bbt(mtd);

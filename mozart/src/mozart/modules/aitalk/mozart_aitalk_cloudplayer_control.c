@@ -222,12 +222,12 @@ static int send_play_done(const char *url, int error_no)
 	if (is_aitalk_playing){
 
 		if (is_play_tts){
-			pr_debug("--------aaa------ paly tts \n");
+	//		pr_debug("--------aaa------ paly tts \n");
 		//	mozart_aitalk_cloudplayer_do_resume();
 			mozart_aitalk_cloudplayer_do_next_song();
 			is_play_tts = false;
 		} else {
-			pr_debug("---------bbb------ paly next \n");
+	//		pr_debug("---------bbb------ paly next \n");
 			mozart_aitalk_cloudplayer_do_next_song();
 		}
 	}
@@ -299,14 +299,28 @@ int mozart_aitalk_stop(void){
 /*******************************************************************************
  * handler
  *******************************************************************************/
-static bool vendor_is_valid(json_object *cmd)
+static bool aitalk_is_valid(json_object *cmd)
 {
-	return true;//aitalk_cloudplayer_monitor_is_valid();
+	return __mozart_aitalk_cloudplayer_is_run();
 }
+
+#if 0
+static bool module_is_attach(json_object *cmd)
+{
+	bool is_attach;
+	return true;
+//-------------------------------- not checkout:
+	mozart_module_mutex_lock();
+	is_attach = __mozart_module_is_attach();
+	mozart_module_mutex_unlock();
+
+	return is_attach;
+}
+#endif
 
 static int wakeup_handler(json_object *cmd)
 {
-	pr_debug("wakeup_handler...\n");
+//	pr_debug("wakeup_handler...\n");
 	mozart_module_asr_wakeup();
 	return 0;
 }
@@ -394,7 +408,7 @@ static int play_handler(json_object *cmd)
 
 static int play_tts_handler(json_object *cmd)
 {
-	pr_debug("------------------ paly tts \n");
+//	pr_debug("------------------ paly tts \n");
 	int ret;
 	const char *url;
 	json_object *params, *url_j = NULL;
@@ -448,7 +462,7 @@ static int play_tts_handler(json_object *cmd)
 
 static int stop_handler(json_object *cmd)
 {
-	pr_debug("stop_handler...\n");
+//	pr_debug("stop_handler...\n");
 	bool is_tone = false;
 	json_object *params = NULL;
 	json_object *tone_j = NULL;
@@ -462,7 +476,7 @@ static int stop_handler(json_object *cmd)
 		}
 	}
 	if (is_tone){
-		pr_debug("tone: stop !...\n");
+//		pr_debug("tone: stop !...\n");
 		mozart_prompt_tone_key_sync("stop",false);
 	}
 	mozart_aitalk_cloudplayer_do_stop();
@@ -471,7 +485,7 @@ static int stop_handler(json_object *cmd)
 
 static int pause_handler(json_object *cmd)
 {
-	pr_debug("pause_handler...\n");
+//	pr_debug("pause_handler...\n");
 	bool is_tone = false;
 	json_object *params = NULL;
 	json_object *tone_j = NULL;
@@ -485,7 +499,7 @@ static int pause_handler(json_object *cmd)
 		}
 	}
 	if (is_tone){
-		pr_debug("tone: pause !...\n");
+//		pr_debug("tone: pause !...\n");
 		is_aitalk_playing = false;
 		mozart_prompt_tone_key_sync("pause",false);
 	}
@@ -495,7 +509,7 @@ static int pause_handler(json_object *cmd)
 
 static int resume_handler(json_object *cmd)
 {
-	pr_debug("resume_handler...\n");
+//	pr_debug("resume_handler...\n");
 	bool is_tone = false;
 	json_object *params = NULL;
 	json_object *tone_j = NULL;
@@ -509,7 +523,7 @@ static int resume_handler(json_object *cmd)
 		}
 	}
 	if (is_tone){
-		pr_debug("tone: resume !...\n");
+//		pr_debug("tone: resume !...\n");
 		mozart_prompt_tone_key_sync("resume",false);
 	}
 	mozart_aitalk_cloudplayer_do_resume();
@@ -607,7 +621,7 @@ static int previous_music_handler(json_object *cmd)
 		}
 	}
 	if (is_tone){
-		pr_debug("tone: previous_music !...\n");
+//		pr_debug("tone: previous_music !...\n");
 		mozart_prompt_tone_key_sync("previous",false);
 	}
 	mozart_aitalk_cloudplayer_do_previous_song();
@@ -635,7 +649,7 @@ static int next_music_handler(json_object *cmd)
 		}
 	}
 	if (is_tone){
-		pr_debug("tone: next_music !...\n");
+//		pr_debug("tone: next_music !...\n");
 		mozart_prompt_tone_key_sync("next",false);
 	}
 	mozart_aitalk_cloudplayer_do_next_song();
@@ -734,7 +748,7 @@ static int play_voice_prompt_handler(json_object *cmd)
 
 	mozart_module_mutex_lock();
 
-	if (!__mozart_aitalk_cloudplayer_is_run() || !vendor_is_valid(NULL)) {
+	if (!__mozart_aitalk_cloudplayer_is_run()){// || !vendor_is_valid(NULL)) {
 		pr_debug("[Warning] %s: Don't play %s\n", __func__, url);
 	} else {
 		if (!strncmp(url, "file://", 7))
@@ -918,54 +932,46 @@ static int get_volume_handler(json_object *cmd)
 	}
 }
 
-static bool module_is_attach(json_object *cmd)
-{
-	bool is_attach;
-	return true;
-//-------------------------------- not checkout:
-	mozart_module_mutex_lock();
-	is_attach = __mozart_module_is_attach();
-	mozart_module_mutex_unlock();
-
-	return is_attach;
-}
-
 static struct aitalk_method methods[] = {
 	{
 		.name = "wakeup",
 		.handler = wakeup_handler,
-		.is_valid = vendor_is_valid,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "play",
 		.handler = play_handler,
-		.is_valid = vendor_is_valid,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "play_tts",
 		.handler = play_tts_handler,
-		.is_valid = vendor_is_valid,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "stop",
 		.handler = stop_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "pause",
 		.handler = pause_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "resume",
 		.handler = resume_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "pause_toggle",
 		.handler = pause_toggle_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "set_volume",
 		.handler = set_volume_handler,
-		.is_valid = module_is_attach,
+		.is_valid = aitalk_is_valid,
 	},
 /*	{
 		.name = "play_music",
@@ -974,23 +980,30 @@ static struct aitalk_method methods[] = {
 	{
 		.name = "next_music",
 		.handler = next_music_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "current_music",
 		.handler = current_music_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "previous_music",
 		.handler = previous_music_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "exit",
 		.handler = exit_handler,
+		.is_valid = aitalk_is_valid,
 	},
 	{
 		.name = "error",
 		.handler = error_handler,
+		.is_valid = aitalk_is_valid,
 	},
+/*----------------------------------------*/
+
 	{
 		.name = "play_voice_prompt",
 		.handler = play_voice_prompt_handler,
@@ -1504,7 +1517,7 @@ static void *aitalk_running_func(void *args)
 				pr_debug("[%s:%d] json_tokener_parse c error: %s\n", __func__,__LINE__, cmd);
 			}
 		}
-		usleep(1000);
+	//	usleep(1000);
 	}
 	is_aitalk_run= false;
 	return NULL;

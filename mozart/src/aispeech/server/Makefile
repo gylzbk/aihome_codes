@@ -4,7 +4,7 @@ STRIP = mipsel-linux-strip
 
 CFLAGS := -fPIC -Werror -O2 
 CFLAGS += -I$(MOLIB_DIR)/include -I$(MOLIB_DIR)/include/curl -I$(MOLIB_DIR)/usr/include -I$(MOLIB_DIR)/usr/include/curl -I/opt/aispeech/doss/doss_codes/mozart/src/aispeech/server/src
-CFLAGS += -I$(MOLIB_UPDATER_DIR)/usr/include -I$(MOLIB_UPDATER_DIR)/usr/include/alsa 
+CFLAGS += -I$(MOLIB_UPDATER_DIR)/usr/include -I$(MOLIB_UPDATER_DIR)/usr/include/alsa -I$(MOZART_DIR)/usr/include 
 LDFLAGS = -shared -lpthread -lm -lcurl -L$(MOLIB_DIR)/usr/lib -L./libs -lzlog -lcloud_param -lelife_doss 
 
 DESTDIR =
@@ -20,6 +20,7 @@ INSTALL    = install
 SRCS := ./src/ai_error.c  ./src/ai_music_list.c ./src/ai_server.c  ./src/ai_slot.c ./src/ai_song_list.c
 SRCS += ./src/ai_zlog.c
 SRCS += ./src/ai_aitalk_send.c ./src/list.c ./src/music_list.c ./src/iota.c ./src/cJSON.c ./src/fop.c ./src/json_op.c ./src/baselib.c
+SRCS += ./src/elife/ai_elife_send.c ./src/elife/ai_elife.c 
 
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 TARGET=libaiserver.so

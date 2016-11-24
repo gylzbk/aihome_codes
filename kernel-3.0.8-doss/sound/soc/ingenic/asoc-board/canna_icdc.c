@@ -29,8 +29,11 @@
 
 #define GPIO_PG(n)      (5*32 + 23 + n)
 #define CANNA_SPK_GPIO GPIO_PC(25)
-#define CANNA_SPK_EN 0
-
+#if (defined CONFIG_BOARD_X1000_CANNA_V23)
+	#define CANNA_SPK_EN 1
+#elif (defined CONFIG_BOARD_X1000_CANNA_V10)
+	#define CANNA_SPK_EN 0
+#endif
 unsigned long codec_sysclk = -1;
 static int canna_spk_power(struct snd_soc_dapm_widget *w,
 				struct snd_kcontrol *kcontrol, int event)

@@ -1,237 +1,331 @@
 #include <stdio.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <errno.h>
-#include <libgen.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
-#include "nv_wr.h"
+#include "nvrw_interface.h"
+#include "ini_interface.h"
 
-typedef enum {
-	VER_EMPTY = 0,
-	VER_FLOAT,
-	VER_INT,
-} vType_t;
+#define COLOR_DEBUG "\033[40;37m"
+#define COLOR_ERR "\033[41;37m"
+#define COLOR_WARN "\033[43;30m"
+#define COLOR_INFO "\033[44;37m"
+#define COLOR_CLOSE "\033[0m"
 
-struct gen_args {
-	float	ver_f;
-	int32_t	ver_i;
-	vType_t type;
+#define NVGEN_DEBUG 0
 
-	char	*file;
-	int	reverseFlag;
-	int	reverse;
+#ifdef NVGEN_DEBUG
+#define pr_debug(fmt, args...) \
+	do { \
+		printf(COLOR_DEBUG"%s:%s:%d [Debug]"COLOR_CLOSE" ", __FILE__, __func__, __LINE__); \
+		printf(fmt, ##args);\
+	} while (0)
+#else
+#define pr_debug(fmt, args...)
+#endif
 
-	int	blockSize;
-	int	blockCount;
-	unsigned char bat_flag[3];
-};
+#define pr_info(fmt, args...) \
+	do { \
+		printf(COLOR_INFO"%s:%s:%d [Info]"COLOR_CLOSE" ", __FILE__, __func__, __LINE__); \
+		printf(fmt, ##args);\
+	} while (0)
 
-static struct gen_args args;
+#define pr_warn(fmt, args...) \
+	do { \
+		printf(COLOR_WARN"%s:%s:%d [Warn]"COLOR_CLOSE" ", __FILE__, __func__, __LINE__); \
+		printf(fmt, ##args);\
+	} while (0)
 
-const char usage_str[] = {
-	"Usage: nv_gen <-e version-float>|<-i version-int> <-f output-file>\n"
-	"              [-b block-size -c block-count] [-r reverse-value]\n"
-	"  or : nv_gen -h\n\n"
-	"Option:\n"
-	"  -e:    Version of target nv, version type float\n"
-	"  -i:    Version of target nv, version type integer\n"
-	"  -f:    Output file path\n"
-	"  -b:    Output Block size(unit: Bytes).\n"
-	"  -c:    Output Block count\n"
-	"  -r:    Reverse Value for fill reverve space(Base on 8, 10, 16).\n"
-	"  -x:    Set battery flag to nv\n"
-	"  -h:    Help usage\n"
-};
+#define pr_err(fmt, args...) \
+	do { \
+		printf(COLOR_ERR"%s:%s:%d [Error]"COLOR_CLOSE" ", __FILE__, __func__, __LINE__); \
+		printf(fmt, ##args);\
+	} while (0)
 
-static void usage(void)
+
+
+void usage(char *name)
 {
-	printf(usage_str);
+	pr_info("%s - a tool to generate nvimage.\n\n"
+		   "Usage: %s -c configfile -o nvimage\n\n"
+		   "Options:\n"
+		   "  -c nvimage config file.\n"
+		   "  -o nvimage output file.\n"
+		   "  -p nvimage padding size.\n"
+		   "\nExample:\n"
+		   "  %s -c nvimage.ini -o nv.img -p 0x800.\n"
+		   , name, name, name);
+
+	return;
 }
 
-static char *appName = NULL;
+struct version {
+	int major;
+	int minor;
+	int revision;
+};
 
-static int parse_argument(struct gen_args *args, int argc, char **argv)
+static struct version parse_version_str(char *version_str)
 {
-	int op;
+	char *pos = version_str;
+	struct version v = {};
 
-	/* No argument */
-	if (argc < 2)
+	v.major = atoi(pos);
+
+	pos = strchr(version_str, '.');
+	v.minor = atoi(pos + 1);
+
+	pos = strrchr(version_str, '.');
+	v.revision = atoi(pos + 1);
+
+	return v;
+}
+
+static bool has_new_version(struct nv_info *info)
+{
+	struct version c_v = parse_version_str(info->current_version);
+	struct version u_v = parse_version_str(info->update_version);
+
+	if (u_v.major > c_v.major) {
+		return true;
+	} else if (u_v.major == c_v.major) {
+		if (u_v.minor > c_v.minor) {
+			return true;
+		} else if (u_v.minor == c_v.minor) {
+			if (u_v.revision > c_v.revision) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	} else {
+		return false;
+	}
+
+	return false;
+}
+
+int fill_info(nvinfo_t *info, char *config)
+{
+	int ret = -1;
+	char buf[32] = {};
+
+	if (!config || !info)
 		return -1;
 
-	while ((op = getopt(argc, argv, "e:i:f:b:c:r:xh")) != -1) {
-		switch (op) {
-		case 'e':
-			if (!args->type) {
-				args->ver_f	= strtof(optarg, NULL);
-				args->type	= VER_FLOAT;
-			} else {
-				printf("%s two version type at same times.\n", appName);
-				return -1;
-			}
-			break;
-		case 'i':
-			if (!args->type) {
-				args->ver_i	= atoi(optarg);
-				args->type	= VER_INT;
-			} else {
-				printf("%s two version type at same times.\n", appName);
-				return -1;
-			}
-			break;
-		case 'f':
-			args->file = optarg;
-			break;
-		case 'b':
-			args->blockSize = atoi(optarg);
-			break;
-		case 'c':
-			args->blockCount = atoi(optarg);
-			break;
-		case 'r':
-			args->reverse = strtol(optarg, NULL, 0);
-			args->reverseFlag = 1;
-			break;
-		case 'x':
-			args->bat_flag[0] = 0x69;
-			args->bat_flag[1] = 0xaa;
-			args->bat_flag[2] = 0x55;
-			break;
-		case 'h':
-		default:
-			usage();
-			exit(1);
-		}
+	if (access(config, 0)) {
+		pr_err("%s: Not Found.\n", config);
+		return -1;
 	}
 
-	/* Export no detect args */
-	if (optind < argc) {
-		int i;
-		for (i = optind; i < argc; i++)
-			printf("%s: ignoring extra argument -- %s\n", appName, argv[i]);
+	strcpy(info->magic, "OTA");
+
+	// used for nvinfo_t->current_version
+	ret = mozart_ini_getkey(config, "ota", "current_version", buf);
+	if (ret) {
+		pr_warn("parse current_version error, force to 1.0.0\n");
+		strcpy(info->current_version, "1.0.0");
+	} else {
+		strcpy(info->current_version, buf);
 	}
+	pr_debug("info->current_version: v%s.\n", info->current_version);
+
+	// used for nvinfo_t->update_version
+	ret = mozart_ini_getkey(config, "ota", "update_version", buf);
+	if (ret) {
+		strcpy(info->update_version, info->current_version);
+	} else {
+		if (buf[0] == '\0')
+			strcpy(info->update_version, info->current_version);
+		else
+			strcpy(info->update_version, buf);
+	}
+	pr_debug("info->update_version: v%s.\n", info->update_version);
+
+	if (has_new_version(info))
+		info->update_flag = FLAG_UPDATE;
+	else
+		info->update_flag = FLAG_NONUPDATE;
+	pr_debug("info->update_flag: %x.\n", info->update_flag);
+
+	// used for nvinfo_t->update_method.method
+	ret = mozart_ini_getkey(config, "ota", "method", buf);
+	if (ret) {
+		pr_warn("parse update method error.\n");
+		return -1;
+	} else {
+		if (!strcasecmp("update_once", buf)) {
+			info->update_method.method = UPDATE_ONCE;
+		} else if (!strcasecmp("update_times", buf)) {
+			info->update_method.method = UPDATE_TIMES;
+		} else {
+			pr_err("Invalid update method: %s, "
+				   "only %s/%s(case-insensitive) support now!!\n",
+				   buf, "update_once", "update_block");
+			return -1;
+		}
+	}
+	pr_debug("info->update_method.method: %d.\n", info->update_method.method);
+
+	// used for nvinfo_t->update_method.storage
+	ret = mozart_ini_getkey(config, "ota", "storage",
+							(char *)info->update_method.storage);
+	if (ret) {
+		pr_warn("parse update_method.storage error.\n");
+		return -1;
+	}
+	pr_debug("info->update_method.storage: %s.\n", info->update_method.storage);
+
+	// used for nvinfo_t->update_method.location
+	ret = mozart_ini_getkey(config, "ota", "location",
+							(char *)info->update_method.location);
+	if (ret) {
+		pr_warn("parse update_method.location error.\n");
+		return -1;
+	}
+	pr_debug("info->update_method.location: %s.\n", info->update_method.location);
+
+	// used for nvinfo_t->product
+	ret = mozart_ini_getkey(config, "ota", "product",
+							(char *)info->product);
+	if (ret) {
+		pr_warn("parse product error.\n");
+		return -1;
+	}
+	pr_debug("info->product: %s.\n", info->product);
+
+	// used for nvinfo_t->url
+	ret = mozart_ini_getkey(config, "ota", "url",
+							(char *)info->url);
+	if (ret) {
+		pr_warn("parse url error.\n");
+		return -1;
+	}
+	pr_debug("info->url: %s.\n", info->url);
 
 	return 0;
 }
 
 int main(int argc, char **argv)
 {
-	struct nv_area_wr *area;
-	char *fill_buf;
-	int out_fd;
-	int tailSize;
-	ssize_t wSize;
-	ssize_t count;
-	int err= 0;
+	int c;
+	int ret = -1;
+	char *config = NULL;
+	char *target = NULL;
+	nvinfo_t info;
+	int fd = -1;
+	long int padsize = 0;
+	char *padvalue = NULL;
 
-	/* Get base name */
-	appName = basename(argv[0]);
-
-	/* Parse args */
-	memset(&args, 0, sizeof(args));
-	if (parse_argument(&args, argc, argv) < 0) {
-		usage();
-		return -1;
-	}
-
-	if (!args.type || !args.file) {
-		printf("%s. version or output-file is (null)\n", appName);
-		return -1;
-	}
-
-	tailSize = 0;
-	if (args.blockSize * args.blockCount > sizeof(struct nv_area_wr) * NV_NUMBERS)
-		tailSize = args.blockSize * args.blockCount - sizeof(struct nv_area_wr) * NV_NUMBERS;
-
-	/* Default reverse value is 0xff */
-	if (!args.reverseFlag)
-		args.reverse = 0xff;
-
-	printf("Gen NV image\n\n");
-
-	if (args.type == VER_FLOAT)
-		printf("Target version:\t\t%.5f\n", args.ver_f);
-	else if (args.type == VER_INT)
-		printf("Target version:\t\t%u\n", args.ver_i);
-	printf("Output file:\t\t%s\n", args.file);
-
-	if (args.blockSize && args.blockCount) {
-		printf("Block size:\t\t%d\n", args.blockSize);
-		printf("Block count:\t\t%d\n", args.blockCount);
-		printf("Fill reverse:\t\t%#x\n", args.reverse);
-	}
-
-	area = malloc(sizeof(struct nv_area_wr) * NV_NUMBERS);
-	if (!area) {
-		printf("%s. Alloc NV area structure: %s\n", appName, strerror(errno));
-		return -1;
-	}
-	memset(area, 0, sizeof(struct nv_area_wr) * NV_NUMBERS);
-
-	if (args.type == VER_FLOAT)
-		area[NV_NUMBERS - 1].current_version_f = args.ver_f;
-	else if (args.type == VER_INT)
-		area[NV_NUMBERS - 1].current_version_i = args.ver_i;
-
-	area[NV_NUMBERS - 1].resever[0] = args.bat_flag[0];
-	area[NV_NUMBERS - 1].resever[1] = args.bat_flag[1];
-	area[NV_NUMBERS - 1].resever[2] = args.bat_flag[2];
-
-	fill_buf = malloc(args.blockSize);
-	if (!fill_buf) {
-		printf("%s. Alloc fill buffer: %s\n", appName, strerror(errno));
-		err = -1;
-		goto err_alloc_fill;
-	}
-	memset(fill_buf, args.reverse, args.blockSize);
-
-	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
-	out_fd = open(args.file, O_RDWR | O_CREAT | O_TRUNC, mode);
-	if (out_fd < 0) {
-		printf("%s. Open %s: %s\n", appName, args.file, strerror(errno));
-		err = -1;
-		goto err_output_file;
-	}
-
-	wSize = write(out_fd, area, sizeof(struct nv_area_wr) * NV_NUMBERS);
-	if (wSize < 0) {
-		printf("%s. write NV area to output: %s\n", appName, strerror(errno));
-		err = -1;
-		goto err_write_area;
-	}
-	count = wSize;
-
-	while (tailSize) {
-		int size = tailSize < args.blockSize ?
-			tailSize : args.blockSize;
-		wSize = write(out_fd, fill_buf, size);
-		if (wSize < 0) {
-			printf("%s. write tail reverse: %s\n", appName, strerror(errno));
-			err = -1;
-			goto err_write_fill;
+	while (1) {
+		c = getopt(argc, argv, "c:o:p:h");
+		if (c < 0)
+			break;
+		switch (c) {
+		case 'c':
+			config = optarg;
+			break;
+		case 'o':
+			target = optarg;
+			break;
+		case 'p':
+			if (strncmp(optarg, "0x", 2))
+				padsize = atoi(optarg);
+			else
+				padsize = strtol(optarg, NULL, 16);
+			break;
+		case 'h':
+			usage(argv[0]);
+			return 0;
+		default:
+			usage(argv[0]);
+			return 1;
 		}
-
-		tailSize -= size;
-		count += wSize;
 	}
 
-	printf("\nFinal write:\t\t%d\n", count);
+	if (!config) {
+		pr_err("No config file specfied, exit...\n");
+		exit(-1);
+	}
 
-err_write_fill:
-err_write_area:
-	close(out_fd);
+	if (!target) {
+		pr_warn("No output file specfied, use default: nv.img.\n");
+		target = "nv.img";
+	}
 
-err_output_file:
-	free(fill_buf);
+	if (padsize == 0 || sizeof(info) > padsize) {
+		pr_err("Wrong padsize.\n");
+		return -1;
+	}
 
-err_alloc_fill:
-	free(area);
+	memset(&info, 0, sizeof(info));
 
-	return err;
+	ret = fill_info(&info, config);
+	if (ret) {
+		pr_err("fill info error.\n");
+		return -1;
+	}
+
+	if (!access(target, 0)) {
+		pr_info("%s exist, Remove it? <Y/n> ", target);
+		fflush(stdout);
+
+		c = getchar();
+		if (c == 'Y' || c == 'y' || c == '\n') {
+			pr_warn("%s removed!\n", target);
+			unlink(target);
+		} else if (c == 'N' || c == 'n') {
+			pr_err("Please backup %s firstly!\n", target);
+			return 0;
+		} else {
+			pr_err("Invalid choice!\n");
+			return -1;
+		}
+	}
+
+	fd = open(target, O_CREAT | O_WRONLY, 0666);
+	if (fd < 0) {
+		pr_err("Canot create %s: %s.\n", target, strerror(errno));
+		return -1;
+	}
+
+	ret = write(fd, &info, sizeof(info));
+	if (ret != sizeof(info)) {
+		pr_err("write info to %s error: %s, please re-try!\n",
+			   target, strerror(errno));
+		goto write_fail;
+	}
+
+	padsize -= sizeof(info);
+	if (padsize > 0) {
+		padvalue = malloc(padsize);
+		memset(padvalue, 0, padsize);
+		ret = write(fd, padvalue, padsize);
+		if (ret != padsize) {
+			free(padvalue);
+			pr_err("pad %s error: %s, please re-try!\n",
+				   target, strerror(errno));
+			goto write_fail;
+		}
+	}
+
+	close(fd);
+
+	return 0;
+
+write_fail:
+	if (fd >= 0)
+		close(fd);
+	unlink(target);
+
+	return -1;
 }

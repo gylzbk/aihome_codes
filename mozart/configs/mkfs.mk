@@ -109,14 +109,21 @@ rootfs:
 		echo -e "$$file: `$(TOPDIR)/configs/scripts/get_readable_filesize.sh $$file`"; \
 	done \
 
-updatepkg: rootfs
+update:
 	@echo
-	@$(call MESSAGE,"Update package:")
-ifneq ($(SUPPORT_UPDATE_LEGACY), 1)
-	[ -n "$(MOZART_VERSION)" ] && $(call UPDATE_PACKAGE_CMD,$(MOZART_VERSION))
-else
-	@echo "Mozart update legacy pakage WILL support!"
-endif
+	@$(call MESSAGE,"Ota Packages:")
+	@echo
+	@for product in output/updatepkg/*; do \
+		echo "product: `basename $$product`"; \
+		for version in $$product/v*; do \
+			echo "    version: `basename $$version`"; \
+			for file in $$version/*; do \
+				echo -e "        $$file: `$(TOPDIR)/configs/scripts/get_readable_filesize.sh $$file`"; \
+			done \
+		done \
+	done
+	@echo
+
 
 ##############################################
 #         install rootfs rules           #
@@ -177,7 +184,7 @@ $(TARGET_DIR)/updater.$(1)::
 	@$(call MESSAGE,"Build updater.$(1)")
 	echo "chown -R 0:0 $(APPFS_DIR)" > $(FAKEROOT_SCRIPT)
 	echo "makedevs -d $(DEVICE_TABLES) $(UPDATERFS_DIR) 2>/dev/null" >> $(FAKEROOT_SCRIPT)
-	echo "$(call ROOTFS_$(1)_CMDS,$(UPDATERFS_DIR),$$@)" >> $(FAKEROOT_SCRIPT)
+	echo "$(call ROOTFS_UPDATER_$(1)_CMDS,$(UPDATERFS_DIR),$$@)" >> $(FAKEROOT_SCRIPT)
 	chmod a+x $(FAKEROOT_SCRIPT)
 	PATH=$(OUTPUT_DIR)/host/usr/bin:$(OUTPUT_DIR)/host/usr/sbin:$(PATH) \
 	     $(fakeroot_bin) -l $(OUTPUT_DIR)/host/usr/lib/libfakeroot.so -f $(OUTPUT_DIR)/host/usr/bin/faked $(FAKEROOT_SCRIPT)
@@ -189,7 +196,7 @@ endif
 $(TARGET_DIR)/appfs.$(1)::
 	@$(call MESSAGE,"Build appfs.$(1)")
 	echo "chown -R 0:0 $(APPFS_DIR)" > $(FAKEROOT_SCRIPT)
-	echo "$(call ROOTFS_$(1)_CMDS,$(APPFS_DIR),$$@)" >> $(FAKEROOT_SCRIPT)
+	echo "$(call ROOTFS_APP_$(1)_CMDS,$(APPFS_DIR),$$@)" >> $(FAKEROOT_SCRIPT)
 	chmod a+x $(FAKEROOT_SCRIPT)
 	PATH=$(OUTPUT_DIR)/host/usr/bin:$(OUTPUT_DIR)/host/usr/sbin:$(PATH) \
 	     $(fakeroot_bin) -l $(OUTPUT_DIR)/host/usr/lib/libfakeroot.so -f $(OUTPUT_DIR)/host/usr/bin/faked $(FAKEROOT_SCRIPT)
@@ -208,7 +215,7 @@ rootfs-$(1)-fs: $(TARGET_DIR)/updater.$(1) $(TARGET_DIR)/appfs.$(1)
 
 rootfs-$(1):$$(ROOTFS_$(1)_DEPENDENCIES) host-$(1)-fakeroot-check rootfs-$(1)-prepare rootfs-$(1)-fs
 
-rootfs:rootfs-$(1) usrdata nvimage
+rootfs:rootfs-$(1) usrdata nvimg
 
 rootfs-$(1)-updater-prepare:
 	cp -f $(TOPDIR)/configs/devs.txt $(DEVICE_TABLES)
@@ -259,16 +266,36 @@ ifneq ("$(SUPPORT_SMARTUI)","1")
 	-rm -rf $(UPDATERFS_DIR)/usr/lib/libsmartui.so
 endif
 
+	@$(call MESSAGE,"Prepare nv settings")
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(UPDATERFS_DIR)/usr/data/system.ini -w -s nv -k storage -v $(FLASH_TYPE)
+ifeq ("$(FLASH_TYPE)","spinor")
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(UPDATERFS_DIR)/usr/data/system.ini -w -s nv -k blkname -v /dev/mtdblock1
+endif
+ifeq ("$(FLASH_TYPE)","spinand")
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(UPDATERFS_DIR)/usr/data/system.ini -w -s nv -k blkname -v /dev/mtdblock1
+endif
+ifeq ("$(FLASH_TYPE)","emmc")
+	# reset nv blkname.
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(UPDATERFS_DIR)/usr/data/system.ini -w -s nv -k blkname -v /dev/mmcblk0p2
+endif
+
+
+	@$(call MESSAGE,"Prepare device info")
 # correct fs type
 	sed -i 's/USRFSFS/$(SUPPORT_FS)/g' $(UPDATERFS_DIR)/etc/init.d/S00system_init.sh
 	sed -i 's/USRDATAFS/$(SUPPORT_USRDATA)/g' $(UPDATERFS_DIR)/etc/init.d/S00system_init.sh
-
-ifeq ($(SUPPORT_UPDATE_LEGACY), 1)
-	sed -i 's/UPDATE_LEGACY/1/g' $(UPDATERFS_DIR)/etc/init.d/S00system_init.sh
+ifeq ("$(1)","ext4")
+	# auto-mount true mmc card.
+	sed -i 's/^mmcblk\[0/^mmcblk\[1/g' $(UPDATERFS_DIR)/etc/mdev/mmc.sh
+	sed -i 's/YesOrNo/0/g' $(UPDATERFS_DIR)/etc/init.d/S00system_init.sh
 else
-	sed -i 's/UPDATE_LEGACY/0/g' $(UPDATERFS_DIR)/etc/init.d/S00system_init.sh
+ifeq ("$(1)","ubifs")
+	sed -i 's/YesOrNo/0/g' $(UPDATERFS_DIR)/etc/init.d/S00system_init.sh
+	sed -i 's/\(mount -t ubifs\ \)\(.*\)\(\ \/usr\/fs\)/\1ubi1:app\3/g' $(UPDATERFS_DIR)/etc/init.d/S00system_init.sh
+else
+	sed -i 's/YesOrNo/1/g' $(UPDATERFS_DIR)/etc/init.d/S00system_init.sh
 endif
-
+endif # correct fs type
 # cpu model filter.
 ifneq ("$(CPU_MODEL)","")
 		$(OUTPUT_DIR)/host/usr/bin/inirw -f $(UPDATERFS_DIR)/usr/data/system.ini -w -s product -k cpu -v $(CPU_MODEL)
@@ -355,6 +382,8 @@ ifeq ("$(SUPPORT_CUT_CONTINUE)","1")
 	-rm -f $(UPDATERFS_DIR)/usr/bin/{linuxrw}
 endif
 
+
+
 # tone
 ifeq ("$(SUPPORT_ATALK)","1")
 	-rm -rf $(UPDATERFS_DIR)/usr/share/vr/tone/*.mp3
@@ -416,6 +445,19 @@ else                                # mplayer_float(default)
 	mv  $(APPFS_DIR)/usr/bin/mplayer-float $(APPFS_DIR)/usr/bin/mplayer
 	rm $(APPFS_DIR)/usr/bin/mplayer-fixed
 endif
+endif
+
+# ui
+# wb38 
+	-rm $(APPFS_DIR)/usr/share/ui/
+ifeq ("$(SUPPORT_BOARD)","board_wb38")
+	mv $(APPFS_DIR)/usr/share/ui_wb38 $(APPFS_DIR)/usr/share/ui
+	-rm -rf $(APPFS_DIR)/usr/share/ui_ds1825/
+endif
+ # ds1825 
+ifeq ("$(SUPPORT_BOARD)","board_ds1825")
+	mv $(APPFS_DIR)/usr/share/ui_ds1825/ $(APPFS_DIR)/usr/share/ui/
+	-rm -rf $(APPFS_DIR)/usr/share/ui_wb38/
 endif
 
 
@@ -593,9 +635,11 @@ endif
 	-rm -rf $(APPFS_DIR)/usr/sbin/alarm_manager
 	-rm -rf $(APPFS_DIR)/etc/init.d/S01alarm.sh
 # cgi
+ifeq ("$(SUPPORT_CGI)", "0")
 	-rm -rf $(APPFS_DIR)/var/www/
 	-rm -rf $(APPFS_DIR)/etc/init.d/S88app.sh
 	-rm -rf $(UPDATERFS_DIR)/var/www
+endif
 
 # strip all ELF files.
 	@$(call MESSAGE,"Strip ELF files")
@@ -612,4 +656,49 @@ host-$(1)-fakeroot-check:
 	@test -x $(fakeroot_bin) || \
 		(echo "fakeroot is broken, please run 'make host-fakeroot-rebuild' Firstly!!" && exit 1)
 
+update: update-prepare update-$(1)-updater update-$(1)-appfs update-nvimg updatepkg-gen
+
+updatepkg-gen:
+	@$(TOPDIR)/tools/host-tools/update_pack/tool/gen_updatepkg.sh -v $(MOZART_VERSION) \
+		-m $(TOPDIR) -o $(UPDATEPKG_DIR)
+	@rm $(UPDATEPKG_DIR)/temp -rf
+
+update-prepare:
+	@mkdir -p $(UPDATEPKG_DIR)/temp
+update-$(1)-updater:
+	@$(call UPDATE_UPDATER_$(1)_CMDS)
+update-$(1)-appfs:
+	@$(call UPDATE_APP_$(1)_CMDS)
+
 endef
+
+nvimg: nvimg-prepare
+	@$(call MESSAGE,"Build nv.img")
+	@$(TOPDIR)/output/host/usr/bin/nvgen \
+		-c $(TOPDIR)/configs/nvimage.ini \
+		-o $(TARGET_DIR)/nv.img \
+		-p $(call mul,2,$(FLASH_ERASE_BLOCK_SIZE))
+
+nvimg-prepare:
+	@cp $(TOPDIR)/configs/ota.ini $(TOPDIR)/configs/nvimage.ini
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(TOPDIR)/configs/nvimage.ini -w -s ota -k product -v $(PRODUCT_NAME)
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(TOPDIR)/configs/nvimage.ini -w -s ota -k storage -v $(FLASH_TYPE)
+	$(OUTPUT_DIR)/host/usr/bin/inirw -f $(TOPDIR)/configs/nvimage.ini -w -s ota -k current_version -v $(MOZART_VERSION)
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(TOPDIR)/configs/nvimage.ini -w -s ota -k url -v \
+		`$(OUTPUT_DIR)/host/usr/bin/inirw -f $(TOPDIR)/configs/ota.ini -r -s ota -k url`
+ifeq ("$(FLASH_TYPE)","spinor")
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(TOPDIR)/configs/nvimage.ini -w -s ota -k method -v update_times
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(TOPDIR)/configs/nvimage.ini -w -s ota -k location -v /dev/mtdblock5
+endif
+ifeq ("$(FLASH_TYPE)","spinand")
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(TOPDIR)/configs/nvimage.ini -w -s ota -k method -v update_once
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(TOPDIR)/configs/nvimage.ini -w -s ota -k location -v /dev/mtdblock5
+endif
+ifeq ("$(FLASH_TYPE)","emmc")
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(TOPDIR)/configs/nvimage.ini -w -s ota -k method -v update_once
+	@$(OUTPUT_DIR)/host/usr/bin/inirw -f $(TOPDIR)/configs/nvimage.ini -w -s ota -k location -v /dev/mmcblk0p6
+endif
+
+
+update-nvimg:
+	@#cp -f $(TARGET_DIR)/nv.img $(UPDATEPKG_DIR)/temp

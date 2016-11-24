@@ -18,8 +18,6 @@
 #include "ai_server.h"
 #include "ai_error.h"
 
-#include "ai_elife_doss.h"
-
 #include "vr-speech_interface.h"
 
 unsigned long get_file_size(const char *path)
@@ -33,67 +31,8 @@ unsigned long get_file_size(const char *path)
     }
     return filesize;
 }
-#if 0
-//--------------------------------------------------- prompt something
-int ai_server_prompt(vr_info *recog,char *prompt){
-	if (prompt == NULL){
-		return -1;
-	}
-
-	free(recog->output);
-	recog->output = strdup(prompt);
-	if(recog->output)
-		recog->next_status = AIENGINE_STATUS_TTS_ANSWER;
-	else
-		recog->next_status = AIENGINE_STATUS_AEC;
 
 
-	return 0;
-}
-#endif
-#if 0
-static char *play_prompt = NULL;
-
-int ai_domain_update(int domain){
-//	char *prompt = NULL;
-	ai_domain = domain;
-	switch(ai_domain){
-		case RECOG_DOMAIN_MUSIC:
-			play_prompt = "音 乐";
-		break;
-		case RECOG_DOMAIN_CHAT:
-			play_prompt = "闲 聊";
-			break;
-		case RECOG_DOMAIN_WEATHER:
-			play_prompt = "天 气";
-			break;
-		case RECOG_DOMAIN_CALENDAR:
-			play_prompt = "日 历";
-			break;
-		case RECOG_DOMAIN_NETFM:
-			play_prompt = "电 台";
-			break;
-		case RECOG_DOMAIN_STOCK:
-			play_prompt = "股 票";
-			break;
-		case RECOG_DOMAIN_POETRY:
-			play_prompt = "诗 歌";
-			break;
-		default:
-			play_prompt = NULL;
-			break;
-	}
-
-	/*if (prompt){
-		free(play_prompt);
-		play_prompt = NULL;
-		play_prompt = strdup(prompt);
-		pr_debug("\ndomain=%d,prompt=%s,play_prompt=%s\n",domain,prompt,play_prompt);
-	}//*/
-	pr_debug("\ndomain=%d,play_prompt=%s\n",domain,play_prompt);
-	return 0;
-}
-#endif
 
 int ai_server_fun(vr_info *recog)
 {
@@ -109,19 +48,15 @@ int ai_server_fun(vr_info *recog)
 		goto exit_error;
 	}	//*/
 //-------------------------------------------------- sem error
-#if 0
-	//-------------------------------------------- long work test
-	recog->next_status     = AIENGINE_STATUS_AEC;
-	DEBUG("DEBUG: long work test \n");
-	goto exit_error;
-#endif
     /***Add sem timeout prompt to restart to wakeup after aoubt 8s by Ray Zhang***/
-	if(NULL == recog->input){
+	if((NULL == recog->input)
+	||(strlen(recog->input) == 0)){
 		recog->next_status     = AIENGINE_STATUS_ERROR;
 		recog->error_type = AI_ERROR_NO_VOICE;
 		error = -1;
 		goto exit_error;
 	}
+
     /***Add sem timeout prompt to restart to wakeup after aoubt 8s by Ray Zhang***/
 	if(SDS_STATE_EXIT==recog->state){
 		recog->next_status     = AIENGINE_STATUS_AEC;
@@ -136,6 +71,23 @@ int ai_server_fun(vr_info *recog)
 			goto exit_command;
 		}
 	}
+
+	#if SUPPORT_ELIFE
+		elife_t *elife = ai_elife_server(recog);
+		if (elife->resp.msg){
+			ai_tts(elife->resp.msg,false);
+		}
+		if (elife->resp.is_cy){					//	elife do
+			if (elife->resp.is_mult){			//	elife mult
+				recog->next_status  = AIENGINE_STATUS_SEM;
+			}
+			else{
+				recog->next_status  = AIENGINE_STATUS_AEC;
+			}
+			goto exit_error;
+		}
+	#endif
+
 
 	switch(recog->domain){
 	//	----------------------------------------  music
@@ -211,7 +163,7 @@ int ai_server_fun(vr_info *recog)
 					ai_tts(recog->output,false);
 				}
 				else{
-					ai_tts(recog->output,true);
+					ai_tts(recog->output,false);
 				}
 			}
 		break;
@@ -236,7 +188,7 @@ int ai_server_fun(vr_info *recog)
 					ai_tts(recog->output,false);
 				}
 				else{
-					ai_tts(recog->output,true);
+					ai_tts(recog->output,false);
 				}
 			}
 		break;
@@ -268,7 +220,7 @@ int ai_server_fun(vr_info *recog)
 					ai_tts(recog->output,false);
 				}
 				else{
-					ai_tts(recog->output,true);
+					ai_tts(recog->output,false);
 				}
 			}
 			break;
@@ -320,30 +272,31 @@ int ai_server_fun(vr_info *recog)
 	//	----------------------------------------    movie
 		case RECOG_DOMAIN_MOVIE:
 			recog->next_status     = AIENGINE_STATUS_AEC;
-			#if SUPPORT_ELIFE
+		/*	#if SUPPORT_ELIFE
 				ai_elife_movie_free();
 				if (recog->operation){
-					ai_elife.cmd = strdup(recog->operation);
+					elife.cmd = strdup(recog->operation);
 				}
 				if (recog->movie.name){
-					ai_elife.movie.name = strdup(recog->movie.name);
+					elife.movie.name = strdup(recog->movie.name);
 				}
-				ai_elife.movie.sequence = recog->movie.sequence;
+				elife.movie.sequence = atoi(recog->movie.sequence);
 
 				if (recog->movie.director){
-					ai_elife.movie.director = strdup(recog->movie.director);
+					elife.movie.director = strdup(recog->movie.director);
 				}
 				if (recog->movie.player){
-					ai_elife.movie.player = strdup(recog->movie.player);
+					elife.movie.player = strdup(recog->movie.player);
 				}
 				if (recog->movie.type){
-					ai_elife.movie.type = strdup(recog->movie.type);
+					elife.movie.type = strdup(recog->movie.type);
 				}
 				if (recog->movie.area){
-					ai_elife.movie.area= strdup(recog->movie.area);
+					elife.movie.area= strdup(recog->movie.area);
 				}
 				ai_elife_movie();
 			#endif
+			//*/
 		break;
 	//	----------------------------------------    command
 		case RECOG_DOMAIN_COMMAND:
@@ -431,7 +384,6 @@ exit_command:
 			}
 			break;
 #if AI_CONTROL_MOZART
-DEBUG("PASS\n");
 		case SDS_COMMAND_MUSIC_PAUSE:
 		//	mozart_prompt_tone_key_sync("pause",false);
 		//	ai_flag.is_play_music = false;
@@ -478,18 +430,19 @@ DEBUG("PASS\n");
 			break;
 		#if SUPPORT_ELIFE
 		case SDS_COMMAND_ELIFE:
+		/*	DEBUG("Start elfe command!...\n");
 			ai_elife_command_free();
 			if (recog->operation){
-				ai_elife.cmd = strdup(recog->operation);
+				elife.cmd = strdup(recog->operation);
 			}
 			if (recog->device){
-				ai_elife.name = strdup(recog->device);
+				elife.name = strdup(recog->device);
 			}
 			if (recog->location){
-				ai_elife.position = strdup(recog->location);
+				elife.position = strdup(recog->location);
 			}
 			ai_elife_command();
-			break;
+			break;	//*/
 		#endif
 #endif
 		default:
@@ -502,11 +455,11 @@ exit_error:
 	if (error<0){
 		recog->next_status    = AIENGINE_STATUS_ERROR;
 	}
-	if (recog->key_record_stop == false){
-		recog->status = recog->next_status    ;
-	}
-	else {
+	if((recog->key_record_stop == true)
+	|| (aiengine_ini.sds.is_multi == false)){	//	add sds multi check at  161106
 		recog->status = AIENGINE_STATUS_AEC;
+ 	} else {
+		recog->status = recog->next_status    ;
 	}
 	recog->key_record_stop = false;
    	return error;
@@ -514,7 +467,9 @@ exit_error:
 
 int ai_server_init(void)
 {
-//	ai_curlInit();
+	#if AI_LOG_ENABLE
+	ai_log_init();
+	#endif
 	//ai_music_list_init();
 //	ai_song_recommend_init();
 //	ai_song_recommend_auto();

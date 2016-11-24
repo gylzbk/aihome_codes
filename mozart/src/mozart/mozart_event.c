@@ -141,7 +141,7 @@ static void create_combo_pthread(int key, int value)
 
 extern int mozart_ini_setkey(char *ini_file, char *section, char *key, char *value);
 
-#if(SUPPORT_BOARD == BOARD_DS1825)
+#if(SUPPORT_BOARD == BOARD_DS1825 || SUPPORT_BOARD == BOARD_PUBLIC)
 /*******************************************************************************
  * long press
  *******************************************************************************/
@@ -337,7 +337,7 @@ static void mozart_event_key(mozart_event event)
 	}
 
 	#if (SUPPORT_VR == VR_SPEECH)
-		#if(SUPPORT_BOARD == BOARD_DS1825)
+		#if(SUPPORT_BOARD == BOARD_DS1825 || SUPPORT_BOARD == BOARD_PUBLIC)
 			if(code  == KEY_RECORD){		//-------------- record
 				if (value == 1){	//	wakeup
 					create_key_long_press_pthread(&record_key_info);
@@ -401,6 +401,7 @@ static void mozart_event_key(mozart_event event)
 			mozart_module_favorite();
 			break;
 		case KEY_F3:
+			mozart_prompt_tone_key_sync("bt_connected", true);
 			mozart_module_next_channel();
 			break;
 		case KEY_F2:
@@ -409,7 +410,7 @@ static void mozart_event_key(mozart_event event)
 		case KEY_F10:
 			mozart_module_mutex_lock();
 			if (__mozart_module_is_online())
-				mozart_update_control_try_start(true);
+				mozart_update_control_startup();
 			mozart_module_mutex_unlock();
 			break;
 		case KEY_F12:
@@ -720,11 +721,11 @@ static void mozart_event_misc(mozart_event event)
 
 	} else if (!strcasecmp(name, "bt_avrcp")) {
 		if (!strcasecmp(event.event.misc.type, "playing")) {
-			mozart_bt_avk_do_play();
+			mozart_bt_avk_do_play_without_shm();
 		} else if (!strcasecmp(event.event.misc.type, "paused")) {
 			mozart_bt_avk_do_pause();
 		} else if (!strcasecmp(event.event.misc.type, "stopped")) {
-			;
+			mozart_bt_avk_do_pause();
 		} else if (!strcasecmp(event.event.misc.type, "track_change")) {
 			mozart_bluetooth_avk_send_get_element_att_cmd();
 		} else if (!strcasecmp(event.event.misc.type, "play_pos")) {

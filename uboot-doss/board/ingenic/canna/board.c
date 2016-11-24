@@ -152,4 +152,73 @@ void spl_board_init(void)
 {
 }
 
+extern int mmc_block_read(u32 start, u32 blkcnt, u32 *dst);
+extern void sfc_nand_load(long offs,long size,void *dst);
+extern void sfc_nor_load(unsigned int src_addr, unsigned int count,unsigned int dst_addr);
+
+#ifdef CONFIG_GET_WIFI_MAC
+static char *board_process_wifimac_arg(char *arg)
+{
+	char *wifi_mac_str = NULL;
+	unsigned int mac_addr[512] = {};
+
+#if defined(CONFIG_SPL_SFC_NOR)
+	sfc_nor_load(WIFI_MAC_READ_ADDR, WIFI_MAC_READ_COUNT, mac_addr);
+#elif defined(CONFIG_SPL_SFC_NAND)
+	sfc_nand_load(WIFI_MAC_READ_ADDR, WIFI_MAC_READ_COUNT, mac_addr)
+#elif defined(CONFIG_SPL_JZMMC_SUPPORT)
+	mmc_block_read(WIFI_MAC_READ_ADDR / 0x200, 1, mac_addr);
+#endif
+
+	wifi_mac_str = strstr(arg, "wifi_mac");
+	if (wifi_mac_str != NULL)
+		memcpy(wifi_mac_str + 9, mac_addr, WIFI_MAC_READ_COUNT);
+
+	return arg;
+}
+#endif
+
+#ifdef CONFIG_GET_BAT_PARAM
+static char *board_process_bat_arg(char *arg)
+{
+	char *bat_param_str = NULL;
+	unsigned char *bat_str = "4400";
+	unsigned char buf[512] = {};
+
+#if defined(CONFIG_SPL_SFC_NOR)
+	sfc_nor_load(BAT_PARAM_READ_ADDR, BAT_PARAM_READ_COUNT, buf);
+#elif defined(CONFIG_SPL_SFC_NAND)
+	sfc_nand_load(BAT_PARAM_READ_ADDR, BAT_PARAM_READ_COUNT, buf)
+#elif defined(CONFIG_SPL_JZMMC_SUPPORT)
+	mmc_block_read(BAT_PARAM_READ_ADDR / 0x200, 1, buf);
+#endif
+
+	bat_param_str = strstr(arg, "bat");
+	/* [0x69, 0xaa, 0x55] new battery's flag in nv */
+	if((bat_param_str != NULL) && (buf[0] == 0x69) && (buf[1] == 0xaa)
+			&& (buf[2] ==0x55))
+		memcpy(bat_param_str + 4, bat_str, 4);
+
+	return arg;
+}
+#endif
+
+char *spl_board_process_bootargs(char *arg)
+{
+#ifdef CONFIG_GET_WIFI_MAC
+	arg = board_process_wifimac_arg(arg);
+#endif
+
+#ifdef CONFIG_GET_BAT_PARAM
+	arg = board_process_bat_arg(arg);
+#endif
+
+	return arg;
+}
+
+int spl_prepare_for_load_image(void)
+{
+	return 0;
+}
+
 #endif /* CONFIG_SPL_BUILD */

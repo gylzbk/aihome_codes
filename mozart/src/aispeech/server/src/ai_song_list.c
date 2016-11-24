@@ -22,7 +22,6 @@
 
 #include "vr-speech_interface.h"
 
-#include "aiengine.h"
 #include "aiengine_app.h"
 
 
@@ -110,33 +109,30 @@ void _renew_server(void){
 	int i = 0;
 	if (ai_song_list.is_set_renew){
 		ai_song_list.is_getting = true;
-		if(recog.status == AIENGINE_STATUS_AEC){
-			DEBUG("start renew list... \n");
-			ai_song_list.is_set_renew = false;
-			ai_song_list.renew_delay_s = 0;
-			for(i=0; i<SONG_GET_ERROR_MAX; i++){
-				if((ai_song_list.type == SONG_TYPE_AUTO)
-				 ||(ai_song_list.artist == NULL)){
-				//----------------------------- AUTO
-				 	DEBUG("SONG_TYPE_AUTO... \n");
-					if(_renew_list("我要听歌") == 0){
-						break;
-					}
-				} else {
-				//----------------------------- ARTIST
-				 	DEBUG("SONG_TYPE_ARTIST... \n");
-					if(_renew_list(ai_song_list.artist) == 0){
-						break;
-					}
+		DEBUG("start renew list... \n");
+		for(i=0; i<SONG_GET_ERROR_MAX; i++){
+			if((ai_song_list.type == SONG_TYPE_AUTO)
+			 ||(ai_song_list.artist == NULL)){
+			//----------------------------- AUTO
+			 	DEBUG("SONG_TYPE_AUTO... \n");
+				if(_renew_list("我要听歌") == 0){
+					break;
+				}
+			} else {
+			//----------------------------- ARTIST
+			 	DEBUG("SONG_TYPE_ARTIST... \n");
+				if(_renew_list(ai_song_list.artist) == 0){
+					break;
 				}
 			}
 		}
+		ai_song_list.renew_delay_s = 0;
+		ai_song_list.is_set_renew = false;
 		ai_song_list.is_getting = false;
  	} else {
- 	//	DEBUG("is_success = %d, renew_delay_s = %d , send_music = %d\n",
-	//		ai_song_list.is_success,ai_song_list.renew_delay_s,ai_song_list.is_send_music);
 		if (ai_song_list.is_success == false){
-			if(ai_song_list.renew_delay_s++ > 30){
+			if(ai_song_list.renew_delay_s++ > SONG_GET_WAIT_S){
+				ai_song_list.renew_delay_s = 0;
 				ai_song_list.is_set_renew= true;
 			}
 		} else {
@@ -145,7 +141,7 @@ void _renew_server(void){
 					if (aitalk_cloudplayer_is_playing() == false){
 						usleep(10000);
 						ai_song_list.is_send_music = false;
-						ai_aitalk_send(aitalk_send_next_music(false));	//*/
+						ai_aitalk_send(aitalk_send_next_music(false));	// renew music */
 						usleep(10000);
 					}
 				}
@@ -158,8 +154,6 @@ void _renew_server(void){
 void *_run_thread(void *args)
 {
 	pthread_detach(pthread_self());
-	int count = 0;
-	ai_song_list.is_send_music = true;
 	while (ai_song_list.is_working){
 		while(ai_song_list.is_running){
 			_renew_server();
@@ -244,7 +238,9 @@ int ai_song_list_get_from_param(cJSON *param){
 	                                        }
 	                                    }
 	                                }
-	                            }else{
+					                ai_song_list.song_num ++;
+									ai_song_list.is_success = true;
+	                            } else {
 	                     	       DEBUG("no url error!\n");
 	                  //              ret = -1;
 	                  //              goto exit_error;
@@ -252,10 +248,8 @@ int ai_song_list_get_from_param(cJSON *param){
 			        //     	    DEBUG("artist= %s\n",ai_song_list.song[i].artist);
 			       //             DEBUG("title= %s\n",ai_song_list.song[i].title);
 			      //              DEBUG("url= %s\n",ai_song_list.song[i].url);
-				                ai_song_list.song_num ++;
-								ai_song_list.is_success = true;
 				               	}else{
-		                            DEBUG("i_data error!\n")
+		                            DEBUG("i_data error!\n");
 		                       	}
 							}/*end for(i=0;i<song_num;i++)*/
 	                   	}/*end if (song_num>0)*/
@@ -285,6 +279,7 @@ int ai_song_list_init(void){
 	ai_song_list.song_num = 0;
 	ai_song_list.push_num = 0;
 	ai_song_list.is_working = true;
+	ai_song_list.is_running = false;
 	ai_song_list.is_set_renew = true;
 	if (pthread_create(&run_t, NULL, _run_thread, NULL) != 0) {
 		PERROR("Can't create ai_song_list_run_thread in : %s\n",strerror(errno));
@@ -305,13 +300,16 @@ void ai_song_list_exit(void){
 	ai_song_list.is_working = false;
 	ai_song_list.is_running = false;
 	ai_cloud_sem_text_stop();
+	_clean_list();
 	_free_all();
 }
 
 int ai_song_list_set_enable(bool enable){
 	if (enable){
 		ai_song_list.is_running = true;
-		ai_song_list.is_send_music = true;
+		if(aiengine_ini.server.is_auto_play){	//	auto play music
+			ai_song_list.is_send_music = true;
+		}
 	} else {
 		ai_song_list.is_running = false;
 		ai_song_list.is_send_music = false;
@@ -345,6 +343,9 @@ void ai_song_list_renew_artist(char *artist){
 	}
 }
 
+void ai_song_disable_auto_send(void){
+	ai_song_list.is_send_music = false;
+}
 
 /***************************************/
 // push one song
@@ -367,7 +368,7 @@ music_info *ai_song_list_push(void){
 			if (aitalk_cloudplayer_is_playing()){
 				usleep(10000);
 				ai_aitalk_send(aitalk_send_stop_music(false));	//*/
-				ai_song_list.is_send_music = true;
+			//	ai_song_list.is_send_music = true;
 				usleep(10000);
 			}
 			goto exit_error;

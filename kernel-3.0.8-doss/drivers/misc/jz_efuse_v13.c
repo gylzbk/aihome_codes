@@ -119,11 +119,6 @@ int jz_efuse_read(uint32_t seg_id, uint32_t data_length, uint32_t *buf)
 				dev_err(efuse->dev, "read segment %d data must length %d = 128 bit", seg_id, bit_num);
 				return -1;
 			}
-			val = efuse_readl(EFUSE_STATE);
-			if(val & CHIP_PRT) {
-				dev_err(efuse->dev, "segment chip_id is protected\n");
-				return -1;
-			}
 			break;
 		case RANDOM_ID:
 			if(bit_num != 128) {
@@ -134,10 +129,6 @@ int jz_efuse_read(uint32_t seg_id, uint32_t data_length, uint32_t *buf)
 			if(bit_num != 256) { /* read must word align */
 				dev_err(efuse->dev, "read segment %d data must length %d = 256 bit", seg_id, bit_num);
 				return -1;
-			}
-			val = efuse_readl(EFUSE_STATE);
-			if(val & CUSTID_PRT) {
-				dev_err(efuse->dev, "segment user_id is protected\n");
 			}
 			break;
 		case PROTECT_ID:

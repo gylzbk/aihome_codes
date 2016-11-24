@@ -94,15 +94,26 @@
 #ifdef  CONFIG_REGULATOR
 /*#define CONFIG_JZ_PMU_SLP_OUTPUT1*/
 #define CONFIG_INGENIC_SOFT_I2C
-#define CONFIG_PMU_AXP173
+#define CONFIG_SOFT_I2C_READ_REPEATED_START
+
+#ifdef CONFIG_PMU_AXP173
 #define CONFIG_AXP173_I2C_SCL GPIO_PB(23)
 #define CONFIG_AXP173_I2C_SDA GPIO_PB(24)
-#define CONFIG_SOFT_I2C_READ_REPEATED_START
-#define CONFIG_BATTERY_CAPACITY
+#endif
 #ifdef  CONFIG_BATTERY_CAPACITY
 #define USB_DETE GPIO_PB(8)
 #endif
+#ifdef CONFIG_PMU_CW2015
+#define CONFIG_CW2015_I2C_SCL GPIO_PB(23)
+#define CONFIG_CW2015_I2C_SDA GPIO_PB(24)
 #endif
+#ifdef  CONFIG_CW2015_BATTERY_CAPACITY
+#define USB_DETE GPIO_PB(8)
+#endif
+#endif
+
+
+
 
 #define CONFIG_JZ_HIBERNATE
 
@@ -119,7 +130,12 @@
 /**
  * Boot arguments definitions.
  */
-#define BOOTARGS_COMMON "console=ttyS2,57600n8 consoleblank=0 mem=32M@0x0 "
+#if defined CONFIG_64MB_LPDDR
+#define BOOTARGS_COMMON "console=ttyS2,57600n8 consoleblank=0 mem=64M "
+#else
+#define BOOTARGS_COMMON "console=ttyS2,57600n8 consoleblank=0 mem=32M "
+#endif
+
 #if defined(CONFIG_SPL_NOR_SUPPORT) || defined(CONFIG_SPL_SFC_SUPPORT)
 	#if defined(CONFIG_SPL_SFC_SUPPORT)
 		#if defined(CONFIG_SPL_SFC_NOR)
@@ -156,9 +172,12 @@
 #ifdef CONFIG_SPL_OS_BOOT
 #define CONFIG_SPL_OS_OFFSET        (0x100000) /* spi offset of zImage being loaded */
 #ifdef CONFIG_GET_BAT_PARAM
-#define CONFIG_SPL_BOOTARGS         BOOTARGS_COMMON "ip=off init=/linuxrc rootfstype=cramfs root=/dev/mtdblock3 bat=2200 rw"
+#define CONFIG_SPL_BOOTARGS         BOOTARGS_COMMON "rootfstype=cramfs root=/dev/mtdblock4 bat=4400"
 #else
 #define CONFIG_SPL_BOOTARGS         BOOTARGS_COMMON "ip=off init=/linuxrc rootfstype=cramfs root=/dev/mtdblock3 rw"
+#endif
+#ifdef CONFIG_BOARD_1825
+#define CONFIG_SPL_BOOTARGS         BOOTARGS_COMMON "rootfstype=cramfs root=/dev/mtdblock4 bat=4400"
 #endif
 #define CONFIG_SYS_SPL_ARGS_ADDR    CONFIG_SPL_BOOTARGS
 #ifndef CONFIG_UPDATE_LEGACY
@@ -171,6 +190,14 @@
 #define CONFIG_BOOTCOMMAND          "bootx sfc 0x80f00000 0xd00000"
 #endif /* CONFIG_UPDATE_LEGACY */
 #endif /* CONFIG_SPL_OS_BOOT */
+
+#define CONFIG_SPL_NV_BASE          CONFIG_SYS_TEXT_BASE
+#define NV_AREA_BASE_ADDR           (0x40000)
+#define CONFIG_SPL_OTA_OS_OFFSET       (0xd00000)  // spi offset of zImage being loaded		16M  */
+#ifdef CONFIG_SFC_NOR_32M
+#define CONFIG_SPL_OTA_OS_OFFSET       (0x1d00000) // spi offset of zImage being loaded		32M  */
+#endif
+#define CONFIG_SYS_SPL_OTA_ARGS_ADDR BOOTARGS_COMMON "init=/linuxrc rootfstype=cramfs root=/dev/mtdblock5 bat=4400"
 
 
 #define PARTITION_NUM 10
@@ -254,7 +281,8 @@
 #define CONFIG_LCD_GPIO_FUNC1_SLCD
 /*#define CONFIG_VIDEO_BM347WV_F_8991FTGF*/
 /*#define CONFIG_VIDEO_TRULY_TFT240240_2_E*/
-#define CONFIG_VIDEO_FRD240A3602B
+/*#define CONFIG_VIDEO_FRD240A3602B*/
+/*#define CONFIG_VIDEO_FRD20024N */
 
 #ifdef CONFIG_RLE_LCD_LOGO
 /*#define CONFIG_CMD_BATTERYDET*/       /* detect battery and show charge logo */

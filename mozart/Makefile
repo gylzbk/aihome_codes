@@ -77,7 +77,6 @@ endif
 
 -include configs/version.mk
 export MOZART_VERSION
-export MOZART_VERSION_LEGACY
 
 OUTPUT_DIR := $(TOPDIR)/output
 
@@ -90,6 +89,7 @@ MOLIB_APP_DIR:= $(MOLIB_DIR)
 MOLIB_UPDATER_DIR := $(OUTPUT_DIR)/molib/updater
 
 TARGET_DIR := $(OUTPUT_DIR)/target
+UPDATEPKG_DIR := $(OUTPUT_DIR)/updatepkg
 
 APPFS_DIR := $(OUTPUT_DIR)/fs/appfs
 UPDATERFS_DIR := $(OUTPUT_DIR)/fs/updaterfs
@@ -104,6 +104,7 @@ export MOLIB_DIR
 export MOLIB_APP_DIR
 export MOLIB_UPDATER_DIR
 export TARGET_DIR
+export UPDATEPKG_DIR
 export APPFS_DIR
 export USRDATAFS_DIR
 export UPDATERFS_DIR
@@ -120,7 +121,7 @@ ifeq ($(MOZART_DIR)/usr/include/mozart_config.h,$(wildcard $(MOZART_DIR)/usr/inc
 
 include $(TOPDIR)/configs/config.mk
 
-all: world updatepkg
+all: world rootfs
 
 include configs/pkg.mk
 include configs/mkfs.mk
@@ -137,10 +138,10 @@ debug:
 
 prepare: dirs
 
-dirs: $(OUTPUT_DIR) $(TARGET_DIR) $(APPFS_DIR) $(MOZART_DIR) $(USRDATAFS_DIR) $(UPDATERFS_DIR)
+dirs: $(OUTPUT_DIR) $(TARGET_DIR) $(UPDATEPKG_DIR) $(APPFS_DIR) $(MOZART_DIR) $(USRDATAFS_DIR) $(UPDATERFS_DIR)
 
 
-$(OUTPUT_DIR) $(APPFS_DIR) $(MOZART_DIR) $(USRDATAFS_DIR) $(UPDATERFS_DIR):
+$(OUTPUT_DIR) $(UPDATEPKG_DIR) $(APPFS_DIR) $(MOZART_DIR) $(USRDATAFS_DIR) $(UPDATERFS_DIR):
 	@mkdir -p $@
 $(TARGET_DIR)::
 	@rm -rf $@; mkdir -p $@
@@ -411,6 +412,22 @@ board_wb38_config: board_type_define_config
 	@echo "#define AP_NAME DEVICE_NAME" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 
+# memory config in config.mak and config.h
+#       32M: 
+#   	64M: 
+memory_type_define_config:
+	@echo "/*--------------------------MEMORY */" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define MEMORY_32M 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "#define MEMORY_64M 1" >> $(MOZART_DIR)/usr/include/mozart_config.h
+memory_32m_config:
+	@echo "SUPPORT_MEMORY=MEMORY_64M" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_MEMORY MEMORY_64M" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(TOPDIR)/configs/config.mk
+memory_64m_config:
+	@echo "SUPPORT_MEMORY=MEMORY_64M" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_MEMORY MEMORY_64M" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(TOPDIR)/configs/config.mk
+
 
 # networking type @yuanze.zhang 160907
 # ATALK_AIRKISS : 0
@@ -436,6 +453,18 @@ lapsule_enable_config:
 lapsule_disable_config:
 	@echo "SUPPORT_LAPSULE=0" >> $(TOPDIR)/configs/config.mk
 	@echo "#define SUPPORT_LAPSULE 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(TOPDIR)/configs/config.mk
+
+# elife config in config.mak and config.h
+#       1: enable
+#   other: disable
+elife_enable_config:
+	@echo "SUPPORT_ELIFE=1" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_ELIFE 1" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(TOPDIR)/configs/config.mk
+elife_disable_config:
+	@echo "SUPPORT_ELIFE=0" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_ELIFE 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(TOPDIR)/configs/config.mk
 
 # aispeech config in config.mak and config.h
@@ -544,6 +573,20 @@ smartui_disable_config:
 	@echo "SUPPORT_SMARTUI=0" >> $(TOPDIR)/configs/config.mk
 	@echo "" >> $(TOPDIR)/configs/config.mk
 	@echo "#define SUPPORT_SMARTUI 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
+
+# cgi config in config.mak and config.h
+#	1: enable
+#	other: disalbe
+cgi_enable_config:
+	@echo "SUPPORT_CGI=1" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_CGI 1" >> $(MOZART_DIR)/usr/include/mozart_config.h
+	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
+cgi_disable_config:
+	@echo "SUPPORT_CGI=0" >> $(TOPDIR)/configs/config.mk
+	@echo "" >> $(TOPDIR)/configs/config.mk
+	@echo "#define SUPPORT_CGI 0" >> $(MOZART_DIR)/usr/include/mozart_config.h
 	@echo "" >> $(MOZART_DIR)/usr/include/mozart_config.h
 
 # airplay config in config.mak and config.h
@@ -731,16 +774,27 @@ audio_dev_x1000_config:
 #      USRDATA_FLASH_PAGESIZE: flash page size
 #     USRDATA_FLASH_ERASESIZE: flash earse size
 #       USRDATA_FLASH_PADSIZE: usrdata partition size
+flash_spi_gd25q256c_config:
+	@echo "FLASH_TYPE=spinor" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_PAGE_SIZE=0x100" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_ERASE_BLOCK_SIZE=0x8000" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_USRDATA_PADSIZE=0xa0000" >> $(TOPDIR)/configs/config.mk #640KB
+
 flash_spi_gd25q128c_config:
-	@echo "USRDATA_FLASH_PAGESIZE=0x100" >> $(TOPDIR)/configs/config.mk
-	@echo "USRDATA_FLASH_ERASESIZE=0x8000" >> $(TOPDIR)/configs/config.mk
-	@echo "USRDATA_FLASH_PADSIZE=0xa0000" >> $(TOPDIR)/configs/config.mk #640KB
+	@echo "FLASH_TYPE=spinor" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_PAGE_SIZE=0x100" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_ERASE_BLOCK_SIZE=0x8000" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_USRDATA_PADSIZE=0xa0000" >> $(TOPDIR)/configs/config.mk #640KB
 
 flash_spi_gd25lq64c_config:
-	@echo "USRDATA_FLASH_PAGESIZE=0x100" >> $(TOPDIR)/configs/config.mk
-	@echo "USRDATA_FLASH_ERASESIZE=0x8000" >> $(TOPDIR)/configs/config.mk
-	@echo "USRDATA_FLASH_PADSIZE=0x38000" >> $(TOPDIR)/configs/config.mk #224KB
+	@echo "FLASH_TYPE=spinor" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_PAGE_SIZE=0x100" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_ERASE_BLOCK_SIZE=0x8000" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_USRDATA_PADSIZE=0x38000" >> $(TOPDIR)/configs/config.mk #224KB
 
+flash_emmc_config:
+	@echo "FLASH_TYPE=emmc" >> $(TOPDIR)/configs/config.mk
+	@echo "FLASH_ERASE_BLOCK_SIZE=0x8000" >> $(TOPDIR)/configs/config.mk # virtual setting, ONLY used for padding nv.img
 
 ###########################################################################
 #
@@ -825,6 +879,7 @@ ds1825_atalk_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_a
 		smartui_enable_config webrtc_aec_enable_config\
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
+		cgi_disable_config elife_disable_config \
 		board_ds1825_config netowrk_atalk_airkiss_config aispeech_disable_config\
 		mplayer_float_config vr_atalk_config vr_wakeup_voice_config \
 		atalk_enable_config adb_enable_config battery_nv_flag_enable_config\
@@ -836,7 +891,22 @@ ds1825_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare produc
 		smartui_enable_config webrtc_aec_enable_config\
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
-		board_ds1825_config netowrk_atalk_airkiss_config aispeech_enable_config\
+		cgi_disable_config elife_disable_config \
+		board_ds1825_config memory_type_define_config memory_64m_config \ 
+		netowrk_atalk_airkiss_config aispeech_enable_config\
+		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
+		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
+		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
+	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
+
+ds1825_aispeech_elife_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_aslmom_v1.0_ap6212a_config \
+		wifi_ap6212a_atalk_config bt_ap6212a_config bt_hci_dev_ttyS0_config \
+		smartui_enable_config webrtc_aec_enable_config\
+		audio_dev_x1000_config dmr_enable_config dms_disable_config \
+		airplay_enable_config localplayer_enable_config \
+		cgi_enable_config elife_enable_config \
+		board_ds1825_config memory_type_define_config memory_64m_config \
+		netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
 		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
@@ -847,24 +917,40 @@ wb38_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_
 		smartui_enable_config webrtc_aec_enable_config\
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
-		board_wb38_config netowrk_atalk_airkiss_config aispeech_enable_config\
+		cgi_disable_config elife_disable_config \
+		board_wb38_config memory_type_define_config memory_64m_config \
+		netowrk_atalk_airkiss_config aispeech_enable_config \
+		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
+		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config \
+		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
+	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
+
+wb38_aispeech_elife_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_aslmom_v1.0_ap6212a_config \
+		wifi_ap6212a_atalk_config bt_ap6212a_config bt_hci_dev_ttyS0_config \
+		smartui_enable_config webrtc_aec_enable_config\
+		audio_dev_x1000_config dmr_enable_config dms_disable_config \
+		airplay_enable_config localplayer_enable_config \
+		cgi_disable_config elife_enable_config \
+		board_wb38_config memory_type_define_config memory_64m_config \
+		netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
 		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
-	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
+	@echo "Config complete sdk with cramfs for elife v1.0 ap6212a board"
 
 public_aispeech_v1.0_ap6212a_cramfs_atalk_config: unconfig mozart_prepare product_aslmom_v1.0_ap6212a_config \
 		wifi_ap6212a_atalk_config bt_ap6212a_config bt_hci_dev_ttyS0_config \
 		smartui_disable_config webrtc_aec_enable_config\
 		audio_dev_x1000_config dmr_enable_config dms_disable_config \
 		airplay_enable_config localplayer_enable_config \
-		board_public_config netowrk_atalk_airkiss_config aispeech_enable_config\
+		cgi_disable_config elife_disable_config \
+		board_public_config memory_type_define_config memory_32m_config \
+		netowrk_atalk_airkiss_config aispeech_enable_config\
 		mplayer_float_config vr_speech_config vr_wakeup_voice_config \
 		aitalk_enable_config adb_enable_config battery_nv_flag_enable_config\
 		rootfs_cramfs_config usrdata_jffs2_config flash_spi_gd25q128c_config
 	@echo "Config complete sdk with cramfs for ds1825 v1.0 ap6212a board"
-
-
+	
 canna_v1.0_ap6212a_cramfs_config: unconfig mozart_prepare product_canna_v1.0_ap6212a_config \
 		wifi_ap6212a_config bt_ap6212a_config bt_hci_dev_ttyS0_config \
 		lcd_disable_config webrtc_aec_disable_config \

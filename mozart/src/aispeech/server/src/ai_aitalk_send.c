@@ -8,7 +8,7 @@
 #include <semaphore.h>
 #include <json-c/json.h>
 #include "vr-speech_interface.h"
-#include "aiengine.h"
+#include "aiengine_app.h"
 
 #ifndef MOZART_RELEASE
 #define MOZART_AITALK_DEBUG
@@ -43,10 +43,9 @@ int ai_aitalk_sem_init(void){
 
 char *send_obj(char *method,json_object *obj)
 {
-	json_object *o;
-	const char *s;
-	free(pjson);
-	pjson =   NULL;
+	json_object *o = NULL;
+	const char *s = NULL;
+
 	o = json_object_new_object();
 	if (method) {
 		/* notification */
@@ -59,9 +58,11 @@ char *send_obj(char *method,json_object *obj)
 	}
 
 	s = json_object_to_json_string(o);
-//	pr_debug("<<<< %s\n", s);
+	pr_debug("<<<< %s\n", s);
 	if (s){
-		pjson = strdup(s);
+		free(aitalk_pipe_buf);
+		aitalk_pipe_buf = NULL;
+		aitalk_pipe_buf = strdup(s);
 	}
 	if (o){
 		json_object_put(o);
@@ -72,7 +73,7 @@ char *send_obj(char *method,json_object *obj)
 		}
 	}
 exit_err:
-	return pjson;
+	return aitalk_pipe_buf;
 }
 
 
@@ -135,7 +136,6 @@ char *aitalk_send_pause(bool tone){
 }
 
 char *aitalk_send_resume(bool tone){
-	DEBUG("\n");
 	char *tone_s;
 	if (tone)
 		tone_s = "true";
@@ -148,7 +148,6 @@ char *aitalk_send_resume(bool tone){
 }
 
 char *aitalk_send_stop_music(bool tone){
-	DEBUG("\n");
 	char *tone_s;
 	if (tone)
 		tone_s = "true";
@@ -167,7 +166,6 @@ char *aitalk_send_play_music(const char *url){
 #endif
 
 char *aitalk_send_previous_music(bool tone){
-	DEBUG("\n");
 	char *tone_s;
 	if (tone)
 		tone_s = "true";
@@ -180,7 +178,6 @@ char *aitalk_send_previous_music(bool tone){
 }
 
 char *aitalk_send_next_music(bool tone){
-	DEBUG("\n");
 	char *tone_s;
 	if (tone)
 		tone_s = "true";
@@ -193,17 +190,14 @@ char *aitalk_send_next_music(bool tone){
 }
 
 char *aitalk_send_current_music(bool tone){
-	DEBUG("\n");
 	return send_obj("current_music",NULL);
 }
 
 char *aitalk_send_exit(const char *url){
-	DEBUG("\n");
 	return send_obj("exit",NULL);
 }
 
 char *aitalk_send_error(const char *error_key){
-	DEBUG("\n");
 	json_object *params;
 	if (error_key == NULL){
 		return NULL;
@@ -214,7 +208,6 @@ char *aitalk_send_error(const char *error_key){
 }
 
 char *aitalk_send_set_volume(const char *cmd, const char *tone_key){
-	DEBUG("\n");
 	json_object *params;
 
 	if (cmd == NULL){
@@ -247,9 +240,9 @@ int ai_aitalk_send(char *data){
 		return -1;
 	}
 	DEBUG("==> %s\n",data);
-	free(aitalk_pipe_buf);
-	aitalk_pipe_buf = NULL;
-	aitalk_pipe_buf = strdup(data);
+//	free(aitalk_pipe_buf);
+//	aitalk_pipe_buf = NULL;
+//	aitalk_pipe_buf = strdup(data);
 
 	sem_post(&sem_ai_send);
 	return 0;
@@ -264,8 +257,6 @@ int ai_aitalk_send_stop(void){
 	usleep(1000);
 	free(aitalk_pipe_buf);
 	aitalk_pipe_buf = NULL;
-	free(pjson);
-	pjson =   NULL;
 	return 0;
 }
 
